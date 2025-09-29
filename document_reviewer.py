@@ -876,6 +876,7 @@ class DocumentReviewSystem:
             raise ValueError("ANTHROPIC_API_KEY environment variable not found. Please set it in your .bashrc")
         
         self.client = Anthropic(api_key=api_key)
+        self.detailed_output = []  # Capture all detailed output for the report
         
         # Initialize all 27 reviewers - each as individual API call
         self.reviewers = {
@@ -930,13 +931,19 @@ class DocumentReviewSystem:
     def run_reviews(self, document: str, resume_from: int = 1) -> Dict[str, ReviewResponse]:
         """Run all reviews on the document, optionally resuming from a specific point"""
         results = {}
+        self.detailed_output = []  # Reset for new run
         
-        if resume_from > 1:
-            print(f"🔍 Resuming 27-point document review from point {resume_from}...")
-        else:
-            print("🔍 Starting 27-point document review process...")
-        print("💭 Extended thinking enabled with 30,000 token budget per review")
-        print("=" * 70)
+        header_msg = f"🔍 Resuming 27-point document review from point {resume_from}..." if resume_from > 1 else "🔍 Starting 27-point document review process..."
+        print(header_msg)
+        self.detailed_output.append(header_msg)
+        
+        budget_msg = "💭 Extended thinking enabled with 30,000 token budget per review"
+        print(budget_msg)
+        self.detailed_output.append(budget_msg)
+        
+        separator = "=" * 70
+        print(separator)
+        self.detailed_output.append(separator)
         
         # Convert reviewers dict to list for indexing
         reviewer_items = list(self.reviewers.items())
@@ -946,7 +953,9 @@ class DocumentReviewSystem:
         if start_index < 0:
             start_index = 0
         elif start_index >= len(reviewer_items):
-            print(f"⚠️  Resume point {resume_from} is beyond available reviews (27). Starting from beginning.")
+            warning_msg = f"⚠️  Resume point {resume_from} is beyond available reviews (27). Starting from beginning."
+            print(warning_msg)
+            self.detailed_output.append(warning_msg)
             start_index = 0
         
         # Add skipped reviews as "SKIPPED"
@@ -959,7 +968,9 @@ class DocumentReviewSystem:
         
         for i in range(start_index, len(reviewer_items)):
             review_name, reviewer = reviewer_items[i]
-            print(f"\n🔄 Running: {review_name}")
+            running_msg = f"\n🔄 Running: {review_name}"
+            print(running_msg)
+            self.detailed_output.append(running_msg)
             
             # Start timing the review
             start_time = time.time()
@@ -976,9 +987,18 @@ class DocumentReviewSystem:
                     end_time = time.time()
                     duration_seconds = end_time - start_time
                     duration_minutes = duration_seconds / 60.0
-                    print(f"⏱️ First run completed in {duration_minutes:.2f} minutes")
-                    print(f"Result: {result.result.value} (First run)")
-                    print("🔄 Running Point 27 again for confirmation...")
+                    
+                    first_run_msg = f"⏱️ First run completed in {duration_minutes:.2f} minutes"
+                    print(first_run_msg)
+                    self.detailed_output.append(first_run_msg)
+                    
+                    first_result_msg = f"Result: {result.result.value} (First run)"
+                    print(first_result_msg)
+                    self.detailed_output.append(first_result_msg)
+                    
+                    second_run_msg = "🔄 Running Point 27 again for confirmation..."
+                    print(second_run_msg)
+                    self.detailed_output.append(second_run_msg)
                     
                     # Second run
                     second_start_time = time.time()
@@ -989,26 +1009,47 @@ class DocumentReviewSystem:
                     second_duration_minutes = second_duration_seconds / 60.0
                     
                     total_duration_minutes = duration_minutes + second_duration_minutes
-                    print(f"⏱️ Second run completed in {second_duration_minutes:.2f} minutes")
-                    print(f"⏱️ Total time: {total_duration_minutes:.2f} minutes")
-                    print("-" * 40)
+                    second_time_msg = f"⏱️ Second run completed in {second_duration_minutes:.2f} minutes"
+                    print(second_time_msg)
+                    self.detailed_output.append(second_time_msg)
+                    
+                    total_time_msg = f"⏱️ Total time: {total_duration_minutes:.2f} minutes"
+                    print(total_time_msg)
+                    self.detailed_output.append(total_time_msg)
+                    
+                    separator_msg = "-" * 40
+                    print(separator_msg)
+                    self.detailed_output.append(separator_msg)
                     
                     # Final result based on both runs
                     if second_result.result == ReviewResult.PASS:
-                        print(f"Result: ✅ PASS (Both runs passed)")
+                        final_pass_msg = f"Result: ✅ PASS (Both runs passed)"
+                        print(final_pass_msg)
+                        self.detailed_output.append(final_pass_msg)
                         results[review_name] = ReviewResponse(
                             result=ReviewResult.PASS,
                             reasoning="PASS - Both comprehensive analysis runs completed successfully"
                         )
                     else:
-                        print(f"Result: ❌ FAIL (Second run failed)")
-                        print("\nSecond run issues:")
+                        final_fail_msg = f"Result: ❌ FAIL (Second run failed)"
+                        print(final_fail_msg)
+                        self.detailed_output.append(final_fail_msg)
+                        
+                        second_issues_header = "\nSecond run issues:"
+                        print(second_issues_header)
+                        self.detailed_output.append(second_issues_header)
+                        
                         print(second_result.reasoning)
+                        self.detailed_output.append(second_result.reasoning)
+                        
                         results[review_name] = ReviewResponse(
                             result=ReviewResult.FAIL,
                             reasoning=f"First run: PASS\nSecond run: FAIL\n\nSecond run issues:\n{second_result.reasoning}"
                         )
-                        print("\n" + "-" * 40)
+                        
+                        end_separator = "\n" + "-" * 40
+                        print(end_separator)
+                        self.detailed_output.append(end_separator)
                 else:
                     # Normal handling for all other cases
                     results[review_name] = result
@@ -1017,20 +1058,41 @@ class DocumentReviewSystem:
                     end_time = time.time()
                     duration_seconds = end_time - start_time
                     duration_minutes = duration_seconds / 60.0
-                    print(f"⏱️ Completed in {duration_minutes:.2f} minutes")
-                    print("-" * 40)
+                    
+                    time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                    print(time_msg)
+                    self.detailed_output.append(time_msg)
+                    
+                    sep_msg = "-" * 40
+                    print(sep_msg)
+                    self.detailed_output.append(sep_msg)
                     
                     # Print immediate result with details for failures
                     if result.result == ReviewResult.PASS:
-                        print(f"Result: {result.result.value}")
+                        result_msg = f"Result: {result.result.value}"
+                        print(result_msg)
+                        self.detailed_output.append(result_msg)
                     else:
-                        print(f"Result: {result.result.value}")
+                        fail_result_msg = f"Result: {result.result.value}"
+                        print(fail_result_msg)
+                        self.detailed_output.append(fail_result_msg)
+                        
                         # Only show cleanup message for points that actually do cleanup
                         if not isinstance(reviewer, ReasoningThoughtsReviewer):
-                            print("🧹 Cleaning up failure details...")
-                        print("\nIssues Found:")
+                            cleanup_msg = "🧹 Cleaning up failure details..."
+                            print(cleanup_msg)
+                            self.detailed_output.append(cleanup_msg)
+                        
+                        issues_header = "\nIssues Found:"
+                        print(issues_header)
+                        self.detailed_output.append(issues_header)
+                        
                         print(result.reasoning)
-                        print("\n" + "-" * 40)
+                        self.detailed_output.append(result.reasoning)
+                        
+                        issues_separator = "\n" + "-" * 40
+                        print(issues_separator)
+                        self.detailed_output.append(issues_separator)
                 
             except Exception as e:
                 error_result = ReviewResponse(
@@ -1038,14 +1100,29 @@ class DocumentReviewSystem:
                     reasoning=f"Review failed due to error: {str(e)}"
                 )
                 results[review_name] = error_result
-                print(f"Result: ❌ ERROR - {str(e)}")
+                
+                error_msg = f"Result: ❌ ERROR - {str(e)}"
+                print(error_msg)
+                self.detailed_output.append(error_msg)
         
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
         """Generate comprehensive review report for all 27 review points"""
         report = []
-        report.append("📋 DOCUMENT REVIEW REPORT - 27 POINT ANALYSIS")
+        
+        # Add the complete detailed execution log first
+        report.append("📋 COMPLETE EXECUTION LOG")
+        report.append("=" * 70)
+        report.append("")
+        
+        # Add all the detailed output that was captured during execution
+        for line in self.detailed_output:
+            report.append(line)
+        
+        report.append("")
+        report.append("")
+        report.append("📋 FINAL SUMMARY REPORT - 27 POINT ANALYSIS")
         report.append("=" * 70)
         report.append("")
         
@@ -1077,7 +1154,7 @@ class DocumentReviewSystem:
         report.append("")
         report.append("=" * 70)
         
-        # Results - show passes concisely, failures in detail
+        # Results - show all details since we now have the complete log above
         for review_name, result in results.items():
             report.append("")
             report.append(f"📝 {review_name.upper()}")
@@ -1089,10 +1166,11 @@ class DocumentReviewSystem:
                 report.append(f"Status: {result.result.value}")
                 
                 if result.result == ReviewResult.FAIL:
-                    # Don't show full details again since they were already displayed immediately
                     report.append("")
-                    report.append("Issues Found: (See details above)")
-                # For passes, don't show detailed reasoning to keep output clean
+                    report.append("Issues Found:")
+                    report.append(result.reasoning)
+                elif result.result == ReviewResult.PASS:
+                    report.append("Review passed successfully")
             
             report.append("")
             report.append("-" * 50)
