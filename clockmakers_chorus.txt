@@ -1,0 +1,626 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Sorting Algorithms", "Searching Algorithms", "Arrays and Lists", "Heaps and Priority Queues", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, Exponential -> O(T log n) -> O(n log n log R) -> O(n log n)
+
+**Number of Chains:** - 9
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Clockmaker’s Chorus**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **8 MB**
+
+In the city of Gearsfall, a grand clocktower conducts a nightly light-and-chime performance. The maestro has \(n\) enchanted chimes, each with a resonance power \(p_i\). Every strike adds its resonance to the ongoing crescendo. But the clockwork is delicate: once a chime is struck, it must cool for \(c\) beats before that same chime may be struck again. The maestro wants to reach a target crescendo \(R\) as fast as possible to unveil the final spectacle.
+
+In each beat, exactly one chime may be struck. What is the minimum number of beats needed to reach a total resonance of at least \(R\)?
+
+You are given:
+- \(n\) chimes with resonance values \(p_1, p_2, \dots, p_n\).
+- A cooling rule: the same chime cannot be struck again in the next \(c\) beats after being used (i.e., the gap between two uses of the same chime must be at least \(c + 1\) beats).
+- A target total resonance \(R\).
+In one beat, choose one chime and add its resonance to the total.
+
+Compute the minimum number of beats required to reach a total resonance of at least \(R\).
+
+Notes:
+- Chimes can be reused any number of times, subject to the cooling rule.
+- It is guaranteed that \(c ≤ n − 1\), so you are never forced to idle.
+
+**Input Format:-**
+- The first line contains an integer \(t\), the number of test cases.
+- Each test case consists of:
+  - A line with three integers \(n\), \(R\), \(c\).
+  - A line with \(n\) integers \(p_1, p_2, \dots, p_n\).
+
+**Output Format:-**
+For each test case, print a single integer — the minimum number of beats needed to reach at least \(R\) total resonance.
+
+**Constraints:-**
+- \(1 ≤ t ≤ 100000\)
+- \(1 ≤ n ≤ 200000\)
+- \(1 ≤ R ≤ 10^{18}\)
+- \(1 ≤ p_i ≤ 10^{9}\)
+- \(1 ≤ c ≤ n − 1\)
+- The sum of \(n\) over all test cases does not exceed \(200000\).
+**Examples:-**
+ - **Input:**
+```
+1
+3 3 1
+4 2 1
+```
+
+ - **Output:**
+```
+1
+```
+**Explanation**
+
+- \( n = 3 \), \( R = 3 \), \( c = 1 \)  
+- Powers: \( p = [4, 2, 1] \)
+
+The strongest chime has power \( 4 \).  
+Since \( 4 \geq R = 3 \), striking this chime once is sufficient to reach the target.  
+
+Minimum beats required = **1**.
+
+ - **Input:**
+```
+1
+5 66 3
+10 10 9 8 1
+```
+
+ - **Output:**
+```
+7
+```
+**Explanation**
+
+- \( n = 5 \), \( R = 66 \), \( c = 3 \)  
+- Powers: \( p = [10, 10, 9, 8, 1] \)
+
+Cooldown \( c = 3 \) implies that the same chime can be struck again only after **4 beats** (current beat + \( c + 1 \)).  
+Therefore, in every block of 4 consecutive beats, **4 distinct chimes** must be used.
+
+Sort the powers in descending order:
+
+\[
+[10,\, 10,\, 9,\, 8,\, 1]
+\]
+
+- In the **first 4 beats**, use the top 4 chimes:
+  \[
+  10 + 10 + 9 + 8 = 37
+  \]
+  Total after 4 beats = 37.  
+  Remaining target = \( 66 - 37 = 29 \).
+
+- The chime used in beat 1 (power 10) becomes available again at beat 5.  
+  Similarly, the second and third chimes become available at beats 6 and 7.
+
+- **Next 3 beats**:
+  - Beat 5 → strike 10  
+  - Beat 6 → strike 10  
+  - Beat 7 → strike 9  
+  Total added = \( 10 + 10 + 9 = 29 \)
+
+\[
+37 + 29 = 66
+\]
+
+The target is reached at beat 7.
+
+Minimum beats required = **7**.
+
+**Note:-**
+In the first example, the target R = 3 is no larger than the strongest chime (4). Strike the 4-power chime once; total ≥ R after 1 beat. The cooldown doesn’t matter because we finish immediately.
+
+In the first example, with R = 66 and c = 3, any 4 consecutive beats must use distinct chimes. The top four values are 10, 10, 9, 8, so one 4-beat block sums to 37. After 4 beats we have 37; we need 29 more. In the next beats, pick 10, 10, 9 (+29) to reach 66 at beat 7. Hence the minimum is 7.
+
+- The cooldown applies per chime (by index), not per value; equal-valued chimes can be used in consecutive beats if they are different chimes.
+- Since c ≤ n − 1, you never need to idle; there is always some chime available each beat.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the objective and constraints
+
+**[THOUGHT_01_01]**
+
+We are to schedule strikes of \(n\) chimes with powers \(p_i\) to reach a target total resonance \(R\) as fast as possible, where the same chime cannot be reused for \(c\) beats after being struck. In every beat, exactly one chime is struck. The goal is to minimize the number of beats \(T\) such that the cumulative resonance is at least \(R\).
+
+
+**[THOUGHT_01_02]**
+
+The cooldown implies a spacing constraint after using a given chime, there must be at least \(c\) other beats before it is used again. Equivalently, the gap between two uses of the same chime is at least \(c + 1\). Let \(L = c + 1\). Then, in any window of \(L\) consecutive beats, no chime can appear more than once, so at most \(L\) distinct chimes can be used within any such window. The promise \(c \le n - 1\) ensures \(L \le n\), meaning we never need to idle.
+
+
+**[THOUGHT_01_03]**
+
+A natural upper bound emerges if we sort \(p\) in nonincreasing order as \(w_1 \ge w_2 \ge \dots\), the maximum total resonance achievable in any block of \(L\) beats is \(S = \sum_{i=1}^{L} w_i\). This follows because any \(L\)-length window can include each chime at most once, so the best \(L\) picks are the top \(L\) values.
+
+
+**[THOUGHT_01_04]**
+
+Define \(f(T)\) as the maximum total resonance achievable in \(T\) beats under the cooldown constraint. The problem reduces to finding the minimum \(T\) with \(f(T) \ge R\). Because each beat yields a nonnegative contribution and options never decrease with time, \(f(T)\) is nondecreasing in \(T\).
+
+
+**[THOUGHT_01_05]**
+
+A promising constructive schedule is to cycle through the top \(L\) chimes in order, repeating \([w_1, w_2, \dots, w_L]\). This pattern respects the cooldown and delivers exactly \(S\) resonance per \(L\) beats. For a tail of \(m\) beats, greedily choosing \(w_1, \dots, w_m\) yields an additional \(\text{pref}[m]\), where \(\text{pref}[m]\) is the sum of the top \(m\) values among \(w_1, \dots, w_L\).
+
+
+**[THOUGHT_01_06]**
+
+Because \(R\) can be as large as \(10^{18}\), any approach that simulates beat-by-beat behavior is infeasible. We will seek a closed-form expression for \(f(T)\) and then directly compute the minimal \(T\). The editorial insight suggests that the cyclic schedule achieves the upper bound at every prefix, implying optimality.
+
+
+**[THOUGHT_01_07]**
+
+We will iteratively explore increasingly refined approaches, starting from brute force and moving through greedy simulation and binary search checks, until we justify and implement a direct \(O(n \log n)\) solution based on sorting and prefix sums.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing comprehensive test scenarios
+
+**[THOUGHT_02_01]**
+
+Small baseline with minimal parameters \(n = 2\), \(c = 1\), small \(R\). Example: \(p = [4, 2]\). Here \(L = 2\), \(S = 6\). Check \(R\) values around 1 to 10 to validate handling of small tails and exact multiples.
+
+
+**[THOUGHT_02_02]**
+
+Large \(R\) requiring many cycles pick \(n = 5\), \(c = 2\), \(p = [10, 9, 8, 7, 6]\), \(R = 10^{12}\). This tests the non-simulation approach and 64-bit arithmetic. We expect many full \(L\)-sized blocks followed by a small tail.
+
+
+**[THOUGHT_02_03]**
+
+Exact multiple of cycle sum choose \(n = 4\), \(c = 1\), \(p = [9, 5, 4, 1]\), \(L = 2\), \(S = 14\). Set \(R = 14k\) for some \(k\). Validate that the answer is exactly \(2k\) with zero tail.
+
+
+**[THOUGHT_02_04]**
+
+Just over a multiple of \(S\) same setup as above with \(R = 14k + 1\). The minimum tail should be \(1\) if \(w_1 \ge 1\). This tests tail computation via prefix sums.
+
+
+**[THOUGHT_02_05]**
+
+Maximal cooldown near \(n - 1\), \(n = 6\), \(c = 5\) so \(L = 6\). All chimes used once per block, \(S = \sum_{i=1}^{n} p_i\). Test \(R\) both small and large to ensure the algorithm handles the case where all chimes contribute in each cycle.
+
+
+**[THOUGHT_02_06]**
+
+Many equal values: \(p = [7, 7, 7, 7]\), \(c = 2\) so \(L = 3\). This checks tie-handling and that only top \(L\) matter, not the exact identities.
+
+
+**[THOUGHT_02_07]**
+
+Highly skewed distribution \(p = [10^9, 1, 1, 1, \dots]\), small \(c\). This ensures the algorithm prefers repeating the top \(L\) chimes and that the dominant term drives the result.
+
+
+**[THOUGHT_02_08]**
+
+Edge arithmetic verify \(R \le w_1\) yields \(T = 1\). Verify very large \(R\) with \(S\) also large, ensuring no overflow in intermediate sums and correct use of 64-bit integers.
+
+
+**[THOUGHT_02_09]**
+
+Aggregate constraints many test cases with total \(n\) up to \(2 \cdot 10^5\). This tests that sorting and prefix sums per test scale across the full input.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+The most naive approach enumerates all valid strike sequences, tracking the last time each chime was used. At each beat, we choose any chime not used in the last \(c\) beats, add its power, and recurse until the total reaches \(R\). The shortest prefix achieving \(R\) would be the answer.
+
+
+**[THOUGHT_03_02]**
+
+This can be framed as a search or dynamic programming over states that encode the cooldown status. One representation is the ordered multiset of chimes used in the previous \(c\) beats. The number of such states is astronomical even for moderate \(n\) and \(c\), especially since \(c\) can be as large as \(n - 1\).
+
+
+**[THOUGHT_03_03]**
+
+The branching factor is up to \(n\) per beat, and the depth \(T\) can be large when \(R\) is large. Even with pruning (e.g., never picking strictly dominated chimes), the worst-case complexity is exponential in \(T\), and \(T\) might be on the order of \(R / \max p_i\), which can exceed \(10^9\) in extreme settings.
+
+
+**[THOUGHT_03_04]**
+
+Space usage is also unbounded due to recursion depth and state memoization. Moreover, memoizing by a "recent history" state blows up combinatorially. This approach is entirely infeasible given the constraints.
+
+
+**[THOUGHT_03_05]**
+
+ Brute force or stateful DP that depends on the last \(c\) uses is not tenable. We must abandon enumeration-based strategies and move to more principled counting or structural insights.
+
+
+---
+
+**[CHAIN_04]**
+
+Simulating a greedy schedule using a priority queue
+
+**[THOUGHT_04_01]**
+
+A more pragmatic idea is to simulate the process greedily at each beat, pick the strongest available chime (by \(p_i\)), place it on cooldown, and move time forward. Data structures: a max-heap for available chimes and a queue (or min-heap keyed by release time) for cooling chimes.
+
+
+**[THOUGHT_04_02]**
+
+This greedy is intuitively optimal for maximizing the prefix sum at every beat, since choosing the maximum available value never harms future opportunities more than any smaller choice. However, we are not required to prove its optimality here; instead, we examine its scalability.
+
+
+**[THOUGHT_04_03]**
+
+The per-beat cost is \(O(\log n)\), making the total \(O(T \log n)\). Unfortunately, \(T\) can be very large because \(R\) can be up to \(10^{18}\). Even if \(\max p_i\) is \(10^9\), \(T\) may be around \(10^9\), which is far too large to simulate.
+
+
+**[THOUGHT_04_04]**
+
+One might attempt to detect and compress cycles dynamically, but reliably identifying when the schedule stabilizes to a repeating pattern and handling tails is nontrivial and error-prone under time pressure. The worst case remains too slow.
+
+
+**[THOUGHT_04_05]**
+
+Conclusion: Beat-by-beat greedy simulation, though straightforward, fails due to time complexity when \(R\) is large. We need a method that computes the result without simulating each beat.
+
+
+---
+
+**[CHAIN_05]**
+
+Attempting binary search on the number of beats with an initial flawed check
+
+**[THOUGHT_05_01]**
+
+We exploit monotonicity by binary searching the minimal \(T\) such that \(f(T) \ge R\). This reduces the problem to designing a fast feasibility check "Is \(f(T) \ge R\)?" The check must be sublinear in \(T\) to be useful.
+
+
+**[THOUGHT_05_02]**
+
+First flawed idea bound the maximum number of uses of each chime in \(T\) beats by \(\left\lfloor \frac{T}{L} \right\rfloor\), then sum the contributions of the strongest chimes accordingly until filling \(T\) uses. This ignores the head-tail structure of partial windows.
+
+
+**[THOUGHT_05_03]**
+
+Counterexample to the flawed bound: let \(n = 3\), \(c = 2\), so \(L = 3\), and \(p = [10, 9, 8]\). For \(T = 4\), the schedule \([10, 9, 8, 10]\) is valid and reaches \(37\). The flawed cap gives \(\left\lfloor \frac{4}{3} \right\rfloor = 1\) use per chime, totaling only \(27\), thereby underestimating \(f(4)\) and breaking the check.
+
+
+**[THOUGHT_05_04]**
+
+Correcting the per-chime cap the maximum number of times a single chime can be used in \(T\) beats with spacing \(L\) is \(\left\lfloor \frac{T - 1}{L} \right\rfloor + 1\). Intuition: place the first use anywhere, then every subsequent use must be at least \(L\) apart. This fixes the off-by-one in many cases.
+
+
+**[THOUGHT_05_05]**
+
+Even with the corrected per-chime cap, we still need to optimally allocate uses across chimes without simulating. Greedy allocation to the strongest values up to their caps fills \(T\) uses and upper-bounds the sum. However, at this point the check is essentially reconstructing the same structure as the final formula and remains more complex than necessary due to the binary search wrapper.
+
+
+---
+
+**[CHAIN_06]**
+
+Deriving a closed form for f(T) and eliminating binary search
+
+**[THOUGHT_06_01]**
+
+We revisit the window bound. Let \(w_1 \ge \dots \ge w_L\) be the top \(L\) powers and \(S = \sum_{i=1}^{L} w_i\). For any \(T = kL + m\) with \(0 \le m < L\), the total resonance across the \(k\) full \(L\)-beat windows is at most \(kS\). The remaining \(m\) beats cannot reuse any chime within that tail, so the additional sum is at most \(\text{pref}[m] = \sum_{i=1}^{m} w_i\). Hence \(f(T) \le kS + \text{pref}[m]\).
+
+
+**[THOUGHT_06_02]**
+
+We construct a schedule that meets this bound: repeat the cycle \([w_1, w_2, \dots, w_L]\). Each complete cycle yields exactly \(S\), and any tail of \(m\) beats using \(w_1, \dots, w_m\) yields \(\text{pref}[m]\). The cooldown is respected since no chime repeats within \(L\) beats. Therefore, \(f(T) = kS + \text{pref}[m]\) for all \(T\).
+
+
+**[THOUGHT_06_03]**
+
+With \(f(T)\) known explicitly, we no longer need binary search. Let \(k = \left\lfloor \frac{R}{S} \right\rfloor\) and \(\text{rem} = R - kS\). The number of beats contributed by full cycles is \(kL\). If \(\text{rem} = 0\), then \(T = kL\). Otherwise, we need the smallest \(m \in [1, L]\) such that \(\text{pref}[m] \ge \text{rem}\), and \(T = kL + m\).
+
+
+**[THOUGHT_06_04]**
+
+This direct computation transforms the problem into: sort once, compute prefix sums of the top \(L\) values, perform constant-time arithmetic, and one binary search over \(\text{pref}\) to find \(m\). It is optimal in both clarity and performance.
+
+
+**[THOUGHT_06_05]**
+
+Comparative improvement relative to the binary search approach, we remove a factor of \(\log R\), reduce conceptual complexity, and avoid all per-beat reasoning. The method remains correct at every prefix length because it matches a tight upper bound with a constructive schedule.
+
+
+---
+
+**[CHAIN_07]**
+
+Implementing the optimal O(n log n) solution
+
+**[THOUGHT_07_01]**
+
+Processing steps per test case,
+- Read \(n\), \(R\), \(c\); compute \(L = c + 1\) (and by constraints \(L \le n\)).
+- Sort the array \(p\) in nonincreasing order.
+- Keep only the top \(L\) elements; compute \(\text{pref}[0..L]\) with \(\text{pref}[0] = 0\).
+- Let \(S = \text{pref}[L]\), \(k = \left\lfloor \frac{R}{S} \right\rfloor\), \(\text{rem} = R - kS\), \(\text{ans} = kL\).
+
+
+**[THOUGHT_07_02]**
+
+
+- If \(\text{rem} = 0\), output \(\text{ans}\).
+- Otherwise, find the smallest \(m\) with \(\text{pref}[m] \ge \text{rem}\) via binary search (lower_bound on \(\text{pref}\) ignoring \(\text{pref}[0]\)).
+- Output \(\text{ans} + m\).
+
+
+**[THOUGHT_07_03]**
+
+Care with numeric ranges,
+- Use 64-bit integers for \(R\), \(S\), \(\text{pref}\), and the answer.
+- Sorting costs \(O(n \log n)\) per test case. If desired, one could use partial_sort for the top \(L\) values in \(O(n \log L)\), but full sort is adequate within the constraints.
+
+
+**[THOUGHT_07_04]**
+
+Memory reuse,
+- Reuse vectors across test cases to avoid repeated allocations.
+- The sum of \(n\) over all tests is bounded, so overall memory remains \(O(\max n)\).
+
+
+**[THOUGHT_07_05]**
+
+I/O considerations,
+- Use fast I/O for large inputs.
+- Read and process each test case independently; ensure no state leak across cases.
+
+
+**[THOUGHT_07_06]**
+
+- Verify \(L \le n\) as per constraints.
+- If \(L = n\), \(S\) is the sum of all \(p_i\); the algorithm naturally handles this case.
+
+
+---
+
+**[CHAIN_08]**
+
+Validating with focused unit tests
+
+**[THOUGHT_08_01]**
+
+Sample set cross-check,
+- \(n = 4\), \(R = 17\), \(c = 1\), \(p = [5, 9, 4, 4]\). Here \(L = 2\), top two are \(9\) and \(5\), \(S = 14\).
+- \(R = 17\). \(k = 1\), \(\text{rem} = 3\). \(\text{pref} = [0, 9, 14]\). Smallest \(m\) with \(\text{pref}[m] \ge 3\) is \(1\). Answer \(= 1 \cdot 2 + 1 = 3\).
+
+
+**[THOUGHT_08_02]**
+
+Tiny tail,
+- \(n = 2\), \(R = 6\), \(c = 1\), \(p = [4, 2]\). \(L = 2\), \(S = 6\).
+- \(k = 1\), \(\text{rem} = 0\). Answer \(= 2\). Matches intuition.
+
+
+**[THOUGHT_08_03]**
+
+All equal,
+- \(n = 4\), \(c = 2\), \(p = [6, 6, 6, 6]\), \(L = 3\), \(S = 18\).
+- For \(R = 50\): \(k = 2\) gives \(36\), \(\text{rem} = 14\), \(\text{pref} = [0, 6, 12, 18]\), need \(m = 3\) to cover \(14\). Answer \(= 2 \cdot 3 + 3 = 9\).
+
+
+**[THOUGHT_08_04]**
+
+Maximal cooldown,
+- \(n = 5\), \(c = 4\), \(p = [12, 7, 6, 4, 3]\), \(L = 5\), \(S = 32\).
+- For \(R = 30\): \(k = 0\), \(\text{rem} = 30\), \(\text{pref} = [0, 12, 19, 25, 29, 32]\). \(m = 5\). Answer \(= 5\).
+
+
+**[THOUGHT_08_05]**
+
+Dominant top value,
+- \(n = 5\), \(c = 1\), \(p = [100, 1, 1, 1, 1]\), \(L = 2\), \(S = 101\).
+- For \(R = 202\): \(k = 2\), \(\text{rem} = 0\), answer \(= 4\). For \(R = 203\): \(\text{rem} = 1\), \(\text{pref} = [0, 100, 101]\), \(m = 1\), answer \(= 5\).
+
+
+**[THOUGHT_08_06]**
+
+- \(n = 3\), \(c = 2\), \(p = [10, 9, 8]\), \(L = 3\), \(S = 27\).
+- For \(R = 28\): \(k = 1\), \(\text{rem} = 1\), \(\text{pref} = [0, 10, 19, 27]\), \(m = 1\), answer \(= 4\).
+
+
+**[THOUGHT_08_07]**
+
+Extremely large target,
+- \(n = 5\), \(c = 2\), \(p = [10^9, 10^9 - 1, 10^9 - 2, 5, 1]\), \(L = 3\).
+- \(R = 10^{18}\). Validate no overflow and reasonable runtime; the computation is dominated by sorting.
+
+
+---
+
+**[CHAIN_09]**
+
+Analyzing complexity and establishing correctness
+
+**[THOUGHT_09_01]**
+
+- Sorting per test: \(O(n \log n)\).
+- Prefix sums: \(O(L) \le O(n)\).
+- Tail lookup via binary search: \(O(\log L)\).
+- Across all tests, with \(\sum n \le 2 \cdot 10^5\), total time is \(O\left(\sum n \log n\right)\), which is efficient.
+
+
+**[THOUGHT_09_02]**
+
+Space complexity,
+- Arrays for powers and prefix sums: \(O(n)\).
+- No additional heavy data structures are used. Space is well within limits.
+
+
+**[THOUGHT_09_03]**
+
+Correctness sketch,
+- Upper bound: Any \(L\)-beat window contributes at most \(S\). Therefore, \(k\) full windows contribute at most \(kS\), and the tail of \(m\) beats adds at most \(\text{pref}[m]\).
+- Achievability: The cyclic schedule \([w_1, \dots, w_L]\) repeated attains \(kS + \text{pref}[m]\) exactly for every prefix length. This proves \(f(T) = kS + \text{pref}[m]\) and certifies optimality.
+
+
+**[THOUGHT_09_04]**
+
+Pitfalls addressed,
+- Off-by-one in per-chime usage handled by reasoning on windows of length \(L\) rather than per-item caps.
+- 64-bit arithmetic prevents overflow in \(R\), \(S\), and prefix sums.
+- Handling \(\text{rem} = 0\) ensures no extra tail beats are added when \(R\) is an exact multiple of \(S\).
+
+
+**[THOUGHT_09_05]**
+
+Why earlier approaches fail or are suboptimal,
+- Brute force is exponential in \(T\) and untenable.
+- Greedy simulation is \(O(T \log n)\) and fails for huge \(R\).
+- Binary search with a feasibility check introduces unnecessary \(\log R\) and is more complex to implement correctly; the closed-form removes this entirely while being simpler and faster.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given \(n\) chimes with resonance values \(p_1, p_2, \dots, p_n\), a cooldown \(c\), and a target resonance \(R\). In each beat, exactly one chime is struck. After a chime is used, it cannot be used again for the next \(c\) beats, i.e., the gap between two uses of the same chime must be at least \(c + 1\).
+
+Let \(L = c + 1\). In any window of \(L\) consecutive beats, no chime can appear more than once. Therefore, the maximum resonance achievable in any such window is obtained by using the top \(L\) chimes. If we sort the chimes so that \(w_1 \ge w_2 \ge \dots \ge w_L\) are the top \(L\) values, then one full window yields \(S = \sum_{i=1}^{L} w_i\).
+
+A cyclic schedule that repeatedly plays \([w_1, w_2, \dots, w_L]\) respects the cooldown and achieves exactly \(S\) resonance per \(L\) beats. For any remaining tail of \(m\) beats, playing \([w_1, \dots, w_m]\) contributes \(\text{pref}[m]\), the sum of the top \(m\) values among these \(L\). Hence, for \(T = kL + m\) beats with \(0 \le m < L\), the maximum achievable resonance is \(kS + \text{pref}[m]\).
+
+Our task is to find the minimum number of beats \(T\) such that the cumulative resonance is at least \(R\).
+
+**2. Optimal Approach**
+
+- Sort the chime powers in nonincreasing order and consider only the top \(L = c + 1\) values.
+- Compute prefix sums \(\text{pref}[0..L]\) with \(\text{pref}[0] = 0\) and let \(S = \text{pref}[L]\).
+- Let \(k = \left\lfloor \frac{R}{S} \right\rfloor\), which counts how many full \(L\)-beat cycles we can use, contributing \(kS\) resonance and \(kL\) beats.
+- Let \(\text{rem} = R - kS\). If \(\text{rem} = 0\), the answer is \(kL\). Otherwise, find the smallest \(m \in [1, L]\) such that \(\text{pref}[m] \ge \text{rem}\). The answer is \(kL + m\).
+
+This works because any \(L\)-beat window contributes at most \(S\), and the tail of \(m\) beats at most \(\text{pref}[m]\). The cyclic schedule achieves these bounds exactly for every prefix, ensuring optimality.
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+/**
+ * @brief Computes the minimal number of beats to reach at least the target resonance.
+ *
+ * @param targetResonance Target total resonance R.
+ * @param cooldown Cooldown c between two uses of the same chime.
+ * @param chimePowers Vector of chime powers p_i.
+ * @return Minimal number of beats required to reach at least targetResonance.
+ */
+long long computeBeats(long long targetResonance, int cooldown, std::vector<long long> chimePowers) {
+    int windowLength = cooldown + 1;
+
+    // Sort in nonincreasing order to take the top windowLength values.
+    std::sort(chimePowers.begin(), chimePowers.end(), [](long long a, long long b) {
+        return a > b;
+    });
+
+    // Compute prefix sums of the top windowLength elements.
+    std::vector<long long> prefixSum(windowLength + 1, 0);
+    for (int i = 0; i < windowLength; ++i) {
+        prefixSum[i + 1] = prefixSum[i] + chimePowers[i];
+    }
+
+    long long cycleSum = prefixSum[windowLength];
+    long long fullCycles = targetResonance / cycleSum;
+    long long beatsUsed = fullCycles * windowLength;
+    long long remainingResonance = targetResonance - fullCycles * cycleSum;
+
+    if (remainingResonance == 0) {
+        return beatsUsed;
+    }
+
+    // Find minimal m such that prefixSum[m] >= remainingResonance.
+    int extraBeats = static_cast<int>(
+        std::lower_bound(prefixSum.begin() + 1, prefixSum.end(), remainingResonance) - prefixSum.begin()
+    );
+
+    return beatsUsed + extraBeats;
+}
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int testCount;
+    if (!(std::cin >> testCount)) {
+        return 0;
+    }
+
+    while (testCount--) {
+        int chimeCount, cooldown;
+        long long targetResonance;
+        std::cin >> chimeCount >> targetResonance >> cooldown;
+
+        std::vector<long long> chimePowers(chimeCount);
+        for (int i = 0; i < chimeCount; ++i) {
+            std::cin >> chimePowers[i];
+        }
+
+        long long resultBeats = computeBeats(targetResonance, cooldown, chimePowers);
+        std::cout << resultBeats << '\n';
+    }
+
+    return 0;
+}
+
+```
+
+**4. Code Explanation**
+
+- The function computeBeats implements the direct formula derived from the cooldown window constraint. It sorts the powers in nonincreasing order and computes the prefix sums for the top \(L = c + 1\) chimes.
+- One full \(L\)-beat cycle contributes \(S = \text{pref}[L]\). We compute the number of full cycles \(k = \left\lfloor \frac{R}{S} \right\rfloor\) and the remaining resonance \(\text{rem} = R - kS\).
+- If \(\text{rem} = 0\), exactly \(kL\) beats suffice. Otherwise, we find the smallest tail length \(m\) with \(\text{pref}[m] \ge \text{rem}\) via binary search and return \(kL + m\).
+- Example: For \(n = 4\), \(R = 17\), \(c = 1\), \(p = [5, 9, 4, 4]\), we have \(L = 2\), top two are \(9\) and \(5\), \(S = 14\). Then \(k = 1\), \(\text{rem} = 3\), \(\text{pref} = [0, 9, 14]\). The smallest \(m\) with \(\text{pref}[m] \ge 3\) is \(m = 1\), so the answer is \(2 + 1 = 3\).
+
+**5. Time and Space Complexity**
+
+- Sorting per test case: \(O(n \log n)\).
+- Prefix sums: \(O(L)\) with \(L = c + 1 \le n\).
+- Tail lookup via binary search: \(O(\log L)\).
+- Overall per test case: \(O(n \log n)\). With \(\sum n \le 2 \cdot 10^5\), total time is \(O\left(\sum n \log n\right)\).
+- Space complexity: \(O(n)\) for storing the powers and prefix sums.
+
+**6. Conclusion**
+
+By modeling the cooldown as a window constraint of length \(L = c + 1\), we obtain a tight bound on the resonance per window and a cyclic schedule that achieves this bound at every prefix. This leads to a simple and optimal \(O(n \log n)\) solution using sorting and prefix sums, avoiding any beat-by-beat simulation while handling very large targets \(R\) efficiently.

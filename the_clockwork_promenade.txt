@@ -1,0 +1,762 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Arrays and Lists", "Stacks and Queues", "Trees and Tries", "Divide and Conquer", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 3, O(2^m) per query simulation -> O(n) per query via stack reduction -> O(log n) per operation with segment tree
+
+**Number of Chains:** - 10
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Clockwork Promenade — In-Tune Segments**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **8 MB**
+
+Along a festival boulevard, a line of mechanical lanterns hums with integer "phase" values. You can perform two kinds of operations:
+- Yoke pulse: choose neighboring lanterns \(i\) and \(i+1\) with \(a_i = a_{i+1}\), and increase both by 1.
+- Solo boost: choose a single lantern \(i\) and increase \(a_i\) by 2.
+
+For a stretch \([l, r]\), we say it is in tune if, using only operations that act entirely within \([l, r]\) (that is, a yoke pulse can be applied only when both indices are in \([l, r]\), and a solo boost only on an index in \([l, r]\)), you can make all lanterns \(a_l, a_{l+1}, \dots, a_r\) end up equal.
+
+You are given the initial phases and must process queries of two types:
+- Query a stretch: can \([l, r]\) be tuned?
+- Update a lantern’s phase.
+
+**Input Format:-**
+- The first line contains an integer \(n\) \((1 \le n \le 2 \cdot 10^5)\), the number of lanterns.
+- The second line contains \(n\) integers \(a_1, a_2, \dots, a_n\) \((1 \le a_i \le 10^9)\), the initial phases.
+- The third line contains an integer \(q\) \((1 \le q \le 2 \cdot 10^5)\), the number of queries.
+- Each of the next \(q\) lines describes a query:
+  - Type 1: "1 l r" — ask whether the stretch \([l, r]\) can be made in tune using operations only within it \((1 \le l \le r \le n)\).
+  - Type 2: "2 i x" — set \(a_i := x\) \((1 \le i \le n,\ 1 \le x \le 10^9)\).
+
+**Output Format:-**
+- For each query of type 1, print "YES" if \([l, r]\) can be tuned, otherwise print "NO".
+
+**Constraints:-**
+- \(1 \le n, q \le 2 \cdot 10^5\)
+- \(1 \le a_i, x \le 10^9\)
+**Examples:-**
+
+**Example 1:**
+ - **Input:**
+```
+5
+2 3 4 6 8
+5
+1 1 3
+1 2 4
+2 3 5
+1 1 3
+1 2 4
+```
+
+ - **Output:**
+```
+NO
+YES
+YES
+YES
+```
+
+ - **Explanation:**
+  - Initial array: \([2, 3, 4, 6, 8]\)
+  - Query 1: Can \([1, 3]\) be tuned? (lanterns with values \(2, 3, 4\))
+    - Answer: **NO** - No sequence of operations within \([1, 3]\) can make all three lanterns equal
+  - Query 2: Can \([2, 4]\) be tuned? (lanterns with values \(3, 4, 6\))
+    - Answer: **YES** - We can apply yoke pulse on positions 2 and 3 (both have value 4 after some operations), then solo boost to make all equal
+  - Query 3: Update \(a_3 = 5\) (array becomes \([2, 3, 5, 6, 8]\))
+  - Query 4: Can \([1, 3]\) be tuned? (lanterns with values \(2, 3, 5\))
+    - Answer: **YES** - Now we can make them equal with appropriate operations
+  - Query 5: Can \([2, 4]\) be tuned? (lanterns with values \(3, 5, 6\))
+    - Answer: **YES** - Still tunable after the update
+
+**Example 2:**
+ - **Input:**
+```
+8
+1 2 3 4 5 6 7 8
+13
+1 1 8
+1 2 7
+2 2 3
+2 4 5
+2 6 7
+2 8 9
+1 1 8
+2 1 2
+2 3 4
+2 5 6
+2 7 8
+1 1 8
+1 3 6
+```
+
+ - **Output:**
+```
+NO
+NO
+YES
+NO
+NO
+```
+
+ - **Explanation:**
+  - Initial array: \([1, 2, 3, 4, 5, 6, 7, 8]\)
+  - Query 1: Can \([1, 8]\) be tuned? (entire array)
+    - Answer: **NO** - The entire array cannot be made equal with the given operations
+  - Query 2: Can \([2, 7]\) be tuned? (lanterns with values \(2, 3, 4, 5, 6, 7\))
+    - Answer: **NO** - This segment cannot be tuned
+  - Queries 3-6: Update operations setting \(a_2 = 3, a_4 = 5, a_6 = 7, a_8 = 9\)
+    - Array becomes: \([1, 3, 3, 5, 5, 7, 7, 9]\)
+  - Query 7: Can \([1, 8]\) be tuned? (entire updated array)
+    - Answer: **YES** - Now the array can be made equal
+  - Queries 8-11: More update operations setting \(a_1 = 2, a_3 = 4, a_5 = 6, a_7 = 8\)
+    - Array becomes: \([2, 3, 4, 5, 6, 7, 8, 9]\)
+  - Query 12: Can \([1, 8]\) be tuned? (entire array again)
+    - Answer: **NO** - Back to untunable state
+  - Query 13: Can \([3, 6]\) be tuned? (lanterns with values \(4, 5, 6, 7\))
+    - Answer: **NO** - This segment cannot be tuned
+
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the objective and constraints to understand what must be decided and updated
+
+**[THOUGHT_01_01]**
+
+We are given \(n\) lanterns in a line with integer phases \(a_1, a_2, \dots, a_n\). Two operations are allowed, but must be confined to any queried subarray \([l, r]\): (1) a yoke pulse that adds \(+1\) to two adjacent equal phases, and (2) a solo boost that adds \(+2\) to a single lantern. A query of type 1 asks whether all elements in \([l, r]\) can be made equal using only operations that do not involve indices outside \([l, r]\). A query of type 2 sets \(a_i := x\). We must answer up to \(2 \cdot 10^5\) queries efficiently.
+
+
+**[THOUGHT_01_02]**
+
+We must determine which features of the numbers actually matter for tunability. A solo boost changes a value by \(+2\), which preserves parity. A yoke pulse is permitted only when two neighbors are equal; if two neighbors have the same parity, solo boosts can equalize them (by adding \(+2\) as needed). Therefore, yoke pulses are effectively usable exactly where adjacent parities match. Also, a yoke pulse flips the parity of both elements since it adds \(+1\) to each.
+
+
+**[THOUGHT_01_03]**
+
+This reduces the problem to the parity sequence \(s[i] = a_i \bmod 2\). Within a query range \([l, r]\), solo boosts do not alter \(s\), while yoke pulses flip adjacent equal bits. Thus, all that matters for feasibility is the parity string in \([l, r]\) and how it can evolve via flips of equal-adjacent pairs.
+
+
+**[THOUGHT_01_04]**
+
+If we repeatedly remove adjacent equal pairs in \(s[l..r]\) (remove "00" or "11"), the end result is an alternating string that does not depend on the order of removals. Call this the residue of the segment. This residue is invariant under the allowed operations confined to \([l, r]\). The segment \([l, r]\) is tunable if and only if its residue has length at most \(1\).
+
+
+**[THOUGHT_01_05]**
+
+Operationally, we must support two operations online. (1) query \([l, r]\) and decide if the residue length is \(\le 1\), and (2) update \(a_i\) which only changes the parity \(s[i]\). With \(n, q \le 2 \cdot 10^5\), a near \(O(\log n)\) per operation solution is required; \(O(n)\) per query is too slow.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing a comprehensive suite of tests to exercise invariants, edge cases, and performance
+
+**[THOUGHT_02_01]**
+
+- Single-element stretches \([i, i]\) must always be "YES".
+- Two elements with equal parity vs. different parity:
+  - \([i, i+1]\), if parities are equal, the residue is empty.
+  - \([i, i+1]\), if parities differ, the residue length is \(2\), so "NO".
+
+
+**[THOUGHT_02_02]**
+
+- \(s = 0, 1, 0, 1, \dots\) on \([1, n]\) has residue length \(n\). This must be "NO" if \(n \ge 2\), highlighting cases that cannot be shortened by removals.
+
+
+**[THOUGHT_02_03]**
+
+- \(s = 0, 0, 1, 1, 0, 0, 1, 1\). Entire blocks cancel pairwise in sequence; the final residue can be empty. This ensures the algorithm captures cross-boundary cancellation propagation.
+
+
+**[THOUGHT_02_04]**
+
+- Query ranges that start or end at points where parity changes. Verify that cancellations at the internal boundary of concatenated segments are properly handled.
+
+
+**[THOUGHT_02_05]**
+
+- Updates that do not change parity should leave answers unchanged.
+- Updates that flip parity at the midpoint of a long alternating range can dramatically change residues. Re-query different intervals to validate that the segment tree state refreshes correctly.
+
+
+**[THOUGHT_02_06]**
+
+- Construct \(q \approx 2 \cdot 10^5\) mixed updates and queries across the entire array with large \(n\), ensuring that an \(O(\log n)\) approach scales, while any \(O(n)\) per query approach times out.
+
+
+**[THOUGHT_02_07]**
+
+- Equal counts of \(0\)s and \(1\)s not implying feasibility: for instance, \(s = [0, 1]\) has equal counts but residue length \(2\).
+- Same endpoints not implying feasibility: \(s = [0, 1, 0]\) has ends equal, residue length \(3\), and "NO".
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force to simulate operations and observing infeasibility
+
+**[THOUGHT_03_01]**
+
+Initial naive idea: simulate the operations within \([l, r]\) directly. From a given state, try all applicable yoke pulses (on equal neighbors) and all solo boosts (\(+2\)) on any element, BFS the state space, and test whether a uniform configuration is reachable. This is conceptually straightforward but computationally explosive.
+
+
+**[THOUGHT_03_02]**
+
+Each position admits unbounded solo boosts, creating infinitely many states unless we rationalize by parity, which then still leaves the difficulty of ordering yoke pulses. BFS branches are enormous even with a parity reduction since sequence-length operations can be applied repeatedly. This approach is not computationally tractable.
+
+
+**[THOUGHT_03_03]**
+
+Even if we cap solo boosts to parity normalization, the number of sequences of yoke pulses can be exponential in the segment size because choosing which equal pair to pulse first can change future equality opportunities. An exact simulation per query would be worse than \(O(2^m)\) for segment length \(m\).
+
+
+**[THOUGHT_03_04]**
+
+Per query costs are astronomical, and with \(q \le 2 \cdot 10^5\), this approach cannot pass. Space is also prohibitive due to state tracking. We discard explicit simulation and seek invariants that capture feasibility without exploring sequences.
+
+
+---
+
+**[CHAIN_04]**
+
+Trying simple parity heuristics and refuting them with counterexamples
+
+**[THOUGHT_04_01]**
+
+"If endpoints have the same parity, the segment should be tunable." Counterexample: \(s = [0, 1, 0]\) on \([1, 3]\). Ends match, but the string is already alternating of length \(3\). No adjacent equal pair exists to start cancellations, and solo boosts cannot change parity, so it remains "NO."
+
+
+**[THOUGHT_04_02]**
+
+ "If the count of \(0\)s and \(1\)s differs by at most \(1\), the segment is tunable." Counterexample: \(s = [0, 1]\). Counts are equal, yet there is no equal adjacent pair to start cancellations; residue length is \(2\), so "NO."
+
+
+**[THOUGHT_04_03]**
+
+"Segments with at most one parity change are tunable." This is unreliable. Example: \(s = [0, 0, 1]\) has exactly one parity change, and its residue \(00\) cancels to empty, leaving \(1\); residue length \(1\) gives "YES." Conversely, \(s = [0, 1, 1]\) is also "YES." Heuristics struggle to consistently decide, showing the need for a principled invariant.
+
+
+**[THOUGHT_04_04]**
+
+Counts, endpoints, and number of transitions do not reliably determine feasibility. We need an invariant that accounts for iterative cancellation with cross-boundary propagation, independent of operation order.
+
+
+---
+
+**[CHAIN_05]**
+
+Computing the residue per query using a stack and recognizing the performance bottleneck
+
+**[THOUGHT_05_01]**
+
+ The correct invariant is the residue obtained by repeatedly removing adjacent equal pairs. It can be computed via a single pass with a stack on \(s[l..r]\): push the bit; if the top equals the new bit, pop (cancel), else push. At the end, the stack contents form the alternating residue.
+
+
+**[THOUGHT_05_02]**
+
+ If the final stack size (residue length) is \(\le 1\), output "YES"; otherwise, "NO." This matches the invariant characterization for feasibility and is logically sound.
+
+
+**[THOUGHT_05_03]**
+
+ For an update \(a_i := x\), we only need to change \(s[i] := x \bmod 2\). However, recomputing residues per query by scanning \([l, r]\) costs \(O(r - l + 1)\), which can be linear in \(n\).
+
+
+**[THOUGHT_05_04]**
+
+ Worst-case per query is \(O(n)\), and across \(q\) operations we get \(O(nq)\), which is up to \(4 \cdot 10^{10}\) steps. This is not acceptable for \(n, q \le 2 \cdot 10^5\). The approach is correct but too slow, so we reject it on performance grounds.
+
+
+---
+
+**[CHAIN_06]**
+
+Building a segment tree that merges residues to answer queries in \(O(\log n)\)
+
+**[THOUGHT_06_01]**
+
+ The residue of a segment is alternating and can be summarized by two values.
+- \(\text{len}\): residue length,
+- \(\text{first}\): the first bit of the residue if \(\text{len} > 0\).
+The last bit is \(\text{first} \oplus ((\text{len} - 1) \bmod 2)\).
+
+
+**[THOUGHT_06_02]**
+
+Construct a segment tree over the parity array \(s\). Each node stores a summary \((\text{len}, \text{first})\) of its interval’s residue. A leaf for \(s[i]\) is \(\text{len} = 1, \text{first} = s[i]\). This representation is sufficient to reconstruct the entire alternating residue and to merge two intervals.
+
+
+**[THOUGHT_06_03]**
+
+Merge logic for nodes \(L\) and \(R\) representing adjacent intervals,
+- If either residue is empty, return the other.
+- Let \(\text{lastL} = L.\text{first} \oplus ((L.\text{len} - 1) \bmod 2)\).
+- If \(\text{lastL} \ne R.\text{first}\), no boundary cancellation; the result is concatenation with \(\text{len} = L.\text{len} + R.\text{len}\) and \(\text{first} = L.\text{first}\).
+- Else, boundary cancels and propagates:
+  - If \(L.\text{len} = R.\text{len}\): result is empty.
+  - If \(L.\text{len} > R.\text{len}\): keep \(L\)'s prefix of length \(L.\text{len} - R.\text{len}\) with \(\text{first} = L.\text{first}\).
+  - If \(L.\text{len} < R.\text{len}\): keep \(R\)'s suffix of length \(R.\text{len} - L.\text{len}\) with \(\text{first} = R.\text{first} \oplus (L.\text{len} \bmod 2)\).
+
+
+**[THOUGHT_06_04]**
+
+This merge exactly emulates what the stack would do if we processed the concatenation of \(L\)'s residue and \(R\)'s residue: alternating strings cancel at the touching boundary if and only if the adjacent bits are equal, and cancellation continues as long as the alternating patterns mirror appropriately.
+
+
+**[THOUGHT_06_05]**
+
+Eetrieve the node summary and answer "YES" iff \(\text{len} \le 1\). Point update \(i\) sets \(s[i] := x \bmod 2\) and updates \(O(\log n)\) nodes. The time per operation is \(O(\log n)\), build is \(O(n)\), which fits the constraints.
+
+
+---
+
+**[CHAIN_07]**
+
+Validating the merge operation, associativity, and the correctness of the invariant
+
+**[THOUGHT_07_01]**
+
+ The process "remove any adjacent equal pair until none remain" yields a unique alternating residue for any binary string. This is the classic property of reductions that cancel immediately adjacent identical tokens. A stack simulation gives the same result regardless of choices.
+
+
+**[THOUGHT_07_02]**
+
+- Solo boosts are \(+2\), preserving parity; thus, they do not change \(s\).
+- A yoke pulse applies only to equal neighbors; in the stack view, such a pair would cancel anyway, and flipping both by \(+1\) toggles their bits, effectively reproducing the same net effect captured by the cancellation process.
+Thus, the residue of \(s[l..r]\) is invariant under any sequence of allowed moves confined to \([l, r]\).
+
+
+**[THOUGHT_07_03]**
+
+Uniform final configuration implies residue length \(\le 1\),
+- If a segment becomes uniform of length \(m\), then the stack cancellation removes pairs until \(m \bmod 2\) remains. So the residue is empty if \(m\) is even or a single bit if \(m\) is odd. Therefore, tunability implies residue length \(\le 1\).
+
+
+**[THOUGHT_07_04]**
+
+Conversely, if the residue length is \(\le 1\), we can achieve uniformity by enabling yoke pulses via solo boosts (to equalize neighbors of the same parity) and then applying yoke pulses to reduce the segment. For an empty residue, pairwise reductions lead to uniformity for even lengths; for residue length \(1\), a similar argument yields a uniform odd-length target. Therefore, the condition is both necessary and sufficient.
+
+
+**[THOUGHT_07_05]**
+
+ Since the residue is uniquely determined by the entire interval, merging left-to-right or via any parenthesization must yield the same summary. Our combine respects this because it directly encodes the stack behavior at the boundary and because alternating residues are fully determined by \((\text{len}, \text{first})\).
+
+
+---
+
+**[CHAIN_08]**
+
+Confirming complexity, space usage, and robustness under constraints
+
+**[THOUGHT_08_01]**
+
+ \(O(n)\), as each node is initialized once by combining two children. Query and update time: \(O(\log n)\). Total time across \(q\) operations: \(O((n + q)\log n)\), which is acceptable for \(2 \cdot 10^5\).
+
+
+**[THOUGHT_08_02]**
+
+ The segment tree stores \(O(n)\) nodes, typically at most about \(4n\). Each node stores two small integers; memory usage is modest even at the upper bound.
+
+
+**[THOUGHT_08_03]**
+
+- Single-element segments always yield "YES" since residue length is \(1\).
+- Segments without any adjacent equal bits are strictly alternating; residue length equals the segment length, leading to "NO" for lengths \(\ge 2\).
+- Updates that do not change parity can be early-exited if desired, but correctness holds without optimization.
+
+
+**[THOUGHT_08_04]**
+
+ Use \(1\)-based indexing for input, consistent with standard statements. Ensure queries and updates validate bounds \([1, n]\). The "confined operations" rule is inherently respected because the data structure only considers parity within the queried range.
+
+
+---
+
+**[CHAIN_09]**
+
+Applying disciplined implementation choices and minimal, focused snippets
+
+**[THOUGHT_09_01]**
+
+- Use a struct "Node" with fields "len" and "first".
+- Implement a segment tree "SegTree" with methods "build", "update", and "query".
+- Use \(1\)-based indexing for arrays to mirror problem inputs and ease range handling.
+
+
+**[THOUGHT_09_02]**
+
+- Document each public method with Doxygen comments for clarity and maintainability.
+- Keep helpers like "lastBit" static and inline for performance and locality.
+
+
+**[THOUGHT_09_03]**
+
+Adhering to style:
+- Use lowerCamelCase for variables and functions, UpperCamelCase for classes, and kCamelCase for constants as needed.
+- Use only standard C++ headers. Initialize fast I/O with "ios::sync_with_stdio(false)" and "cin.tie(nullptr)".
+
+
+**[THOUGHT_09_04]**
+
+The combine function merges two residue summaries by checking if the last bit of the left interval matches the first bit of the right interval. If they match, boundary cancellation occurs and propagates based on the relative lengths of the intervals. If they don't match, the intervals are simply concatenated.
+
+
+**[THOUGHT_09_05]**
+
+- After implementing, run the provided samples, then custom stress tests from Section 02 to validate boundary cancellations, updates that flip parity, and repeated queries on large ranges. Confirm that results match expectations for alternating patterns, block cancellations, and boundary-sensitive ranges.
+
+
+---
+
+**[CHAIN_10]**
+
+Executing targeted sanity checks and dry runs to ensure correctness
+
+**[THOUGHT_10_01]**
+
+Dry run on a simple case - \(s = [0, 0, 1, 1]\).
+- Left half residue: \(00 \to \emptyset\).
+- Right half residue: \(11 \to \emptyset\).
+- Merge: empty with empty yields empty. Answer "YES" on \([1, 4]\), aligning with the uniformizability of an even-length uniform target.
+
+
+**[THOUGHT_10_02]**
+
+Alternating case- \(s = [0, 1, 0, 1]\).
+- Each leaf has length \(1\).
+- Merge pairwise: boundaries never match, so lengths add up to \(4\).
+- Final residue length \(4\), answer "NO" on \([1, 4]\), consistent with the impossibility of starting any cancellation.
+
+
+**[THOUGHT_10_03]**
+
+Boundary cancellation propagation- \(s = [0, 0, 1]\).
+- Left node \([1, 2]\): \(00 \to \emptyset\).
+- Right node \([3, 3]\): length \(1\), first \(1\).
+- Merge: empty with single yields single; residue length \(1\) so "YES" on \([1, 3]\).
+
+
+**[THOUGHT_10_04]**
+
+ Start \(s = [0, 1, 0]\). Query \([1, 3]\) is "NO" (length \(3\)). Update index \(2\) to even so \(s = [0, 0, 0]\). Now \([1, 3]\) residue length becomes \(1\) (uniform of odd length), so "YES". This confirms that updates are correctly integrated by the data structure.
+
+
+**[THOUGHT_10_05]**
+
+ With \(n = q = 2 \cdot 10^5\), run random updates and range queries. The per-operation \(O(\log n)\) time ensures completion within typical limits, demonstrating the necessity of moving beyond per-query stack scans and confirming the scalability of the segment tree approach.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given a line of \(n\) lanterns with integer phases \(a_1, a_2, \dots, a_n\). Two operations are allowed, confined to any queried subarray \([l, r]\):
+- Yoke pulse: if adjacent lanterns \(i\) and \(i+1\) have equal phases, increase both by 1.
+- Solo boost: increase a single lantern \(a_i\) by 2.
+
+A type 1 query asks if it is possible, using only operations fully inside \([l, r]\), to make all \(a_l, a_{l+1}, \dots, a_r\) equal. A type 2 query sets \(a_i := x\). With up to \(2 \cdot 10^5\) mixed queries, we must answer efficiently.
+
+Key observations:
+- Solo boosts add \(+2\), preserving parity. Thus parity is invariant under solo boosts.
+- Yoke pulses apply only to equal neighbors. Using solo boosts, two neighbors can be equalized if and only if they have the same parity. Hence, yoke pulses are effectively usable exactly where adjacent parities match, and they flip both parities (due to \(+1\) applied twice).
+- Therefore, only the parity sequence matters: define \(s[i] = a_i \mod 2\).
+
+Define the residue of \(s[l..r]\) by repeatedly removing adjacent equal pairs (00 or 11) until none remain. This process yields an alternating string that is invariant under the allowed operations confined to \([l, r]\). A segment \([l, r]\) is tunable if and only if its residue length is at most 1:
+- A uniform segment of length \(m\) reduces to an empty residue if \(m\) is even, and to a single bit if \(m\) is odd.
+- Since the residue is invariant, tunability is equivalent to the residue length being at most 1 initially.
+
+We must support:
+- Range query: compute whether the residue length of \(s[l..r]\) is at most 1.
+- Point update: set \(s[i] := x \mod 2\) when \(a_i := x\).
+
+With \(n, q \le 2 \cdot 10^5\), we need \(O(\log n)\) per operation.
+
+
+**2. Optimal Approach**
+
+Maintain the residue for any subarray using a segment tree built on the parity array.
+
+Core summary for each interval:
+- Store residue length len.
+- Store residue first bit first if len > 0.
+- The last bit equals the first bit if len is odd; otherwise, it is the opposite bit.
+
+Merging two adjacent interval summaries L and R:
+- If one side is empty, return the other.
+- Let lastL be the last bit of L (equals L.first if L.len is odd; else the opposite bit).
+- If lastL differs from R.first, there is no boundary cancellation; the result is simple concatenation with len = L.len + R.len and first = L.first.
+- Otherwise, boundary cancellation occurs and may propagate:
+  - If L.len equals R.len, everything cancels; result is empty.
+  - If L.len > R.len, the remaining residue is the prefix of L with length L.len − R.len, with first unchanged as L.first.
+  - If L.len < R.len, the remaining residue is the suffix of R with length R.len − L.len. Its first bit equals R.first if L.len is even, otherwise it is the opposite bit.
+
+Operations:
+- Build the tree from \(s[i] = a_i \mod 2\).
+- Query \([l, r]\): retrieve the summary and answer "YES" if len ≤ 1; otherwise "NO".
+- Update \(i\): set \(s[i] := x \mod 2\) and update along the path.
+
+This yields \(O(n)\) build time and \(O(\log n)\) per query/update with \(O(n)\) space.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <cstdint>
+
+/**
+ * @brief Node representing the alternating residue summary for an interval.
+ *
+ * Fields:
+ * - len: Length of the alternating residue.
+ * - first: First bit of the residue if len > 0, undefined otherwise.
+ */
+struct Node {
+    int len;
+    int first;
+};
+
+/**
+ * @brief Segment tree maintaining alternating residue summaries of the parity array.
+ *
+ * Supports:
+ * - build from initial parity array s[1..n],
+ * - point update of s[i],
+ * - range query [l, r] to obtain the residue summary.
+ */
+class SegTree {
+public:
+    /**
+     * @brief Construct a segment tree for n elements.
+     *
+     * @param n Number of elements in the base array.
+     */
+    explicit SegTree(int n) {
+        init(n);
+    }
+
+    /**
+     * @brief Initialize the segment tree with a given size.
+     *
+     * @param n Number of elements to allocate for.
+     */
+    void init(int n) {
+        size = n;
+        tree.assign(4 * size + 5, Node{0, 0});
+    }
+
+    /**
+     * @brief Build the segment tree from a 1-indexed parity array s.
+     *
+     * @param s Parity array of size at least n + 1, with s[1..n] valid.
+     */
+    void build(const std::vector<int>& s) {
+        build(1, 1, size, s);
+    }
+
+    /**
+     * @brief Update the parity at position idx to val (0 or 1).
+     *
+     * @param idx Index to update (1-indexed).
+     * @param val New parity value at idx.
+     */
+    void update(int idx, int val) {
+        update(1, 1, size, idx, val);
+    }
+
+    /**
+     * @brief Query the residue summary over the interval [l, r].
+     *
+     * @param l Left index of the query (1-indexed).
+     * @param r Right index of the query (1-indexed).
+     * @return Node containing the residue summary for [l, r].
+     */
+    Node query(int l, int r) {
+        return query(1, 1, size, l, r);
+    }
+
+private:
+    int size;
+    std::vector<Node> tree;
+
+    /**
+     * @brief Compute the last bit of a non-empty alternating residue.
+     *
+     * @param a Residue node with len > 0.
+     * @return The last bit of the residue.
+     */
+    static int lastBit(const Node& a) {
+        return a.first ^ ((a.len - 1) & 1);
+    }
+
+    /**
+     * @brief Combine two residue summaries of adjacent intervals.
+     *
+     * @param left Left interval residue summary.
+     * @param right Right interval residue summary.
+     * @return Residue summary of the concatenated interval.
+     */
+    static Node combine(const Node& left, const Node& right) {
+        if (left.len == 0) return right;
+        if (right.len == 0) return left;
+
+        int lastLeft = lastBit(left);
+        if (lastLeft != right.first) {
+            // No cancellation at the boundary
+            return Node{left.len + right.len, left.first};
+        }
+
+        // Boundary cancels and can propagate
+        if (left.len == right.len) {
+            return Node{0, 0};
+        } else if (left.len > right.len) {
+            return Node{left.len - right.len, left.first};
+        } else {
+            int newFirst = right.first ^ (left.len & 1);
+            return Node{right.len - left.len, newFirst};
+        }
+    }
+
+    void build(int p, int l, int r, const std::vector<int>& s) {
+        if (l == r) {
+            tree[p] = Node{1, s[l]};
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(p << 1, l, m, s);
+        build(p << 1 | 1, m + 1, r, s);
+        tree[p] = combine(tree[p << 1], tree[p << 1 | 1]);
+    }
+
+    void update(int p, int l, int r, int idx, int val) {
+        if (l == r) {
+            tree[p] = Node{1, val};
+            return;
+        }
+        int m = (l + r) >> 1;
+        if (idx <= m) {
+            update(p << 1, l, m, idx, val);
+        } else {
+            update(p << 1 | 1, m + 1, r, idx, val);
+        }
+        tree[p] = combine(tree[p << 1], tree[p << 1 | 1]);
+    }
+
+    Node query(int p, int l, int r, int ql, int qr) {
+        if (qr < l || r < ql) return Node{0, 0};
+        if (ql <= l && r <= qr) return tree[p];
+        int m = (l + r) >> 1;
+        Node left = query(p << 1, l, m, ql, qr);
+        Node right = query(p << 1 | 1, m + 1, r, ql, qr);
+        return combine(left, right);
+    }
+};
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int n;
+    if (!(std::cin >> n)) {
+        return 0;
+    }
+
+    std::vector<std::int64_t> a(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        std::cin >> a[i];
+    }
+
+    // Build parity array
+    std::vector<int> s(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        s[i] = static_cast<int>(a[i] & 1);
+    }
+
+    SegTree seg(n);
+    seg.build(s);
+
+    int q;
+    std::cin >> q;
+    while (q--) {
+        int type;
+        std::cin >> type;
+        if (type == 1) {
+            int l, r;
+            std::cin >> l >> r;
+            Node res = seg.query(l, r);
+            std::cout << (res.len <= 1 ? "YES\n" : "NO\n");
+        } else {
+            int idx;
+            std::int64_t x;
+            std::cin >> idx >> x;
+            a[idx] = x;
+            seg.update(idx, static_cast<int>(x & 1));
+        }
+    }
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- We convert the initial array to a parity array \(s[i] = a_i \mod 2\), because solo boosts preserve parity and yoke pulses can be enabled via solo boosts exactly when adjacent parities match.
+- The feasibility of tuning a segment \([l, r]\) depends only on the residue of \(s[l..r]\), defined by repeatedly removing adjacent equal pairs (00 or 11) until none remain. This residue is invariant under the allowed operations confined to \([l, r]\).
+- The segment tree stores, for each interval, the pair (len, first) describing the alternating residue. This is sufficient to merge two adjacent intervals:
+  - If the last bit of the left residue differs from the first bit of the right residue, no cancellation occurs at the boundary; lengths add and the first bit remains that of the left residue.
+  - If they match, cancellation occurs at the boundary and can propagate:
+    - If lengths are equal, the entire concatenation cancels to empty.
+    - If the left length is greater, the remaining residue is the left prefix; first bit unchanged.
+    - If the right length is greater, the remaining residue is the right suffix; its first bit flips if the removed left length is odd, otherwise it stays the same.
+- For each type 1 query, we get the residue summary on \([l, r]\) and print "YES" if len is at most 1; otherwise "NO".
+- For each type 2 update, we set the parity at index \(i\) to \(x \mod 2\) and update the segment tree.
+
+Example insights:
+- For \(s = [0, 0, 1, 1]\) on \([1, 4]\), both halves reduce to empty and merge to empty, so "YES".
+- For \(s = [0, 1, 0, 1]\) on \([1, 4]\), no adjacent equal pairs exist; residue length is 4, so "NO".
+
+
+**5. Time and Space Complexity**
+
+- Build time: \(O(n)\).
+- Query time: \(O(\log n)\) per type 1 query.
+- Update time: \(O(\log n)\) per type 2 update.
+- Total time: \(O((n + q) \log n)\).
+- Space: \(O(n)\) for the segment tree and arrays.
+
+
+**6. Conclusion**
+
+By focusing on parity and the invariant residue under the allowed operations, the problem reduces to checking whether the residue length of the parity subarray is at most 1. A segment tree that stores residue length and first bit per interval supports merges that emulate stack-based cancellations, delivering \(O(\log n)\) updates and queries with \(O(n)\) preprocessing and space, which fits the problem constraints.

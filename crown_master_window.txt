@@ -1,0 +1,687 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Basic Data Structures", "Sorting Algorithms", "Searching Algorithms", "Arrays and Lists", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, \( \mathcal{O}(n^2) \to \mathcal{O}(n^2) \to \mathcal{O}(n\log n) \to \mathcal{O}(n\log n) \)
+
+**Number of Chains:** - 10
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Crown the Master Window**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **20 MB**
+
+In the Time Conservatory, each vault door is safe to open only during its own window on a long timeline. You may deactivate any number of doors. You want to pick a single door to crown as the Master Window so that, after deactivating as few other doors as possible, every remaining door’s safe window lies completely inside the Master Window. If more than one door lets you deactivate the same minimal number of others, choose the door with the smallest ID.
+
+You are given \(n\) time windows. The \(i\)-th window is a closed interval \([s_i, e_i]\). You may deactivate any number of windows. After these deactivations, a chosen window \([s_i, e_i]\) is considered a Master Window if it fully contains every remaining window \([a, b]\), that is, \(s_i \le a \le b \le e_i\).
+
+Choose exactly one window and remove as few other windows as possible so that the chosen window becomes a Master Window. Report the minimum number of removals and the \(1\)-based ID of the chosen window. If several windows achieve the same minimum, report the smallest ID among them.
+
+Windows are numbered by their input order starting from \(1\).
+
+**Input Format:-**
+- The first line contains an integer \(n\) \((1 \le n \le 200000)\).
+- Each of the next \(n\) lines contains two integers \(s_i\) and \(e_i\) \((-\!10^{18} \le s_i \le e_i \le 10^{18})\).
+
+**Output Format:-**
+- Print two integers:
+  - The minimum number of removals needed.
+  - The \(1\)-based ID of a window that achieves this minimum (break ties by smallest ID).
+
+**Constraints:-**
+- \(1 \le n \le 200000\)
+- \(-10^{18} \le s_i \le e_i \le 10^{18}\)
+
+**Examples:-**
+ - **Input:**
+```
+4
+0 5
+1 4
+6 10
+7 9
+```
+
+ - **Output:**
+```
+2 1
+```
+
+ - **Input:**
+```
+4
+-1000000000000000000 1000000000000000000
+-1000000000000000000 -1000000000000000000
+1000000000000000000 1000000000000000000
+0 0
+```
+
+ - **Output:**
+```
+0 1
+```
+
+**Note:-**
+
+In the first example, there are two natural “clusters”:  
+\([0,5]\) containing \([1,4]\), and \([6,10]\) containing \([7,9]\).  
+
+- If we crown window \(1\) (\([0,5]\)), it contains window \(2\); we must remove windows \(3\) and \(4 \;\Rightarrow\; 2\) removals.  
+- If we crown window \(3\) (\([6,10]\)), it contains window \(4\); we must remove windows \(1\) and \(2 \;\Rightarrow\; 2\) removals.  
+- Windows \(2\) and \(4\) each contain only themselves \(\;\Rightarrow\; 3\) removals.  
+
+The minimum is \(2\); both windows \(1\) and \(3\) achieve it, so we choose the smallest ID: \(1\).
+
+In the second example, window \(1\) spans from \(-10^{18}\) to \(10^{18}\) and fully contains all other windows (boundary-inclusive), so no removals are needed.  
+The answer is \(0\) removals and ID \(1\).
+
+**Additional clarifications:**
+- Containment is inclusive:  
+  \[
+  [s_i, e_i] \text{ contains } [a, b] \iff s_i \le a \le b \le e_i.
+  \]
+- You must pick exactly one window; minimizing removals is equivalent to maximizing how many windows (including the chosen one) lie inside it.  
+- If several windows yield the same minimal removals, output the smallest 1-based input ID among them.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the objective and translating story to math
+
+**[THOUGHT_01_01]**
+
+We are tasked with selecting exactly one interval \( [s_i, e_i] \) to become the Master Window and removing as few other intervals as possible so that all remaining intervals \( [a, b] \) satisfy \( s_i \le a \le b \le e_i \). The output is the minimum number of removals and the 1-based ID of the chosen interval, with ties broken by the smallest ID.
+
+
+**[THOUGHT_01_02]**
+
+A window \( [s_j, e_j] \) violates containment inside \( [s_i, e_i] \) if either it starts too early, i.e., \( s_j < s_i \), or it ends too late, i.e., \( e_j > e_i \). Therefore, for a candidate \( i \), the set of windows to remove is the union of those starting too early and those ending too late, relative to \( [s_i, e_i] \).
+
+
+**[THOUGHT_01_03]**
+
+Define \( L(i) = \{\, j \mid s_j < s_i \,\} \) and \( R(i) = \{\, j \mid e_j > e_i \,\} \). Let \( I(i) = \lvert L(i) \cap R(i) \rvert \). The total removals for candidate \( i \) are \( \lvert L(i) \cup R(i) \rvert = \lvert L(i) \rvert + \lvert R(i) \rvert - I(i) \). This avoids double-counting windows that both start too early and end too late.
+
+
+**[THOUGHT_01_04]**
+
+Intervals that touch at boundaries are contained. Specifically, \( s_j = s_i \) is not a left violation and \( e_j = e_i \) is not a right violation. Equal intervals neither cause removals nor complicate containment under the given definition.
+
+
+---
+
+**[CHAIN_02]**
+
+Enumerating comprehensive test scenarios before coding
+
+**[THOUGHT_02_01]**
+
+Consider \( n = 1 \). Any single interval is trivially a Master Window with \(0\) removals. This validates basic handling and \(1\)-based indexing in the output.
+
+
+**[THOUGHT_02_02]**
+
+Consider a set where every interval is identical, e.g., \( [x,x] \) or \( [\ell,r] \). The minimum removals are \(0\) for any choice, so tie-breaking by smallest ID selects ID \(1\). This checks handling of duplicates and boundary equality.
+
+
+**[THOUGHT_02_03]**
+
+Consider disjoint point intervals \( [1,1], [2,2], [3,3] \). No interval contains another; any choice requires removing \( n-1 \). This ensures correct behavior on non-overlapping sets and tie-breaking.
+
+
+**[THOUGHT_02_04]**
+
+Consider one interval \( [1,10] \) that strictly contains many others. Choosing it yields \(0\) removals, while other choices require removals. This verifies detection of a global container.
+
+
+**[THOUGHT_02_05]**
+
+Consider \( [0,5], [2,7], [3,3] \) (IDs \(1,2,3\)) and evaluate each crown choice:
+- Crown \( [0,5] \) (ID \(1\)): not contained \(\rightarrow [2,7]\) (since \(7>5\)); removals \(=1\).
+- Crown \( [2,7] \) (ID \(2\)): not contained \(\rightarrow [0,5]\) (since \(0<2\)); removals \(=1\).
+- Crown \( [3,3] \) (ID \(3\)): not contained \(\rightarrow [0,5], [2,7]\); removals \(=2\).
+
+The minimum removals equal \(1\); there is a tie between IDs \(1\) and \(2\); choose the smallest ID \(\rightarrow (1\ 1)\).
+
+
+**[THOUGHT_02_06]**
+
+Consider equal-start intervals \( [0,2], [0,3], [0,1] \) (IDs \(1,2,3\)):
+- Crown \( [0,2] \): not contained \(\rightarrow [0,3]\); removals \(=1\).
+- Crown \( [0,3] \): contains all; removals \(=0\).
+- Crown \( [0,1] \): not contained \(\rightarrow [0,2], [0,3]\); removals \(=2\).
+Result: \((0\ 2)\).
+
+Also consider equal-end intervals \( [0,5], [2,5], [3,5] \) (IDs \(1,2,3\)):
+- Crown \( [0,5] \): contains all; removals \(=0\).
+- Crown \( [2,5] \): not contained \(\rightarrow [0,5]\); removals \(=1\).
+- Crown \( [3,5] \): not contained \(\rightarrow [0,5], [2,5]\); removals \(=2\).
+Result: \((0\ 1)\).
+
+
+**[THOUGHT_02_07]**
+
+Consider extreme coordinates \( [-10^{18}, 10^{18}], [-10^{18}, -10^{18}], [10^{18}, 10^{18}], [0,0] \) (IDs \(1..4\)).
+- Crown \( [-10^{18}, 10^{18}] \): contains all; removals \(=0\).
+- Any other crown requires removals \(>0\).
+Result: \((0\ 1)\).
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+The most direct approach considers each interval \( i \) and counts how many other intervals \( j \) violate containment in \( [s_i, e_i] \). This requires checking the two conditions \( s_j < s_i \) or \( e_j > e_i \) for all \( j \ne i \), yielding \( O(n) \) checks per candidate \( i \).
+
+**[THOUGHT_03_02]**
+
+For a fixed \( i \), any \( j \) that neither starts too early nor ends too late is contained and does not need removal. The rest must be removed. We then pick the \( i \) with the fewest removals and break ties by smallest ID.
+
+**[THOUGHT_03_03]**
+
+Time complexity is \( O(n^2) \) because each of \( n \) candidates performs \( O(n) \) checks. With \( n \) up to \( 200000 \), this would require on the order of \( 4 \times 10^{10} \) comparisons in the worst case, far exceeding typical time limits.
+
+**[THOUGHT_03_04]**
+
+Memory usage is minimal, but runtime makes this approach infeasible for large \( n \). We must avoid per-candidate full scans over all intervals.
+
+
+---
+
+**[CHAIN_04]**
+
+Precomputing right-violators with sorting and binary search
+
+**[THOUGHT_04_01]**
+
+We can speed up computation of \( R(i) \) across all \( i \) by sorting all end points \( e_j \). For a given \( i \), the number of intervals with \( e_j > e_i \) is the count of values strictly greater than \( e_i \) in the sorted list, which is \( n - \text{upper\_bound}(e_i) \).
+
+**[THOUGHT_04_02]**
+
+This reduces computing all \( R(i) \) from \( O(n^2) \) to \( O(n \log n) \): sort once and binary search per interval. It isolates one part of the formula efficiently and correctly accounts for strict inequality on ends.
+
+**[THOUGHT_04_03]**
+
+However, we still need \( \lvert L(i) \rvert \) and \( I(i) = \lvert L(i) \cap R(i) \rvert \). If we compute \( \lvert L(i) \rvert \) by scanning all intervals for each \( i \), we are back to \( O(n^2) \). Similarly, computing the intersection per \( i \) by scanning is also \( O(n^2) \).
+
+**[THOUGHT_04_04]**
+
+While precomputing \( R(i) \) is beneficial, the approach remains asymptotically too slow without an efficient way to compute \( \lvert L(i) \rvert \) and \( I(i) \) for all \( i \).
+
+
+---
+
+**[CHAIN_05]**
+
+Attempting a sweep without grouping and identifying pitfalls
+
+**[THOUGHT_05_01]**
+
+A natural idea is to sort intervals by start \(s\) in ascending order and sweep. Maintain a data structure over ends \(e\) of already processed intervals. Let \(\text{processed}\) be the number of intervals with **strictly smaller start** encountered so far. Then tentatively set \(\lvert L(i)\rvert = \text{processed}\) and estimate \(I(i)\) among the processed intervals via counts of ends \(> e_i\).
+
+
+**[THOUGHT_05_02]**
+
+Using a Fenwick tree over compressed \(e\)-coordinates, we can maintain how many processed intervals have a given end. For the current \(i\), the count of processed ends \(\le e_i\) is \(\text{fenwick.prefix}\!\big(\text{rank}(e_i)\big)\), so
+\[
+I(i) \;=\; \text{processed} \;-\; \text{fenwick.prefix}\!\big(\text{rank}(e_i)\big)
+\]
+aims to count how many processed intervals end after \(e_i\).
+
+
+**[THOUGHT_05_03]**
+
+Intervals with the same start \(s\) are processed sequentially, and earlier ones in the group will count later ones (with the same \(s\)) as left-violators, which is incorrect because \(s_j < s_i\) must be strict. Equal starts should not be counted in \(L(i)\).
+
+
+**[THOUGHT_05_04]**
+
+Counterexample: consider \([0,2]\) and \([0,3]\) in that order. When processing \([0,3]\), the naive sweep would have already inserted \([0,2]\) and set \(\text{processed} = 1\), thus counting it as a left-violator for \([0,3]\), which is wrong since their starts are equal.
+
+
+**[THOUGHT_05_05]**
+
+Therefore, the sweep must be modified to ensure that intervals with the same start are treated simultaneously before any of them influences counts for others in the same group. Without this grouping, \(\lvert L(i)\rvert\) and \(I(i)\) are overcounted. **Complexity:** time \(O(n\log n)\), space \(O(n)\); however, due to equal-start contamination, this variant is **incorrect** despite the asymptotics.
+
+
+---
+
+**[CHAIN_06]**
+
+Executing a grouped sweep with coordinate compression and a Fenwick tree
+
+**[THOUGHT_06_01]**
+
+We refine the sweep by grouping intervals with equal start \( s \). Sort intervals by \( s \) ascending (ties broken by \( e \) for determinism). Process groups of identical \( s \) as follows: before inserting any interval from the group into the Fenwick tree, compute for each \( i \) in the group \( L[i] = \text{processed} \) and \( I[i] = \text{processed} - \text{fenwick.prefix}(\text{rank}(e_i)) \). After computing these values for the entire group, insert all their ends into the Fenwick and increment processed by the group size.
+
+**[THOUGHT_06_02]**
+
+Coordinate compression of ends \( e \) is required because endpoints can be as large as \( 10^{18} \). Create a sorted array of unique end values and map each \( e_i \) to its 1-based rank for Fenwick indexing. This preserves order while keeping the index space compact and avoids large memory.
+
+**[THOUGHT_06_03]**
+
+We still precompute \( R[i] \) separately in \( O(n \log n) \) by sorting all end points and using binary search: \( R[i] = n - \text{upper\_bound}(\text{sortedE}, e_i) \). This gives the count of intervals ending strictly after \( e_i \), matching the definition of right-violators.
+
+**[THOUGHT_06_04]**
+
+For each interval \( i \), we thus have:
+- \( \lvert L(i) \rvert = \text{processed} \) at its group time,
+- \( I(i) = \text{processed} - \text{fenwick.prefix}(\text{rank}(e_i)) \),
+- \( \lvert R(i) \rvert \) from the precomputed binary search.
+Then \( \text{removals}[i] = \lvert L(i) \rvert + \lvert R(i) \rvert - I(i) \).
+
+**[THOUGHT_06_05]**
+
+Tie-breaking by smallest ID is handled by tracking original indices and, when scanning all \( i \) to choose the answer, selecting the smallest index among those with the minimum removal count. Sorting by \( s \) or compressing \( e \) does not affect the tie-breaking rule because we retain original IDs.
+
+**[THOUGHT_06_06]**
+
+Complexity: sorting arrays and coordinate compression cost \( O(n \log n) \); each Fenwick operation is \( O(\log n) \) and used \( O(n) \) times; computing all \( R[i] \) is \( O(n \log n) \). Total time is \( O(n \log n) \) and memory is \( O(n) \).
+
+
+---
+
+**[CHAIN_07]**
+
+Establishing correctness and handling equalities rigorously
+
+**[THOUGHT_07_01]**
+
+For a candidate \( [s_i, e_i] \), any interval with \( s_j < s_i \) or \( e_j > e_i \) cannot be contained and must be removed. Any interval with \( s_j \ge s_i \) and \( e_j \le e_i \) is contained and does not need removal. Therefore the set of required removals is exactly \( L(i) \cup R(i) \).
+
+**[THOUGHT_07_02]**
+
+Inclusion-exclusion: \( \lvert L(i) \cup R(i) \rvert = \lvert L(i) \rvert + \lvert R(i) \rvert - I(i) \). This prevents double-counting windows that both start too early and end too late relative to \( i \).
+
+**[THOUGHT_07_03]**
+
+At the moment we compute \( L \) and \( I \) for all intervals with start \( s = s^\ast \), processed counts only intervals with strictly smaller start (\( < s^\ast \)). Thus \( L(i) = \text{processed} \) is exact, and Fenwick counts are strictly over the appropriate set. Equal-start intervals do not contaminate each other’s counts.
+
+**[THOUGHT_07_04]**
+
+With all ends \( e_j \) sorted, \( \text{upper\_bound}(e_i) \) returns the first index of an element \( > e_i \). Therefore \( n - \text{upper\_bound}(e_i) \) is exactly the number of ends strictly greater than \( e_i \), matching the definition of \( R(i) \).
+
+**[THOUGHT_07_05]**
+
+The method respects that \( s_j = s_i \) contributes neither to \( L(i) \) nor to \( I(i) \) because of group-before-insert logic, and \( e_j = e_i \) contributes neither to \( R(i) \) nor to the intersection due to strict comparisons and use of prefix sums up to \( \le e_i \).
+
+
+---
+
+**[CHAIN_08]**
+
+Addressing implementation details and avoiding pitfalls
+
+**[THOUGHT_08_01]**
+
+Store \(s_i\) and \(e_i\) in 64-bit to cover \(\pm 10^{18}\). Counts such as \(L[i], R[i], I[i]\) satisfy \(\le n\) and therefore fit in 32-bit; using 64-bit for these counts is conservative but optional.
+
+**[THOUGHT_08_02]**
+
+Coordinate compression must be built from the full list of ends, sorted and deduplicated. Map each \( e_i \) to its 1-based rank by lower_bound on the unique sorted list. This ensures the Fenwick indices range from 1 to the number of unique ends and preserves ordering semantics.
+
+**[THOUGHT_08_03]**
+
+Define add at index \( i \) and prefix sum up to index \( i \). Always ensure indices are 1-based. The sum over compressed rank \( r \) returns counts of ends \( \le e \) for all processed intervals, which is critical to compute \( I(i) \) correctly.
+
+**[THOUGHT_08_04]**
+
+When traversing intervals sorted by \( s \), locate contiguous ranges with equal \( s \). For each group, first compute \( L \) and \( I \) for all members using the current Fenwick tree; only after that insert all their ends and increase the processed count by the group size. This preserves strictness in \( L(i) \) and prevents equal-start contamination.
+
+
+**[THOUGHT_08_05]**
+
+Binary search for \( R[i] \) should use upper_bound to enforce strictness \( e_j > e_i \). Using lower_bound would incorrectly count \( e_j \ge e_i \). Carefully choose the function that matches the inequality in the definition of right-violators.
+
+**[THOUGHT_08_06]**
+
+While scanning candidates to determine the best answer, update the best pair \( (\text{removals}, \text{id}) \) when a strictly smaller removals count is found, or when the same removals count is found with a smaller original ID. IDs are 0-based internally and adjusted to 1-based on output.
+
+**[THOUGHT_08_07]**
+
+I/O and performance: With \( n \) up to \( 200000 \), prefer fast I/O and avoid per-interval dynamic allocations inside loops. Sorting dominates runtime, and Fenwick operations are light, keeping total within typical time limits.
+
+
+---
+
+**[CHAIN_09]**
+
+Auditing with worked micro-examples and expected counts
+
+**[THOUGHT_09_01]**
+
+\( [1,1] \), \( [2,2] \), \( [3,3] \) For each candidate \( i \), \( L(i) \) counts intervals starting earlier, \( R(i) \) counts intervals ending later, and \( I(i) = 0 \) since ends are distinct and no processed interval can end after a smaller end in this pattern. Each candidate requires removing 2; ID 1 is chosen by tie-break.
+
+**[THOUGHT_09_02]**
+
+\( [1,10] \) plus \( [2,3] \), \( [7,10] \), \( [7,7] \), \( [10,10] \). For the dominant \( [1,10] \), \( L = 0 \), \( R = 0 \), \( I = 0 \), so removals are 0. Others have positive \( R \) or \( L \), so they are not optimal.
+
+**[THOUGHT_09_03]**
+
+\( [0,5] \), \( [2,7] \), \( [3,3] \). For \( [0,5] \), \( L = 0 \), \( R = 1 \) due to \( [2,7] \), \( I = 0 \), giving 1 removal. For \( [2,7] \), \( L = 1 \) (due to \( [0,5] \)), \( R = 0 \), \( I = 0 \), also 1 removal; tie-break gives ID 1. For \( [3,3] \), \( L = 2 \), \( R = 0 \), \( I = 0 \), thus 2 removals.
+
+**[THOUGHT_09_04]**
+
+\( [0,2] \), \( [0,3] \), \( [0,1] \) Grouping prevents any of these from counting the others as left-violators. For the one with maximum end \( [0,3] \), \( R = 0 \); for others, \( R > 0 \). The best is the interval with largest end, consistent with strictness on ends.
+
+**[THOUGHT_09_05]**
+
+Consider \( [0,5], [2,5], [3,5] \). Using \(\text{upper\_bound}\) ensures \( R = 0 \) for all because no end is strictly greater than \(5\). The smallest start minimizes \( L \), hence \( [0,5] \) wins with \(0\) removals.
+
+
+---
+
+**[CHAIN_10]**
+
+Summarizing the final method and minimal helper snippet
+
+**[THOUGHT_10_01]**
+
+The final algorithm proceeds as follows:
+- Precompute \( R[i] \) by sorting all ends and using \( R[i] = n - \text{upper\_bound}(e_i) \).
+- Coordinate-compress ends for Fenwick indexing.
+- Sort intervals by start \( s \) and process in groups of equal \( s \):
+  - Before inserting the group, for each \( i \) in the group set \( L[i] = \text{processed} \) and compute \( I[i] = \text{processed} - \text{fenwick.prefix}(\text{rank}(e_i)) \).
+  - Insert all ends of the group into the Fenwick tree and increment the processed count.
+- Compute \( \text{removals}[i] = L[i] + R[i] - I[i] \) for all \( i \), and choose the smallest-ID candidate achieving the minimum.
+
+
+**[THOUGHT_10_02]**
+
+This approach strictly improves over brute force by reducing the per-candidate cost from \( O(n) \) to amortized \( O(\log n) \), thanks to preprocessing and the Fenwick tree. It also corrects the flawed sweep by grouping equal starts, ensuring strict inequality handling and avoiding overcounts in \( L(i) \) and \( I(i) \).
+
+**[THOUGHT_10_03]**
+
+The total running time is \( \mathcal{O}(n \log n) \): sorting and compression take \( \mathcal{O}(n \log n) \), Fenwick operations contribute \( \mathcal{O}(n \log n) \), and the final scan is \( \mathcal{O}(n) \). The space usage is \( \mathcal{O}(n) \) for arrays and \( \mathcal{O}(u) \) for the Fenwick tree, where \( u \) is the number of unique ends.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given \( n \) closed intervals \( [s_i, e_i] \). We must choose exactly one interval as the Master Window and remove as few other intervals as possible so that every remaining interval is fully contained within the chosen interval. An interval \( [s_j, e_j] \) is contained in \( [s_i, e_i] \) if and only if \( s_i \le s_j \) and \( e_j \le e_i \). If multiple choices yield the same minimum removals, we return the smallest 1-based ID.
+
+Key observations:
+- For a fixed candidate \( i \), any interval starting before \( s_i \) must be removed.
+- For the same candidate, any interval ending after \( e_i \) must be removed.
+- Define:
+  - \( L(i) = \lvert \{ j \mid s_j < s_i \} \rvert \)
+  - \( R(i) = \lvert \{ j \mid e_j > e_i \} \rvert \)
+  - \( I(i) = \lvert \{ j \mid s_j < s_i \text{ and } e_j > e_i \} \rvert \)
+  - Removals for candidate \( i \) equal \( L(i) + R(i) - I(i) \) by inclusion-exclusion.
+- Naïve per-candidate counting is \( O(n^2) \), which is infeasible for \( n \le 200000 \).
+
+
+**2. Optimal Approach**
+
+We compute \( L(i) \), \( R(i) \), and \( I(i) \) for all \( i \) in \( O(n \log n) \):
+
+- Step 1: Precompute \( R(i) \) for all \( i \).
+  - Sort all ends \( e_j \) in a separate array.
+  - For each \( i \), \( R(i) = n - \text{upper\_bound}(e_i) \), i.e., the count of ends strictly greater than \( e_i \).
+
+- Step 2: Coordinate-compress the ends.
+  - Map each unique \( e \) to a 1-based rank preserving order to index a Fenwick tree.
+
+- Step 3: Compute \( L(i) \) and \( I(i) \) via a grouped sweep by start.
+  - Sort intervals by start \( s \) ascending (break ties by end for determinism).
+  - Sweep the sorted intervals in groups of equal \( s \). Maintain:
+    - processed = number of intervals with strictly smaller start.
+    - A Fenwick tree that stores counts of ends for the processed intervals.
+  - For each interval \( i \) in the current group (before insertion):
+    - \( L(i) = \) processed.
+    - Let \( r = \) rank of \( e_i \). Let \( \text{leq} = \) fenwick.prefixSum(r), the number of processed intervals with end \( \le e_i \).
+    - \( I(i) = \) processed \( - \) leq, i.e., processed intervals whose ends are \( > e_i \).
+  - Insert the group’s ends into the Fenwick tree and increase processed by the group size.
+
+- Step 4: For each \( i \), compute removals \( = L(i) + R(i) - I(i) \) and select the smallest-ID interval achieving the minimum.
+
+This approach ensures strict inequalities are respected and runs in \( O(n \log n) \) time with \( O(n) \) space.
+
+
+**3. Code**
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <limits>
+#include <vector>
+
+/**
+ * @brief Fenwick tree (Binary Indexed Tree) for prefix sums over counts.
+ *
+ * Supports point updates and prefix-sum queries in O(log n) time.
+ * Indices are 1-based.
+ */
+class FenwickTree {
+public:
+    FenwickTree() : size_(0) {}
+
+    /// Initialize internal storage for indices [1..n].
+    void init(int n) {
+        size_ = n;
+        tree_.assign(size_ + 1, 0);
+    }
+
+    /// Add a delta to position i (1 <= i <= n).
+    void add(int i, int delta) {
+        for (; i <= size_; i += i & -i) {
+            tree_[i] += delta;
+        }
+    }
+
+    /// Compute prefix sum for [1..i] (0 <= i <= n).
+    int prefixSum(int i) const {
+        int sum = 0;
+        for (; i > 0; i -= i & -i) {
+            sum += tree_[i];
+        }
+        return sum;
+    }
+
+private:
+    int size_;
+    std::vector<int> tree_;
+};
+
+/**
+ * @brief Input interval (window) with metadata.
+ */
+struct Window {
+    long long start;  ///< start_i: inclusive start
+    long long end;    ///< end_i: inclusive end
+    int id;           ///< Original 0-based ID (input order)
+    int endRank;      ///< 1-based coordinate-compressed rank of end
+};
+
+/** Constant naming note: Google-style kCamelCase for constants. */
+constexpr int kInvalidId = -1;
+const long long kInfRemovals = std::numeric_limits<long long>::max();
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int n;
+    if (!(std::cin >> n)) {
+        return 0;
+    }
+
+    std::vector<Window> windows(n);
+    std::vector<long long> endValues;
+    endValues.reserve(n);
+
+    for (int i = 0; i < n; ++i) {
+        long long start, end;
+        std::cin >> start >> end;
+        windows[i] = {start, end, i, 0};
+        endValues.push_back(end);
+    }
+
+    // Coordinate-compress the end coordinates for Fenwick indexing.
+    std::vector<long long> uniqueEnds = endValues;
+    std::sort(uniqueEnds.begin(), uniqueEnds.end());
+    uniqueEnds.erase(std::unique(uniqueEnds.begin(), uniqueEnds.end()), uniqueEnds.end());
+
+    for (int i = 0; i < n; ++i) {
+        int endRankIndex = int(std::lower_bound(uniqueEnds.begin(), uniqueEnds.end(), windows[i].end) - uniqueEnds.begin()) + 1; // 1-based
+        windows[i].endRank = endRankIndex;
+    }
+
+    // Precompute numWithLargerEnd[i] = |{ j : end_j > end_i }|.
+    std::vector<long long> sortedEnds = endValues;
+    std::sort(sortedEnds.begin(), sortedEnds.end());
+
+    std::vector<int> numWithLargerEnd(n, 0);
+    for (int i = 0; i < n; ++i) {
+        int upperBoundIndex = int(std::upper_bound(sortedEnds.begin(), sortedEnds.end(), windows[i].end) - sortedEnds.begin());
+        numWithLargerEnd[windows[i].id] = n - upperBoundIndex; // strictly greater-than
+    }
+
+    // Prepare arrays:
+    // numWithSmallerStart[i]                = |{ j : start_j < start_i }|
+    // numWithSmallerStartAndLargerEnd[i]    = |{ j : start_j < start_i and end_j > end_i }|
+    std::vector<int> numWithSmallerStart(n, 0);
+    std::vector<int> numWithSmallerStartAndLargerEnd(n, 0);
+
+    // Sort by (start asc, end asc, id asc) and sweep grouped on equal start.
+    std::vector<Window> byStart = windows;
+    std::sort(byStart.begin(), byStart.end(), [](const Window& a, const Window& b) {
+        if (a.start != b.start) return a.start < b.start;
+        if (a.end != b.end) return a.end < b.end;
+        return a.id < b.id;
+    });
+
+    FenwickTree fenwick;
+    fenwick.init(int(uniqueEnds.size()));
+
+    int processed = 0; // number of windows with strictly smaller start encountered so far
+    int currentGroupIndex = 0;
+
+    /**
+     * Core idea (for each candidate i):
+     * A window j is NOT contained in i iff (start_j < start_i) OR (end_j > end_i).
+     * Removals(i) = |A ∪ B| = |A| + |B| - |A ∩ B|
+     *   where A = { j : start_j < start_i }, B = { j : end_j > end_i }.
+     *
+     * We compute:
+     *   |A|     -> numWithSmallerStart[i] (by grouping on equal start)
+     *   |B|     -> numWithLargerEnd[i]    (precomputed by sorting ends)
+     *   |A ∩ B| -> numWithSmallerStartAndLargerEnd[i]
+     *             (Fenwick over ends of already-processed windows, i.e., start_j < start_i)
+     *
+     * Inclusive containment ([start_i, end_i] contains [a, b] if start_i <= a <= b <= end_i)
+     * corresponds to strict comparisons for "not contained":
+     * start_j < start_i  or  end_j > end_i.
+     */
+
+    while (currentGroupIndex < n) {
+        int nextGroupIndex = currentGroupIndex;
+        while (nextGroupIndex < n && byStart[nextGroupIndex].start == byStart[currentGroupIndex].start) {
+            ++nextGroupIndex;
+        }
+
+        // For the group with the same "start", first query counts vs. previously processed windows.
+        for (int windowIndex = currentGroupIndex; windowIndex < nextGroupIndex; ++windowIndex) {
+            const int id = byStart[windowIndex].id;
+            numWithSmallerStart[id] = processed;
+
+            const int endRankIndex = byStart[windowIndex].endRank;
+            const int numWithEndLeq = fenwick.prefixSum(endRankIndex); // among processed: end_j <= end_i
+            numWithSmallerStartAndLargerEnd[id] = processed - numWithEndLeq; // => end_j > end_i
+        }
+
+        // Then insert this group's ends so they count for strictly larger "start" groups.
+        for (int windowIndex = currentGroupIndex; windowIndex < nextGroupIndex; ++windowIndex) {
+            fenwick.add(byStart[windowIndex].endRank, 1);
+        }
+        processed += (nextGroupIndex - currentGroupIndex);
+        currentGroupIndex = nextGroupIndex;
+    }
+
+    // Choose the best window: minimize removals, break ties by smallest ID.
+    long long bestRemovals = kInfRemovals;
+    int bestId = kInvalidId;
+
+    for (int id = 0; id < n; ++id) {
+        long long removals =
+            static_cast<long long>(numWithSmallerStart[id]) +
+            static_cast<long long>(numWithLargerEnd[id]) -
+            static_cast<long long>(numWithSmallerStartAndLargerEnd[id]);
+
+        if (removals < bestRemovals || (removals == bestRemovals && (bestId == kInvalidId || id < bestId))) {
+            bestRemovals = removals;
+            bestId = id;
+        }
+    }
+
+    std::cout << bestRemovals << " " << (bestId + 1) << "\n";
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- We read all intervals and retain their original indices.
+- We precompute \( R(i) \) by sorting all ends and using upper_bound to count how many ends are strictly greater than \( e_i \).
+- We coordinate-compress the ends to map each \( e_i \) to a small 1-based rank for Fenwick indexing.
+- We sort intervals by start \( s \) and sweep in groups with equal \( s \). Before inserting a group:
+  - \( L(i) \) equals the number of processed intervals (those with strictly smaller starts).
+  - \( I(i) \) equals processed minus the Fenwick prefix sum up to rank \( e_i \), i.e., the count of processed intervals with end \( > e_i \).
+- After computing \( L \) and \( I \) for the group, we insert all their end ranks into the Fenwick tree and update processed.
+- Finally, for each interval \( i \), removals \( = L(i) + R(i) - I(i) \). We select the interval minimizing removals and break ties by smallest original ID.
+
+Example walkthrough (intervals \( [0,5], [2,7], [3,3] \)):
+- Ends sorted: \( [3,5,7] \). \( R \): for \( e=5 \Rightarrow 1 \), for \( e=7 \Rightarrow 0 \), for \( e=3 \Rightarrow 2 \).
+- Sweep by start: group \( s=0 \): processed \(=0\). For \( [0,5] \), \( L=0 \), \( I=0 \). Insert end 5. processed \(=1\).
+- Next \( s=2 \): For \( [2,7] \), \( L=1 \), Fenwick prefix up to 7 counts 1, so \( I=0 \). Insert end 7. processed \(=2\).
+- Next \( s=3 \): For \( [3,3] \), \( L=2 \), Fenwick prefix up to 3 counts 0, so \( I=2 \).
+- Removals: \( [0,5] \Rightarrow 0+1-0=1 \), \( [2,7] \Rightarrow 1+0-0=1 \), \( [3,3] \Rightarrow 2+2-2=2 \). Choose ID 1 by tie-break.
+
+This matches the intended logic: only intervals starting too early or ending too late relative to the candidate must be removed.
+
+**5. Time and Space Complexity**
+
+- Time complexity:
+  - Sorting ends and computing \( R(i) \): \( O(n \log n) \).
+  - Coordinate compression: \( O(n \log n) \).
+  - Sorting by start and grouped sweep with Fenwick operations: \( O(n \log n) \).
+  - Final selection scan: \( O(n) \).
+  - Total: \( O(n \log n) \).
+
+- Space complexity:
+  - Arrays for intervals, auxiliary counts, and Fenwick tree: \( O(n) \).
+
+**6. Conclusion**
+
+By combining sorting, coordinate compression, and a grouped sweep with a Fenwick tree, we can compute for every candidate interval the exact number of necessary removals \( L(i) + R(i) - I(i) \) in \( O(n \log n) \) time and \( O(n) \) space. The method respects strict inequalities on starts and ends, handles large coordinates, and adheres to the tie-breaking rule by smallest ID.
