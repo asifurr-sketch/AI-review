@@ -10,7 +10,7 @@ Features:
 - 26 individual review points covering all aspects of document quality
 - Primary: Claude Opus 4.1 with 30k thinking budget for exceptional reasoning
 - Secondary: Claude Sonnet 4 for cleanup operations  
-- Code style guide and naming convention compliance (Points 1-3)
+- Code style guide and naming convention compliance for C++ and Python (Points 1-3)
 - Response quality and mathematical correctness (Points 4-11) 
 - Problem statement and solution validation (Points 12-17)
 - Reasoning chain analysis and approach evaluation (Points 18-21)
@@ -187,12 +187,72 @@ class ReviewPrompts:
     def get_style_guide_prompt():
         """Check if code follows style guide"""
         return """
-You are an expert code reviewer. Analyze the provided code and check if it follows this style guide:
+You are an expert code reviewer. Analyze the provided code and check if it follows the appropriate style guide based on the programming language:
 
+**General Style Guide Requirements:**
 * a. Variables and functions are expected to be named in an explicit and easy-to-understand way 
 * b. Standard and natural coding style is expected, instead of multiple unnecessary inlines / typedefs / templates etc. If an unnatural structure is applied, an explanation is expected. 
 * c. Avoid vague abbreviations 
 * d. If an unnatural const is defined, an explanation is expected.
+
+**C++ Style Guide:**
+
+1. Naming Conventions:
+  + Use lowerCamelCase for variables and functions, e.g., inventory, numberOfDays().
+  + Class names should be in UpperCamelCase, e.g., InventoryManager.
+  + Constants should be named in kCamelCase, e.g., kDefaultTimeout.
+
+2. Quoting:
+Use standard double quotes " for string literals and single quotes ' only for single characters.
+
+3. Indentation:
+Use 4 spaces per indentation level. Do not use tabs.
+
+4. Comments:
+Use // for single-line comments. For longer comments or explanatory notes, use /* ... */. Place a space after the comment delimiter and capitalize the first letter of the comment. For example:
+  ``` c++
+  // Comment about the following line of code.
+
+  /*
+  * Block Comment: Explanation of the upcoming code section.
+  */
+  ```
+
+    Remember to keep comments concise and meaningful.
+
+**Python Style Guide:**
+
+1. Code Readability and Style:
+- Follow the PEP 8 guidelines for Python code style.
+- Use meaningful variable, function, and class names that reflect their purpose.
+- Use snake_case for variable, function, and module names.
+- Use PascalCase (also known as CamelCase) for class names.
+- Limit each line to 79 characters to maintain readability.
+- Use proper indentation (4 spaces, no tabs).
+
+2. Documentation and Comments
+- Write clear and concise docstrings for all modules, classes, and functions, and also add type hints without using the "typing" module.
+
+```python
+def compute_inventory_count(include_reserved: bool) -> int:
+    '''
+    Computes the total number of items in the inventory.
+   
+    Args:
+        include_reserved: If True, includes reserved items in the total count.
+
+    Returns:
+        The total number of items.
+    '''     
+```
+- Use comments to explain complex or non-obvious parts of your code.
+- Avoid redundant comments; ensure comments add value to the reader's understanding.
+- Don't use type hint from the Typing library.
+
+3. Dependencies and Environment
+- Avoid using external libraries or dependencies.
+- Aim to write code that is compatible with default Python libraries.
+- Ensure your code can run seamlessly in environments like Google Colab or CodeForces without requiring the installation of additional libraries.
 
 Please answer pass or fail and provide specific areas where a rule/guide is violated and suggest how to fix it.
 
@@ -206,11 +266,19 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_naming_conventions_prompt():
         """Check naming conventions"""
         return """
-You are an expert code reviewer. Check if the provided code follows these Naming Conventions:
+You are an expert code reviewer. Check if the provided code follows the appropriate Naming Conventions based on the programming language:
 
+**C++ Naming Conventions:**
 * 1. Use kCamelCase for constants (e.g., `kMaxN`, `kInfinity`).
 * 2. Use UpperCamelCase for class and struct names (e.g., `InventoryManager`, `Solver`, `Node`). 
 * 3. Use lowerCamelCase for variables and functions (e.g., `visited`, `inventory`, `numberOfDays`, `numberOfElements`, `totalNodes`).
+
+**Python Naming Conventions:**
+* 1. Use UPPER_CASE_WITH_UNDERSCORES for constants (e.g., `MAX_N`, `INFINITY`).
+* 2. Use PascalCase for class names (e.g., `InventoryManager`, `Solver`, `Node`).
+* 3. Use snake_case for variables, functions, and module names (e.g., `visited`, `inventory`, `number_of_days`, `number_of_elements`, `total_nodes`).
+* 4. Use snake_case for method names and instance variables.
+* 5. Use leading underscore for internal use (e.g., `_internal_method`).
 
 Please answer pass or fail and provide specific areas where a rule is violated and suggest how to fix it.
 
@@ -219,12 +287,35 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 3: Doxygen Documentation
+    # Point 3: Documentation
     @staticmethod
     def get_documentation_prompt():
-        """Check doxygen-style documentation"""
+        """Check appropriate documentation style"""
         return """
-You are an expert code reviewer. Check if the provided code uses doxygen-style comments for all the functions, classes, and public APIs to specify arguments, return values, and any relevant details.
+You are an expert code reviewer. Check if the provided code uses appropriate documentation style for all functions, classes, and public APIs to specify arguments, return values, and any relevant details.
+
+**C++ Documentation Requirements:**
+- Use doxygen-style comments for all functions, classes, and public APIs
+- Specify arguments, return values, and relevant details
+
+**Python Documentation Requirements:**
+- Write clear and concise docstrings for all modules, classes, and functions
+- Add type hints without using the "typing" module
+- Follow the format:
+```python
+def function_name(parameter: type) -> return_type:
+    '''
+    Brief description of the function.
+   
+    Args:
+        parameter: Description of the parameter.
+
+    Returns:
+        Description of what is returned.
+    '''
+```
+- Use comments to explain complex or non-obvious parts of code
+- Avoid redundant comments that don't add value
 
 Please answer pass or fail.
 
@@ -381,29 +472,45 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 You are an expert response evaluator. Is the metadata correct?
 
 METADATA VALIDATION REQUIREMENTS:
-The document should contain a metadata section at the beginning with the following fields:
+The document MUST contain a metadata section at the beginning that follows this EXACT format:
 
-1. **Category:** - Should be relevant to the content (e.g., "Coding", "Math", etc.)
-2. **Topic:** - Should match the subject area (e.g., "Competitive Programming", "Data Structures", etc.)
-3. **Subtopic:** - Should be a JSON array of relevant subtopics from the taxonomy
-4. **Difficulty:** - Should indicate complexity level (e.g., "Easy", "Medium", "Hard")
-5. **Languages:** - Programming languages used (e.g., "C++", "Python", "Java")
-6. **Number of Approaches:** - Should list the complexity progression of approaches
-7. **Number of Chains:** - Should match the actual count of CHAIN_XX sections in the document
+# Metadata
+
+**Category:** - [value]
+
+**Topic:** - [value]
+
+**Subtopic:** - [JSON array of subtopics]
+
+**Difficulty:** - [difficulty level]
+
+**Languages:** - [programming languages]
+
+**Number of Approaches:** - [approach count and complexity progression]
+
+**Number of Chains:** - [number]
+
+REQUIRED FORMAT SPECIFICATIONS:
+1. Must start with "# Metadata" header
+2. Each field must use the pattern: **FieldName:** - value
+3. There must be a space after the colon, then a dash, then a space before the value
+4. All fields must be present in this exact order
+5. The subtopic must be a valid JSON array format with proper quotes
 
 CRITICAL VALIDATION FOR "Number of Chains":
 - Count all reasoning chains in the document with format **[CHAIN_01]**, **[CHAIN_02]**, etc.
-- The stated number must exactly match the actual count of CHAIN sections
+- The stated number must exactly match the actual count of CHAIN_XX sections in the document
 - Do NOT count THOUGHT_XX_YY items - only count CHAIN_XX items
-- If no chains exist, the number should be 0
-- Example: If document has CHAIN_01 through CHAIN_09, the metadata should show "**Number of Chains:** - 9"
+- Format must be exactly: **Number of Chains:** - [number]
+- Example: If document has CHAIN_01 through CHAIN_10, metadata must show "**Number of Chains:** - 10"
 
 WHAT TO CHECK:
-- All required metadata fields are present
-- Each field has appropriate and accurate values
-- Number of Chains matches actual CHAIN_XX sections in the document
-- Subtopics are from the valid taxonomy list
-- Difficulty and complexity information is consistent with the content
+1. Metadata section exists with "# Metadata" header
+2. All required fields are present in correct order
+3. Each field follows the exact format: **FieldName:** - value
+4. Number of Chains matches actual CHAIN_XX sections count
+5. Subtopic is a properly formatted JSON array
+6. Values are appropriate for the content
 
 Please answer pass or fail.
 
@@ -698,7 +805,7 @@ class NamingConventionsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class DocumentationReviewer(BaseReviewer):
-    """Point 3: Reviews doxygen-style documentation"""
+    """Point 3: Reviews appropriate documentation style"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_documentation_prompt()
@@ -940,7 +1047,7 @@ class DocumentReviewSystem:
             # Points 1-3: Code Quality
             "1. Style Guide Compliance": StyleGuideReviewer(self.client),
             "2. Naming Conventions": NamingConventionsReviewer(self.client),
-            "3. Doxygen Documentation": DocumentationReviewer(self.client),
+            "3. Documentation Standards": DocumentationReviewer(self.client),
             
             # Points 4-11: Response Quality  
             "4. Response Relevance to Problem": ResponseRelevanceReviewer(self.client),

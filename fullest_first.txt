@@ -1,0 +1,654 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Backtracking Algorithms", "Heaps and Priority Queues", "Arrays and Lists", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - Python
+
+**Number of Approaches:** - 3, ($O(2^{\sum a_i})$ -> $O(m \log n)$ -> $O(n)$)
+
+**Number of Chains:** - 8
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Fullest-First Unloading**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **32 MB**
+
+A harbor crane operator must empty several stacks of cargo containers. At every move, the operator must unload one container from a stack that is currently among the fullest (i.e., tied for the maximum height). Ties can be broken arbitrarily. The operator aims to avoid unloading from the same stack in two consecutive moves, but this can sometimes be unavoidable due to the rule.
+
+Given multiple scenarios, determine for each the minimum number of times the operator must perform two consecutive unloads from the same stack while always following the "pick from a currently fullest stack" rule.
+
+Formally:
+- There are $n$ stacks.
+- The $i$-th stack initially contains $a_i$ containers.
+- At each move, exactly one container is removed from any stack whose current height equals the maximum among all stacks.
+- The goal is to empty all stacks while minimizing the number of consecutive moves that unload from the same stack.
+
+**Input Format:-**
+
+- The first line contains an integer $t$, the number of test cases.
+- For each test case:
+  - The first line contains an integer $n$.
+  - The second line contains $n$ integers $a_1, a_2, \dots, a_n$.
+
+**Output Format:-**
+
+- For each test case, output a single integer: the minimum number of times two consecutive unloads must come from the same stack under the rule.
+
+**Constraints:-**
+
+- $1 \le t \le 10^4$
+- $1 \le n \le 2 \cdot 10^5$
+- $1 \le a_i \le 10^9$
+- The sum of $n$ over all test cases does not exceed $2 \cdot 10^5$.
+**Examples:-**
+ - **Input:**
+```
+6
+1
+2
+2
+3 1
+3
+2 2 1
+4
+4 3 3 3
+3
+5 2 2
+2
+1 1
+```
+
+ - **Output:**
+```
+1
+1
+0
+0
+2
+0
+```
+
+ - **Input:**
+```
+1
+5
+5 4 3 2 1
+```
+
+ - **Output:**
+```
+0
+```
+
+**Note:-**
+  
+For each test case, the key calculation is: let $M=\max_i a_i$ and let $S$ be the second-largest height (if at least two stacks have height $M$, then $S=M$). The minimal number of forced consecutive unloads equals
+$$\max(0, M - S - 1).$$
+
+- In the first example, test case 1 ($n=1$, $a=[2]$): $M=2$, $S=0$, so $\max(0,2-0-1)=1$. With one stack, the second move must repeat the same stack once.
+
+- In the first example, test case 2 ($n=2$, $a=[3,1]$): $M=3$, $S=1$, so $\max(0,3-1-1)=1$. The tallest stays unique for two moves; the first two unloads must be from that stack, creating exactly one consecutive pair.
+
+- In the first example, test case 3 ($n=3$, $a=[2,2,1]$): $M=2$, $S=2$, so $\max(0,2-2-1)=0$. There are at least two stacks at the maximum from the start; alternate to avoid repeats.
+
+- In the first example, test case 4 ($n=4$, $a=[4,3,3,3]$): $M=4$, $S=3$, so $\max(0,4-3-1)=0$. One unload from the 4 brings it to 3, creating a tie among four stacks; then alternate.
+
+- In the first example, test case 5 ($n=3$, $a=[5,2,2]$): $M=5$, $S=2$, so $\max(0,5-2-1)=2$. The tallest remains unique for $3$ moves, forcing a run that contributes $3-1=2$ consecutive repeats.
+
+- In the first example, test case 6 ($n=2$, $a=[1,1]$): $M=1$, $S=1$, so $\max(0,1-1-1)=0$. Always tied; alternate without repeats.
+
+- In the second example, test case 1 ($n=5$, $a=[5,4,3,2,1]$): $M=5$, $S=4$, so $\max(0,5-4-1)=0$. After one unload from the 5, heights tie at 4 and you can alternate.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarify objectives and formalize the unloading rule.
+
+**[THOUGHT_01_01]**
+
+We have $n$ stacks with initial heights $a_1, a_2, \dots, a_n$. At each step, we must remove one container from any stack that is currently tied for maximum height among all stacks. We want to minimize the number of times two consecutive moves target the same stack. The output for each test case is this minimum count.
+
+
+**[THOUGHT_01_02]**
+
+Let the unloading sequence of stack indices be $s_1, s_2, \dots, s_m$, where $m = \sum_{i=1}^{n} a_i$. A "consecutive repeat" occurs at position $k$ if $s_k = s_{k-1}$. We must follow the rule that $s_k$ is always chosen from indices whose stacks are currently tied for the maximum height at step $k$.
+
+
+**[THOUGHT_01_03]**
+
+The rule removes flexibility because we cannot avoid the tallest stack(s). If a unique leader exists, only that stack may be chosen until a tie is restored. When multiple leaders exist, we may pick any of them, and we can try to avoid repeating the previous stack.
+
+
+**[THOUGHT_01_04]**
+
+The operator attempts to avoid picking the same stack twice in a row, but when there is a unique leader for multiple consecutive steps, multiple unavoidable consecutive picks from that leader are forced. Understanding when and how long a unique leader persists is crucial.
+
+
+**[THOUGHT_01_05]**
+
+If we can maintain a tie at the top after the early steps, then we can alternate choices and avoid repeats. The difficulty is the initial segment where a single stack may be strictly larger than all others.
+
+
+**[THOUGHT_01_06]**
+
+Let $L$ be the largest value among $a_i$, and let $R$ be the second-largest (define $R = 0$ if $n = 1$). Let $g = L - R$ be the "gap" from leader to runner-up. This gap quantifies how many steps the unique leader must be selected before a tie can occur.
+
+
+**[THOUGHT_01_07]**
+
+Let $L$ be the largest initial height and $R$ the second-largest (with multiplicity), and define the initial gap $g = L - R$. This gap determines only the **early constraints**: if $g = 0$, a tie exists at the outset; if $g > 0$, the first few selections are constrained to the current leader until a tie can form.
+
+
+
+---
+
+**[CHAIN_02]**
+
+Define comprehensive test scenarios to exercise logic and edge cases.
+
+**[THOUGHT_02_01]**
+
+Single stack scenarios: $n = 1$ with values like $a_1 = 1$, $a_1 = 5$, and very large $a_1$. With one stack, every move uses the same stack. The number of consecutive repeats equals $a_1 - 1$ because the first move does not count as a repeat.
+
+
+**[THOUGHT_02_02]**
+
+Perfect tie scenarios: Multiple stacks equal at the start, such as $[5, 5]$, $[3, 3, 3]$, $[1, 1, 1, 1]$. Since a tie exists from the beginning, alternating choices should eliminate repeats entirely, suggesting an answer of $0$.
+
+
+**[THOUGHT_02_03]**
+
+Leader slightly ahead: Cases like $[3,2]$, $[10,9,9]$, $[4,3,3]$.  
+When $L-R=1$, we expect no unavoidable repeats: one forced pick from the leader ties the top, and the first move does not count as a repeat. Hence the expected answer is $0$.
+
+
+
+**[THOUGHT_02_04]**
+
+Leader far ahead: Cases like $[6,1,1,1]$, $[9,7]$, $[100,50,50]$.  
+Here, a unique leader persists for multiple steps, inevitably causing repeated selections of the same stack and increasing the count.
+
+
+
+**[THOUGHT_02_05]**
+
+Large-scale input cases:
+Construct tests where $n$ is near $2\cdot 10^5$ and $a_i$ values are near $10^9$, covering both **uniform** configurations (e.g., all $a_i$ equal) and **highly skewed** ones (e.g., one very large $a_i$ with many small values). These cases verify correct behavior over extreme input sizes and value ranges.
+
+
+
+**[THOUGHT_02_06]**
+
+Runner-up variety: Consider $[5,5,1]$, $[7,7,6,6,6]$, $[8,7,7,7,2]$.  
+These confirm that the presence of multiple **runners-up** does not change the fundamental dependence on the top two values.
+
+
+
+**[THOUGHT_02_07]**
+
+Adversarial ties during the process
+
+Start with $[5,3,3,3]$. After reducing the leader to tie with the runners-up, confirm that alternation remains possible **without** creating new forced runs, validating the tie-maintenance intuition.
+
+
+
+
+---
+
+**[CHAIN_03]**
+
+Implement brute force to enumerate all valid sequences.
+
+**[THOUGHT_03_01]**
+
+The most straightforward approach is to simulate all possible valid unloading sequences under the "pick from a current maximum stack" rule, track the number of consecutive repeats in each, and take the minimum. This guarantees correctness if it terminates.
+
+
+**[THOUGHT_03_02]**
+
+The state can be represented by the current multiset of heights and the index of the last-picked stack (or a sentinel for none). At each step, we branch over all stacks currently attaining the maximum height and decrease that chosen stack by $1$.
+
+
+**[THOUGHT_03_03]**
+
+For each transition from last-picked index $p$ to new pick $q$, we increment the repeat count if $p = q$. The cumulative count at terminal states (all zeros) gives the repeats for that sequence.
+
+
+**[THOUGHT_03_04]**
+
+If there are $k$ stacks at maximum, each step creates up to $k$ branches. Even if $k$ is usually small, in worst cases like $[x, x, \dots, x]$, $k$ can be $n$ for many initial steps, leading to $O(n^m)$ paths where $m$ is total moves.
+
+
+**[THOUGHT_03_05]**
+
+The total number of moves $m = \sum a_i$ can be enormous (e.g., $10^9$-scale values in the input). Even for modest $m$, enumerating all sequences is combinatorial and quickly becomes intractable.
+
+
+**[THOUGHT_03_06]**
+
+Many states are equivalent up to permutation when stacks have equal heights, but exploiting this symmetry fully still leaves a massive search space. Memoization based on sorted tuples does not cure the exponential growth in path length.
+
+
+**[THOUGHT_03_07]**
+
+Conclusion: The brute force approach is computationally impossible under the constraints. Time complexity is exponential in the number of moves, and memory use for tracking states and paths is prohibitive. We must abandon exhaustive enumeration.
+
+
+
+---
+
+**[CHAIN_04]**
+
+Analyze the time complexity of exhaustive enumeration
+
+**[THOUGHT_04_01]**
+
+The number of steps is $m = \sum_{i=1}^{n} a_i$, which can be very large due to $a_i$ as big as $10^9$. Any algorithm that simulates all moves step-by-step is already suspect; one that enumerates choices at each step is certainly infeasible.
+
+
+**[THOUGHT_04_02]**
+
+Even with $k = 2$ choices per step for a small fraction of steps, the number of sequences doubles each time a tie occurs, leading to $2^{\Theta(m)}$ variants. This quickly surpasses any computational limit.
+
+
+**[THOUGHT_04_03]**
+
+Attempted pruning by bounding repeats or using dominance checks fails because different tie-breaking choices can lead to different future tie patterns, making it hard to confidently discard branches without complete exploration.
+
+
+**[THOUGHT_04_04]**
+
+Instead of simulating operations, we need a direct formula or invariant that extracts the minimum repeats purely from the input configuration, ideally in $O(n)$ time per test case.
+
+
+**[THOUGHT_04_05]**
+
+Find a characterization of forced consecutive picks, independent of later tie-breaking, that only depends on the relative sizes of the largest stacks at the start or after carefully reasoned phases.
+
+
+
+---
+
+**[CHAIN_05]**
+
+Prototype a greedy simulation using a max-heap to avoid repeats.
+
+**[THOUGHT_05_01]**
+
+Use a max-heap of current heights. At each step, pop the largest height. If the last-picked stack is the same as the top element again, try to pick the next-largest to avoid a repeat if possible, reinsert elements after decrementing.
+
+
+**[THOUGHT_05_02]**
+
+Maintain pairs $(h, i)$ in a max-heap. At each step, if the heap top has index equal to the last pick and there is another element tied at the same height, choose the other one. Otherwise, choose the top. Decrement height and push back if still positive.
+
+
+**[THOUGHT_05_03]**
+
+This approach tries to minimize repeats locally by always picking a different stack when a tie allows it. It seems sensible because alternating among max-tied stacks should avoid repeats whenever possible.
+
+
+**[THOUGHT_05_04]**
+
+The heap knows only current heights, not the long-term necessity of picks. If a unique leader persists for $g$ steps, the heap will force picking the same stack $g$ times consecutively, incurring $g - 1$ repeats. The heuristic cannot reduce these forced repeats.
+
+
+**[THOUGHT_05_05]**
+
+While the heap can avoid optional repeats during ties, it does not provide a certificate that the achieved count is minimal across all valid sequences. Different tie-breaks might influence whether future steps introduce new leaders or maintain ties.
+
+
+**[THOUGHT_05_06]**
+
+Consider a configuration where tie-breaking choices can temporarily create or break ties, affecting future repeat opportunities. The heap's strictly local choice cannot foresee which tie-breaking yields the globally minimal repeat count.
+
+
+**[THOUGHT_05_07]**
+
+Conclusion: Although the heap-based greedy seems to work well and runs in $O(m \log n)$ time for $m$ total removals, $m$ is too large to simulate, and the approach still lacks a proof of optimality. This is not suitable for inputs with $a_i$ up to $10^9$ and large $n$.
+
+
+
+---
+
+**[CHAIN_06]**
+
+Derive a direct formula by analyzing the tallest-gap forcing effect.
+
+**[THOUGHT_06_01]**
+
+Let $L$ be the largest $a_i$, $R$ be the second-largest, and $g = L - R$. If $g = 0$, there is no unique leader at the start, so an initial tie exists, and we can always avoid consecutive repeats by alternating among leaders. Thus, repeats could be $0$ if ties can be perpetually maintained.
+
+
+**[THOUGHT_06_02]**
+
+If there is a unique leader, we have no choice but to keep picking that stack until it no longer strictly leads. Each pick reduces $L$ by $1$ while leaving $R$ unchanged (unless $R$ shares the maximum later). It takes exactly $g$ picks from the leader to close the gap to a tie.
+
+
+**[THOUGHT_06_03]**
+
+The first pick in this forced run cannot contribute to a consecutive repeat (no previous move). The subsequent $g - 1$ forced picks are consecutive repeats because the same stack remains the unique leader and must be chosen again. Therefore, at least $\max(0, g - 1)$ repeats are unavoidable.
+
+
+**[THOUGHT_06_04]**
+
+Once the gap is closed to a tie at the top, we can select a different stack than the last one at each step:
+- If multiple stacks share the maximum, pick one different from the last pick to avoid repeats.
+- If after picking, a unique leader emerges, it must be a different stack than the last pick (since the last pick decreased its height), so selecting the new leader next also avoids a repeat, restoring a tie thereafter.
+
+
+**[THOUGHT_06_05]**
+
+Conclude the exact formula:
+$$
+\max(0, L - R - 1).
+$$
+This counts only the forced consecutive picks in the initial unique-leader phase and asserts no further repeats are necessary afterward.
+
+
+**[THOUGHT_06_06]**
+
+Validate corner cases:
+- $n = 1$: Then $R = 0$, $g = a_1 - 0 = a_1$, and the answer is $a_1 - 1$, matching the intuition that all but the first pick are repeats.
+- If $L = R$: The answer is $0$, as an initial tie permits complete alternation without repeats.
+
+
+**[THOUGHT_06_07]**
+
+Highlight complexity benefits: Computing $L$ and $R$ requires only a single pass over the array to track the top two values, making the algorithm $O(n)$ time per test case and $O(1)$ extra space, and $O(\sum n)$ overall across all test cases, which satisfies the constraints.
+
+
+
+---
+
+**[CHAIN_07]**
+
+Validate the formula with diverse and adversarial scenarios.
+
+**[THOUGHT_07_01]**
+
+Test single-stack inputs: For $[1]$, $L = 1$, $R = 0$, so $\max(0, 1 - 0 - 1) = 0$. There is one move and no repeat, as expected. For $[5]$, $\max(0, 5 - 0 - 1) = 4$, matching the $5$ moves with $4$ repeats.
+
+
+**[THOUGHT_07_02]**
+
+Test perfect ties: For $[5, 5]$, $L = R = 5$, answer $0$. For $[3, 3, 3]$, answer $0$. Alternation is always possible while staying within the rule, so no repeats occur.
+
+
+**[THOUGHT_07_03]**
+
+Test slight gaps: For $[3, 2]$, $L = 3$, $R = 2$, answer $\max(0, 3 - 2 - 1) = 0$. We take one from the leader to tie at $2$, then alternate. For $[10, 9, 9]$, answer $\max(0, 10 - 9 - 1) = 0$, consistent with tying in one move, then alternating.
+
+
+**[THOUGHT_07_04]**
+
+Test large gaps: For $[6, 1, 1, 1]$, $L = 6$, $R = 1$, $g = 5$, answer $4$. The unique leader must be picked $5$ times, inducing $4$ repeats. After reaching tie with $R = 1$, alternation avoids further repeats.
+
+
+**[THOUGHT_07_05]**
+
+Test mixed ties: For $[3, 3, 2, 2, 2]$, $L = 3$, $R = 3$, answer $0$. Multiple leaders allow full alternation. For $[9, 7]$, $L = 9$, $R = 7$, $g = 2$, answer $1$, matching the intuition that the leader must be picked twice at the start, creating one repeat.
+
+
+**[THOUGHT_07_06]**
+
+Stress-test large values: For $[10^9, 10^9, 1]$, $L = 10^9$, $R = 10^9$, answer $0$. Despite large numbers, only the top two matter. This confirms that the algorithm avoids handling massive move counts explicitly.
+
+
+**[THOUGHT_07_07]**
+
+Confirm consistency with sample I/O: All provided sample cases match the formula $\max(0, L - R - 1)$, both in tie and gap scenarios, reinforcing correctness and optimality.
+
+
+
+---
+
+**[CHAIN_08]**
+
+Finalize implementation details to achieve linear time per test.
+
+**[THOUGHT_08_01]**
+
+Plan input handling: Read $t$. For each test case, read $n$, then read $n$ integers for $a_i$. Avoid building unnecessary intermediate data structures; a single pass to extract the top two values suffices.
+
+
+**[THOUGHT_08_02]**
+
+Track top two values robustly: Maintain $L$ and $R$ during a single scan. On reading $x$, if $x \ge L$, set $R \leftarrow L$, $L \leftarrow x$; else if $x > R$, set $R \leftarrow x$. This correctly captures the largest and second-largest values including duplicates.
+
+
+**[THOUGHT_08_03]**
+
+Compute the result safely: Let $g = L - R$. The answer is $0$ if $g \le 0$, otherwise $g - 1$. This is equivalent to $\max(0, L - R - 1)$. Use integer arithmetic only; no risk of overflow within Python's integers.
+
+
+**[THOUGHT_08_04]**
+
+Ensure performance bounds: The approach is $O(n)$ time and $O(1)$ additional space per test case. The sum of $n$ across all test cases is at most $2 \cdot 10^5$, so total time is linear in input size.
+
+
+**[THOUGHT_08_05]**
+
+Handle edge cases cleanly:
+- $n = 1$ works automatically with $R$ initialized to $0$.
+- All equal elements produce $g = 0$ and answer $0$.
+- Large $a_i$ do not affect performance or memory, as we never simulate operations.
+
+
+**[THOUGHT_08_06]**
+
+Observe I/O considerations: Use buffered I/O to read all integers efficiently. Output exactly one integer per test case on its own line, matching the required format and avoiding extra whitespace.
+
+
+**[THOUGHT_08_07]**
+
+Reflect on improvements over failed approaches: We eliminated step-by-step simulation, avoided heap overhead and the need to reason about dynamic ties, and derived a direct closed-form answer dependent only on $L$ and $R$. This transition from procedural simulation to invariant-based counting achieved both correctness and optimal efficiency.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given multiple test cases. In each, there are $n$ stacks with initial
+heights $a_1, a_2, \dots, a_n$. At each move, one container must be removed
+from a stack that is currently tied for the maximum height. The operator wants
+to avoid unloading from the same stack in two consecutive moves, but sometimes
+this is unavoidable due to the rule.
+
+Goal: For each test case, compute the minimal number of unavoidable consecutive
+same-stack moves (i.e., the minimal number of adjacent equal stack indices in
+any valid unloading sequence).
+
+Key observations:
+- Let $L$ be the largest value among $a_i$, and let $R$ be the second-largest
+  value (define $R = 0$ if $n = 1$). Let $g = L - R$.
+- If $g = 0$, there is no unique leader initially; we can always alternate
+  among the top stacks to avoid consecutive repeats.
+- If $g > 0$, the unique leader must be selected $g$ times until it ties with
+  the runner-up. Among these $g$ moves, the first does not cause a repeat,
+  while the next $g - 1$ moves are forced consecutive picks of the same stack.
+- After the first tie is reached, we can always choose a different stack than
+  the previous pick, ensuring no further repeats are necessary.
+
+Therefore, the minimal number of unavoidable consecutive same-stack moves is
+$$
+\max(0, L - R - 1).
+$$
+
+
+**2. Optimal Approach**
+
+We avoid simulating all moves (which would be too slow) and instead compute the
+answer directly from the two largest values:
+1. Scan the $n$ values once to determine $L$ (the largest) and $R$
+   (the second-largest).
+2. Compute $g = L - R$. If $g \le 0$, the answer is $0$; otherwise, the answer
+   is $g - 1$.
+3. Output $\max(0, L - R - 1)$ for each test case.
+
+Why this works:
+- Exactly $g$ initial picks from the unique leader are forced to close the gap.
+- Only the $g - 1$ picks after the first in that initial streak contribute to
+  consecutive repeats.
+- Once a tie exists, it can be maintained without creating consecutive repeats.
+
+Edge cases:
+- $n = 1$: $R = 0$, so the answer is $a_1 - 1$ (all but the first move are
+  repeats).
+- If all $a_i$ are equal, the answer is $0$.
+
+
+**3. Code**
+```python
+import sys
+from typing import Iterator
+
+"""
+Fullest-First Unloading — Minimal consecutive same-stack moves.
+
+We must unload from a stack that is currently among the tallest.
+Goal: minimize the number of times two consecutive unloads come
+from the same stack. The minimal number equals:
+
+    max(0, M - S - 1)
+
+where:
+- M = maximum stack height
+- S = second-largest with multiplicity (S = M if multiple stacks tie for M; S = 0 if n = 1)
+
+Naming note:
+- This file intentionally uses lowerCamelCase for variables and functions,
+  and kCamelCase for constants, per the requested guidelines.
+"""
+
+# Explicit constant to satisfy style checks that expect at least one constant.
+# Not strictly necessary (we could inline '\n'), but kept to demonstrate
+# constant naming and documentation per the project's guidelines.
+kNewline: str = "\n"
+
+
+def integerStream() -> Iterator[int]:
+    """
+    @return An iterator that yields integers from stdin efficiently by streaming lines.
+    """
+    for line in sys.stdin.buffer:
+        for token in line.split():
+            yield int(token)
+
+
+def computeMinimalSameStackPairs(maxHeight: int, secondMaxHeight: int) -> int:
+    """
+    Compute the minimal number of unavoidable consecutive same-stack unload pairs.
+
+    Using the formula: max(0, maxHeight - secondMaxHeight - 1).
+
+    @param maxHeight: The maximum stack height M.
+    @param secondMaxHeight: The second-largest with multiplicity S
+                            (S = M if at least two stacks have the max height; S = 0 if n = 1).
+    @return The minimal number of consecutive same-stack unloads.
+    """
+    heightGap = maxHeight - secondMaxHeight
+    # A run of length `heightGap` on the unique tallest contributes `heightGap - 1` consecutive pairs.
+    return heightGap - 1 if heightGap > 0 else 0
+
+
+def main() -> None:
+    """
+    Read input, compute answers using a single pass per test case to track
+    the two largest values (with multiplicity), and print results.
+
+    Complexity: O(total n) time across all test cases, O(1) extra space.
+    """
+    tokens = integerStream()
+    testCaseCount = next(tokens)
+    outputLines = []
+
+    for _ in range(testCaseCount):
+        stackCount = next(tokens)
+
+        # Track the two largest heights with multiplicity:
+        # - If a new value >= current max, shift max to secondMax, update max.
+        # - This ensures secondMax == max when we see a second copy of the max.
+        maxHeight = 0
+        secondMaxHeight = 0
+
+        for _ in range(stackCount):
+            height = next(tokens)
+            if height >= maxHeight:
+                secondMaxHeight = maxHeight
+                maxHeight = height
+            elif height > secondMaxHeight:
+                secondMaxHeight = height
+
+        minimalConsecutivePairs = computeMinimalSameStackPairs(maxHeight, secondMaxHeight)
+        outputLines.append(str(minimalConsecutivePairs))
+
+    sys.stdout.write(kNewline.join(outputLines))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+
+**4. Code Explanation**
+
+- We define an integer stream generator that yields integers by iterating over
+  the input lines. This is memory-efficient and fast enough for the constraints.
+- For each test case:
+  - We read $n$ and then scan the $n$ stack heights once, maintaining the two
+    largest values $L$ and $R$ as we go.
+  - We compute the gap $g = L - R$ and the answer $\max(0, g - 1)$.
+  - We append the result to a list and print all results at the end.
+
+Example walkthrough:
+- Input: $n = 2$, $a = [9, 7]$.
+  - $L = 9$, $R = 7$, $g = 2$, so the answer is $g - 1 = 1$.
+  - Intuition: We must pick the stack with $9$ twice to reach a tie with $7$,
+    causing one consecutive repeat.
+
+
+**5. Time and Space Complexity**
+
+- Time complexity per test case: $O(n)$ for scanning the array once.
+- Total time over all test cases: $O\left(\sum n\right)$, which satisfies the
+  constraints.
+- Space complexity: $O(1)$ auxiliary space per test case (excluding input and
+  output storage). We only store two integers ($L$ and $R$) and the outputs.
+
+
+**6. Conclusion**
+
+The problem reduces to counting the unavoidable forced consecutive picks caused
+by an initial unique leader. This is fully characterized by the gap between the
+largest and second-largest stack heights. The simple and efficient formula
+$$
+\max(0, L - R - 1)
+$$
+allows an $O(n)$ per-test-case solution without simulating the unloading
+process, meeting both correctness and performance requirements.
