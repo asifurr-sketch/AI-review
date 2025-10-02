@@ -1,0 +1,645 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Divide and Conquer", "Arrays and Lists", "Hash Tables", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, \(O(p \cdot q \cdot r)\)  -> \(O(p \cdot q)\)
+ -> O(V^2) -> O(N log N)
+
+**Number of Chains:** - 10
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Vault of Echoes**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **32 MB**
+
+Deep beneath the city lies the Vault of Echoes, filled with ancient code-stones. A resonance occurs when a Spark-stone and a Filter-stone are brought together: their bit-patterns phase-blend into a new code. If that result matches any Echo-stone in the vault, the vault whispers. You are asked to count how many ordered trios of stones (one Spark, one Filter, one Echo) produce a whisper. The phase-blend of two codes is defined as their bitwise exclusive-or.
+
+You are given three integer sequences:
+- Sparks: \(S_1, S_2, \ldots, S_p\)
+- Filters: \(F_1, F_2, \ldots, F_q\)
+- Echoes: \(E_1, E_2, \ldots, E_r\)
+
+Count the number of ordered triples \((i, j, k)\) such that \(S_i \oplus F_j = E_k\). Since this number can be large, output it modulo \(998244353\).
+
+Notes:
+- Triples are ordered; changing \(i\), \(j\), or \(k\) counts as a different triple.
+- Elements in the sequences need not be distinct.
+
+**Input Format:-**
+- The first line contains three integers \(p, q, r\).
+- The second line contains \(p\) integers \(S_1, S_2, \ldots, S_p\).
+- The third line contains \(q\) integers \(F_1, F_2, \ldots, F_q\).
+- The fourth line contains \(r\) integers \(E_1, E_2, \ldots, E_r\).
+
+**Output Format:-**
+- Output a single integer: the number of ordered triples \((i, j, k)\) with \(S_i \oplus F_j = E_k\), modulo \(998244353\).
+
+**Constraints:-**
+- \(1 \le p, q, r \le 2 \cdot 10^5\)
+- \(0 \le S_i, F_j, E_k \le 10^6\)
+- Compute the answer modulo \(998244353\)
+
+**Examples:-**
+ - **Input:**
+```
+5 4 6
+7 7 7 7 7
+1 2 3 1
+6 6 6 5 5 4
+```
+
+ - **Output:**
+```
+45
+```
+**Explanation:**
+Sparks are all 7, so XOR with filters gives results 6 (10 times), 5 (5 times), and 4 (5 times); echo counts are 6 (3), 5 (2), 4 (1); multiplying pair counts with echo counts: \(10 \times 3 + 5 \times 2 + 5 \times 1 = 45\).
+
+
+ - **Input:**
+```
+3 2 7
+2 2 3
+1 4
+3 3 6 2 7 7 8
+```
+
+ - **Output:**
+```
+9
+```
+**Explanation:**
+XOR pairs give results 3 (2 times), 6 (2 times), 2 (1 time), 7 (1 time); echo counts are 3 (2), 6 (1), 2 (1), 7 (2); multiplying pair counts with echo counts: \(2 \times 2 + 2 \times 1 + 1 \times 1 + 1 \times 2 = 9\).
+
+**Note:-**
+In the first example, all Sparks are 7, so for each Filter value \(f\), the XOR is \(7 \oplus f\):  
+- Filters: 1 (twice), 2, 3 -> XORs: 6 (twice), 5, 4  
+- Ordered pair counts: 6 appears \(5 \times 2 = 10\) times, 5 appears \(5 \times 1 = 5\) times, 4 appears \(5 \times 1 = 5\) times  
+- Echo frequencies: \(6 \times 3\), \(5 \times 2\), \(4 \times 1\)  
+- Total triples: \(10 \times 3 + 5 \times 2 + 5 \times 1 = 45\)  
+
+In the second example, use frequencies to count ordered pairs \((i, j)\) by their XOR:  
+- Sparks: \(2 \times 2, 3 \times 1\); Filters: \(1 \times 1, 4 \times 1\)  
+- XOR results and pair counts: \(2 \oplus 1 = 3 -> 2\), \(2 \oplus 4 = 6 -> 2\), \(3 \oplus 1 = 2 -> 1\), \(3 \oplus 4 = 7 -> 1\)  
+- Echo frequencies: \(3 \times 2, 6 \times 1, 2 \times 1, 7 \times 2, 8 \times 1\)  
+- Total triples: \(2 \times 2 + 2 \times 1 + 1 \times 1 + 1 \times 2 + 0 \times 1 = 9\)
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the problem and formalizing the goal
+
+**[THOUGHT_01_01]**
+
+We are given three sequences of nonnegative integers: Sparks \(S\) of length \(p\), Filters \(F\) of length \(q\), and Echoes \(E\) of length \(r\); the task is to count the number of ordered triples \((i, j, k)\) such that \(S_i \oplus F_j = E_k\), where \(\oplus\) denotes bitwise XOR, and different choices of indices count as distinct even if values are repeated.
+
+**[THOUGHT_01_02]**
+
+Repetitions in the sequences must be fully accounted for: each occurrence of a value in Sparks, Filters, or Echoes contributes separately, and duplicates increase the total count proportionally.
+
+**[THOUGHT_01_03]**
+
+Input constraints: \(1 \le p, q, r \le 2 \cdot 10^5\), \(0 \le S_i, F_j, E_k \le 10^6\); this defines both the maximum input size and the numerical range of values to consider.
+
+**[THOUGHT_01_04]**
+
+The output must be given modulo 998244353. This modulus ensures results remain within manageable bounds and is a prime number that simplifies modular arithmetic while preventing overflow.
+
+
+**[THOUGHT_01_05]**
+
+Because of the large values of \(p\), \(q\), and \(r\), enumerating all possible \((i, j, k)\) combinations would involve an extremely large number of operations (up to \(4 \times 10^{10}\)), which exceeds practical computational limits.
+
+---
+
+**[CHAIN_02]**
+
+Testcase and Edge case Analysis
+
+**[THOUGHT_02_01]**
+
+Minimal sanity: \(p=q=r=1\). Example: \(S=[0]\), \(F=[0]\), \(E=[0]\). Since \(0 \oplus 0 = 0\), the answer is \(1\). This validates the fundamental XOR relation and ordered triple counting.
+
+
+**[THOUGHT_02_02]**
+
+Duplicates stress: \(S=[1,1,1]\), \(F=[1,1]\), \(E=[0,0,0,0]\). Here, \(1 \oplus 1 = 0\). The number of pairs is \(3 \cdot 2 = 6\), each matching all four echoes,giving an expected output is \(24\). This checks multiplicity handling and large counts.
+
+
+**[THOUGHT_02_03]**
+
+All zeros: \(S=[0,\ldots,0]\), \(F=[0,\ldots,0]\), \(E=[0,\ldots,0]\). Every pair XOR is 0, so the answer is \(p \cdot q \cdot r \mod 998244353\). Confirms correct behavior with homogeneous inputs and large modular products.
+
+
+**[THOUGHT_02_04]**
+
+Random small cross-check: For small \(p, q, r \le 100\) and values in \([0, 255]\), compare the optimized result with a naive triple-loop computation. This validates correctness before scaling up.
+
+
+**[THOUGHT_02_05]**
+
+Near-domain maximum: Choose values near \(10^6\) (e.g., in \([2^{20}-50, 2^{20}-1]\)). Confirms index coverage, correct choice of transform length \(N\), and absence of out-of-bounds errors.
+
+
+**[THOUGHT_02_06]**
+
+Asymmetric sizes: \(p=2 \cdot 10^5\), \(q=1\), \(r=2 \cdot 10^5\). Ensures that the approach handles very uneven input sizes efficiently and does not assume balance between \(S\), \(F\), and \(E\).
+
+
+**[THOUGHT_02_07]**
+
+Power-of-two boundary: If the maximum value \(M\) equals \(2^k\), confirm that \(N\) is chosen as \(2^{k+1}\). This prevents aliasing and guarantees that all indices \(0 \ldots M\) are representable within the transform length.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+Enumerate all ordered triples \((i, j, k)\) and check whether \(S_i \oplus F_j = E_k\); this directly reflects the problem statement and requires minimal memory.
+
+**[THOUGHT_03_02]**
+
+Its time complexity is \(O(p \cdot q \cdot r)\). With each up to \(2 \cdot 10^5\), the operation count can reach \(8 \cdot 10^{15}\), which is entirely infeasible within any reasonable time limit.
+
+
+**[THOUGHT_03_03]**
+
+Even simple micro-optimizations cannot reduce this cubic growth, because each triple must be examined individually. This makes brute force feasible only for very small inputs and useful mainly for correctness verification.
+
+**[THOUGHT_03_04]**
+
+Conclusion: Brute-force enumeration is computationally impractical for the problem constraints, emphasizing the need for a more scalable approach.
+
+
+---
+
+**[CHAIN_04]**
+
+Reducing a dimension by precomputing echo frequencies
+
+**[THOUGHT_04_01]**
+
+A natural refinement is to precompute \(h[t]\), the frequency of each value \(t\) in \(E\). Then iterate over all pairs \((i, j)\), compute \(t = S_i \oplus F_j\), and add \(h[t]\) to the answer. This eliminates the innermost loop over \(k\).
+
+
+**[THOUGHT_04_02]**
+
+This approach runs in \(O(p \cdot q)\) time with \(O(V)\) space for \(h\), where \(V \le 10^6 + 1\) is the value domain size. Array-based lookups are constant-time and efficient.
+
+
+**[THOUGHT_04_03]**
+
+However, \(O(p \cdot q)\) can still be up to \(4 \cdot 10^{10}\) operations, which is too slow. Although better than cubic time, it remains impractical for worst-case inputs.
+
+
+**[THOUGHT_04_04]**
+
+Sorting-based or two-pointer heuristics are not applicable, since XOR does not provide a monotonic relation to exploit. We cannot shortcut counting in an order-preserving manner as with sums or differences.
+
+
+**[THOUGHT_04_05]**
+
+Conclusion: While precomputing \(h\) is sensible, the per-pair enumeration still renders the algorithm infeasible for upper bounds. We must find a way to count all XOR pairs collectively across the domain.
+
+
+---
+
+**[CHAIN_05]**
+
+Switching to frequency-domain thinking and naive XOR convolution
+
+**[THOUGHT_05_01]**
+
+We move from indices to values via frequency arrays. Let \(f[v]\) and \(g[v]\) be the frequencies of \(v\) in \(S\) and \(F\). The number of pairs yielding each \(t\) is the XOR-convolution \((f \,\text{⊛}_X\, g)[t] = \sum_{v} f[v] \cdot g[v \oplus t]\). The final answer is \(\sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t]\).
+
+
+**[THOUGHT_05_02]**
+
+A naive computation of \((f \,\text{⊛}_X\, g)\) for all \(t\) over domain size \(V\) requires \(O(V^2)\) time. With \(V \approx 10^6\), this leads to roughly \(10^{12}\) operations, which is not feasible.
+
+
+**[THOUGHT_05_03]**
+
+Re-indexing the double sum to \(\sum_{v}\sum_{x} f[v] \cdot g[x] \cdot h[v \oplus x]\) does not reduce the complexity; it remains \(O(V^2)\). Any sparsity-based shortcuts are unreliable under worst-case dense distributions.
+
+
+**[THOUGHT_05_04]**
+
+Conclusion: Frequency arrays set up the right structure, but a direct XOR-convolution is still too slow. We need a transform that computes XOR-convolutions efficiently over the entire domain.
+
+
+---
+
+**[CHAIN_06]**
+
+Applying Fast Walsh–Hadamard Transform for XOR
+
+**[THOUGHT_06_01]**
+
+The FWHT is a specialized transform for XOR-convolutions. For the unnormalized XOR transform \(T\), we have \(T(f \,\text{⊛}_X\, g) = T(f) \odot T(g)\), where \(\odot\) denotes pointwise multiplication. This property lets us compute the whole convolution in \(O(V \log V)\) time.
+
+
+**[THOUGHT_06_02]**
+
+We can compute the desired sum without explicitly forming \((f \,\text{⊛}_X\, g)\). The Hadamard inner-product identity gives \(\sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t] = \frac{1}{N} \sum_{u} F[u] \cdot G[u] \cdot H[u]\), where \(F=T(f)\), \(G=T(g)\), \(H=T(h)\), and \(N\) is the transform length.
+
+
+**[THOUGHT_06_03]**
+
+Algorithm outline:
+- Let \(M\) be the maximum value appearing in \(S\), \(F\), or \(E\). Choose \(N\) as the smallest power of two at least \((M+1)\), ensuring all possible indices up to \(M\) are covered.
+- Build arrays \(f, g, h\) of length \(N\) with frequencies of \(S, F, E\).
+- Apply the in-place unnormalized FWHT to \(f, g, h\) to get \(F, G, H\).
+- Compute \(S = \sum_{u=0}^{N-1} F[u] \cdot G[u] \cdot H[u] \mod 998244353\).
+- Normalize by multiplying with \(N^{-1} \mod 998244353\) to obtain the final answer.
+
+
+**[THOUGHT_06_04]**
+
+Complexity becomes \(O(N \log N)\) time and \(O(N)\) space. With values up to \(10^6\), \(N \le 2^{20} = 1048576\), which is easily manageable in both time and memory compared to the previous \(O(pq)\) or \(O(V^2)\) approaches.
+
+
+**[THOUGHT_06_05]**
+
+Using the unnormalized FWHT simplifies implementation: the transform and its inverse share the same butterfly with additions and subtractions modulo \(998244353\). A single final scaling by \(N^{-1}\) suffices due to the prime modulus and \(N\) being a power of two.
+
+
+---
+
+**[CHAIN_07]**
+
+Managing modular arithmetic and normalization
+
+**[THOUGHT_07_01]**
+
+All intermediate results are taken modulo \(998244353\). During butterfly steps, we compute sums and differences and reduce them modulo \(998244353\) to keep values within range and maintain correctness.
+
+
+**[THOUGHT_07_02]**
+
+Pointwise products and accumulations use 64-bit intermediates to prevent overflow before taking modulo. This is crucial when multiplying transformed values and summing many terms.
+
+
+**[THOUGHT_07_03]**
+
+Normalization uses the modular inverse of \(N\), computed by fast exponentiation as \(N^{998244351} \mod 998244353\). Since \(998244353\) is prime and \(N\) is a power of two, the inverse exists.
+
+
+**[THOUGHT_07_04]**
+
+It is essential that \(f\), \(g\), and \(h\) are transformed with the same \(N\) and that all arrays are zero-padded to length \(N\). Mismatched lengths or missing padding will break the transform identities and yield incorrect results.
+
+
+---
+
+**[CHAIN_08]**
+
+Controlling bounds, memory, and indices
+
+**[THOUGHT_08_01]**
+
+Choosing \(N\): Let \(M = \max(\max S_i, \max F_j, \max E_k)\). Set \(N\) to the smallest power of two strictly greater than \(M\). This ensures that indices \(0 \ldots M\) are valid and aligns with FWHT requirements.
+
+
+**[THOUGHT_08_02]**
+
+Memory: Storing three arrays of length \(N \le 2^{20}\) as 32-bit integers uses roughly 12 MB. If we copy arrays for transformation, memory can grow to around 24–36 MB. In-place transforms can keep memory closer to the lower bound.
+
+
+**[THOUGHT_08_03]**
+
+Avoiding aliasing: If \(M = 2^k\), we still choose \(N = 2^{k+1}\) so that all indices \(0 \ldots M\) fit. This avoids indexing the array at position \(N\) or conflating distinct indices during the transform.
+
+
+**[THOUGHT_08_04]**
+
+Input handling: Up to \(6 \cdot 10^5\) numbers require reasonably efficient I/O. Disabling synchronization with stdio and untieing streams helps the program avoid I/O overheads.
+
+
+**[THOUGHT_08_05]**
+
+Type choices: Use 32-bit integers for arrays containing values modulo \(998244353\) and 64-bit integers for intermediate multiplications and accumulation when computing the transform-domain triple product sum.
+
+
+---
+
+**[CHAIN_09]**
+
+Justifying correctness formally
+
+**[THOUGHT_09_01]**
+
+By definition, \((f \,\text{⊛}_X\, g)[t]\) equals the number of \((i, j)\) such that \(S_i \oplus F_j = t\). Weighting by \(h[t]\) counts the matching echoes, giving \(\sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t]\) as the number of ordered triples \((i, j, k)\) satisfying the condition.
+
+
+**[THOUGHT_09_02]**
+
+Let \(T\) be the unnormalized XOR FWHT. Then \(T(f \,\text{⊛}_X\, g) = T(f) \odot T(g)\). This transforms the XOR-convolution into pointwise multiplication, enabling efficient computation.
+
+
+**[THOUGHT_09_03]**
+
+For the unnormalized Hadamard transform, the inner product identity holds: \(\sum_{t} a[t] \cdot b[t] = \frac{1}{N} \sum_{u} T(a)[u] \cdot T(b)[u]\). Setting \(a = f \,\text{⊛}_X\, g\) and \(b = h\), we obtain \(\sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t] = \frac{1}{N} \sum_{u} F[u] \cdot G[u] \cdot H[u]\).
+
+
+**[THOUGHT_09_04]**
+
+Since \(998244353\) is prime and \(N\) is a power of two, \(N^{-1}\) exists modulo \(998244353\). Therefore, the normalization is valid, and the transform-domain computation yields the exact desired count modulo \(998244353\).
+
+
+---
+
+**[CHAIN_10]**
+
+Outlining implementation notes and safeguards
+
+**[THOUGHT_10_01]**
+
+We use an in-place unnormalized FWHT. Each stage processes blocks of length \(2 \cdot \text{len}\), combining pairs \((u, v)\) into \(u+v\) and \(u-v\) modulo \(998244353\). The transform is its own inverse up to scaling, so only a final multiplication by \(N^{-1}\) is needed after forming the triple product sum.
+
+
+**[THOUGHT_10_02]**
+
+The modular inverse of \(N\) is computed via fast exponentiation. Its complexity \(O(\log MOD)\) is negligible compared to \(O(N \log N)\) for the transforms.
+
+
+**[THOUGHT_10_03]**
+
+A concise, documented FWHT routine is:
+```cpp
+/**
+ * @brief In-place unnormalized FWHT for XOR over modulo 998244353.
+ *
+ * @param a Array of length N (power of two), transformed in place.
+ */
+void fwhtXor(vector<int>& a) {
+    int n = static_cast<int>(a.size());
+    for (int len = 1; len < n; len <<= 1) {
+        for (int i = 0; i < n; i += (len << 1)) {
+            for (int j = 0; j < len; ++j) {
+                int u = a[i + j];
+                int v = a[i + j + len];
+                int x = u + v;
+                if (x >= 998244353) x -= 998244353;
+                int y = u - v;
+                if (y < 0) y += 998244353;
+                a[i + j] = x;
+                a[i + j + len] = y;
+            }
+        }
+    }
+}
+```
+
+
+**[THOUGHT_10_04]**
+
+Common pitfalls:
+- Choosing \(N\) that does not strictly exceed \(M\) can exclude index \(M\) and cause out-of-bounds or aliasing.
+- Skipping modulo adjustments after subtractions can lead to negative residues and incorrect results.
+- Forgetting to transform all three arrays before forming the triple product sum breaks the identity.
+- Omitting the final multiplication by \(N^{-1}\) leaves the answer scaled and incorrect.
+
+
+**[THOUGHT_10_05]**
+
+Validation plan:
+- Compare with brute force on tiny inputs.
+- Test duplicate-heavy cases to verify multiplicities.
+- Use randomized cases in a small domain with cross-checks.
+- Probe boundary conditions near powers of two to verify array sizing and padding.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+You are given three integer sequences:
+- Sparks \(S_1, S_2, \ldots, S_p\)
+- Filters \(F_1, F_2, \ldots, F_q\)
+- Echoes \(E_1, E_2, \ldots, E_r\)
+
+You must count the number of ordered triples \((i, j, k)\) such that \(S_i \oplus F_j = E_k\), where \(\oplus\) denotes bitwise XOR. Since the answer can be large, output it modulo \(998244353\). Triples are ordered, so changing any index yields a different triple. Sequences can contain duplicates, and multiplicity must be respected.
+
+Key observation:
+- Let \(f[v]\), \(g[v]\), \(h[v]\) be the frequencies of value \(v\) in \(S\), \(F\), and \(E\). The number of pairs \((i, j)\) with XOR equal to \(t\) is the XOR-convolution \((f \,\text{⊛}_X\, g)[t] = \sum_{v} f[v] \cdot g[v \oplus t]\). The total count is \(\sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t]\).
+
+Direct computation of the XOR-convolution is too slow on the value domain up to \(10^6\), but the Fast Walsh–Hadamard Transform (FWHT) enables an efficient solution.
+
+
+**2. Optimal Approach**
+
+Use the Fast Walsh–Hadamard Transform (FWHT) for XOR to compute the required sum efficiently:
+- Build frequency arrays \(f, g, h\) for \(S, F, E\), respectively.
+- Let \(M\) be the maximum value across all sequences, and choose \(N\) as the smallest power of two strictly greater than \(M\). Create arrays of length \(N\) to satisfy FWHT.
+- Apply the unnormalized XOR FWHT to \(f, g, h\) to obtain \(F, G, H\).
+- Use the identity:
+  \[
+  \sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t] = \frac{1}{N} \sum_{u=0}^{N-1} F[u] \cdot G[u] \cdot H[u]
+  \]
+- Compute the sum of triple products in the transform domain modulo \(998244353\), then multiply by \(N^{-1} \mod 998244353\) (modular inverse via fast exponentiation).
+
+This yields an \(O(N \log N)\) algorithm with \(O(N)\) memory, where \(N \le 2^{20}\) for values up to \(10^6\).
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+
+static const int kModulus = 998244353;
+
+/**
+ * @brief Computes base^exponent modulo kModulus using fast exponentiation.
+ *
+ * @param base Base value.
+ * @param exponent Exponent value.
+ * @return base^exponent modulo kModulus.
+ */
+int modularPow(long long base, long long exponent) {
+    base %= kModulus;
+    long long result = 1;
+    while (exponent > 0) {
+        if (exponent & 1LL) {
+            result = (result * base) % kModulus;
+        }
+        base = (base * base) % kModulus;
+        exponent >>= 1LL;
+    }
+    return static_cast<int>(result);
+}
+
+/**
+ * @brief In-place unnormalized Fast Walsh–Hadamard Transform for XOR modulo kModulus.
+ *
+ * @param freqArray Array of length N (power of two), transformed in place.
+ */
+void applyFWHTXor(std::vector<int>& freqArray) {
+    int length = static_cast<int>(freqArray.size());
+    for (int step = 1; step < length; step <<= 1) {
+        for (int start = 0; start < length; start += (step << 1)) {
+            for (int offset = 0; offset < step; ++offset) {
+                int u = freqArray[start + offset];
+                int v = freqArray[start + offset + step];
+                int sum = u + v;
+                if (sum >= kModulus) sum -= kModulus;
+                int diff = u - v;
+                if (diff < 0) diff += kModulus;
+                freqArray[start + offset] = sum;
+                freqArray[start + offset + step] = diff;
+            }
+        }
+    }
+}
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int numSparks, numFilters, numEchoes;
+    std::cin >> numSparks >> numFilters >> numEchoes;
+
+    std::vector<int> sparks(numSparks), filters(numFilters), echoes(numEchoes);
+    int maxStoneValue = 0;
+
+    for (int i = 0; i < numSparks; ++i) {
+        std::cin >> sparks[i];
+        if (sparks[i] > maxStoneValue) maxStoneValue = sparks[i];
+    }
+    for (int i = 0; i < numFilters; ++i) {
+        std::cin >> filters[i];
+        if (filters[i] > maxStoneValue) maxStoneValue = filters[i];
+    }
+    for (int i = 0; i < numEchoes; ++i) {
+        std::cin >> echoes[i];
+        if (echoes[i] > maxStoneValue) maxStoneValue = echoes[i];
+    }
+
+    int transformSize = 1;
+    while (transformSize <= maxStoneValue) transformSize <<= 1;
+
+    std::vector<int> sparkFreq(transformSize, 0), filterFreq(transformSize, 0), echoFreq(transformSize, 0);
+    for (int val : sparks) {
+        ++sparkFreq[val];
+        if (sparkFreq[val] >= kModulus) sparkFreq[val] -= kModulus;
+    }
+    for (int val : filters) {
+        ++filterFreq[val];
+        if (filterFreq[val] >= kModulus) filterFreq[val] -= kModulus;
+    }
+    for (int val : echoes) {
+        ++echoFreq[val];
+        if (echoFreq[val] >= kModulus) echoFreq[val] -= kModulus;
+    }
+
+    std::vector<int> transformedSparks = sparkFreq, transformedFilters = filterFreq, transformedEchoes = echoFreq;
+    applyFWHTXor(transformedSparks);
+    applyFWHTXor(transformedFilters);
+    applyFWHTXor(transformedEchoes);
+
+    long long totalTriples = 0;
+    for (int i = 0; i < transformSize; ++i) {
+        long long term = static_cast<long long>(transformedSparks[i]) * transformedFilters[i] % kModulus;
+        term = term * transformedEchoes[i] % kModulus;
+        totalTriples += term;
+        if (totalTriples >= kModulus) totalTriples -= kModulus;
+    }
+
+    int inverseSize = modularPow(transformSize, kModulus - 2);
+    long long result = totalTriples * inverseSize % kModulus;
+    std::cout << result << "\n";
+    return 0;
+}
+
+```
+
+**4. Code Explanation**
+
+- Frequency modeling:
+  - Construct \(f, g, h\) where \(f[v]\) counts occurrences of \(v\) in \(S\), \(g[v]\) in \(F\), and \(h[v]\) in \(E\).
+- Transform sizing:
+  - Let \(M\) be the maximum input value. Choose \(n\) as the smallest power of two strictly greater than \(M\). This ensures indices \(0 \ldots M\) fit within arrays of length \(n\) and satisfies FWHT requirements.
+- FWHT for XOR:
+  - Apply the in-place unnormalized XOR FWHT to \(f, g, h\), producing \(F, G, H\).
+- Transform-domain computation:
+  - By the Hadamard inner-product identity for the unnormalized transform,
+    \[
+    \sum_{t} (f \,\text{⊛}_X\, g)[t] \cdot h[t] = \frac{1}{n} \sum_{u=0}^{n-1} F[u] \cdot G[u] \cdot H[u].
+    \]
+  - Compute the triple product sum modulo \(998244353\), then multiply by \(n^{-1} \mod 998244353\) using fast exponentiation to obtain the final answer.
+- Brief example:
+  - For \(S=[1,2,3]\), \(F=[3,1]\), \(E=[2,0,7]\), the pairwise XORs are \(\{2,0,1,3,0,2\}\). Echo values 2 and 0 are present in \(E\), each contributing twice, totaling 4, which matches the computed result.
+
+**Example:**
+
+**Input**
+```
+1 3 4
+0
+1 2 1
+1 2 3 2
+```
+**Output**
+```
+4
+```
+**Example Explanation:**
+
+The total number of valid ordered triples \((i, j, k)\) where \(S_i \oplus F_j = E_k\) is 4.  
+
+The triples are explicitly:  
+- \((S_1, F_1, E_1) \to 0 \oplus 1 = 1\)  
+- \((S_1, F_3, E_1) \to 0 \oplus 1 = 1\)  
+- \((S_1, F_2, E_2) \to 0 \oplus 2 = 2\)  
+- \((S_1, F_2, E_4) \to 0 \oplus 2 = 2\)  
+
+
+**5. Time and Space Complexity**
+
+- Let \(N\) be the transform length.
+- Time:
+  - Building frequencies: \(O(p + q + r)\).
+  - FWHT on three arrays: \(O(N \log N)\).
+  - Triple product summation and normalization: \(O(N)\).
+  - Overall: \(O(N \log N)\).
+- Space:
+  - Frequency and transformed arrays: \(O(N)\).
+  - Overall: \(O(N)\).
+
+With values up to \(10^6\), \(N \le 2^{20} = 1048576\), making the approach efficient.
+
+**6. Conclusion**
+
+By translating sequences into frequency arrays and leveraging the FWHT for XOR, we reduce the problem to an \(O(N \log N)\) computation in the transform domain. The Hadamard inner-product identity lets us compute the final sum directly without forming the convolution array. Modular arithmetic with \(998244353\) ensures correctness and efficient normalization, producing the required count of ordered triples.

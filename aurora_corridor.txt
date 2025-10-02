@@ -1,0 +1,939 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Basic Data Structures", "Arrays and Lists", "Balanced Trees", "Algorithm Complexity and \( \big O \) Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, \( O(NQ) \) → \( O(Q\log N) \) → \( O((Q+K)\log Q) \) → \( O((Q+K)\log Q) \)
+
+**Number of Chains:** - 9
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Aurora Corridor — Wards and Inks**
+
+**Time Limit:** **2 seconds**  
+**Memory Limit:** **40 MB**
+
+In the Aurora Corridor of the Sky Library, there are \(N\) illuminated panels arranged from left to right, indexed \(1..N\). Each panel shines in one of seven spectral inks: **ruby**, **amber**, **saffron**, **jade**, **azure**, **indigo**, **violet**.
+
+Librarians can lay a **ward** on a panel to protect it: **warded panels ignore any attempt to recolor them.** Unwarded panels accept recoloring.  
+Initially, every panel is **unwarded** and glows **azure**.
+
+You must process \(Q\) chronological commands:  
+- ward \(l\) \(r\): mark panels \([l..r]\) as **warded**.  
+- unward \(l\) \(r\): mark panels \([l..r]\) as **unwarded**.  
+- invert \(l\) \(r\): flip the ward state of panels \([l..r]\) (**warded ↔ unwarded**).  
+- ink \(l\) \(r\) \(c\): paint every currently **unwarded** panel in \([l..r]\) with color \(c\). Warded panels ignore this.
+
+After all commands, report the **final color** of each panel, from left to right.
+
+
+**Input Format**
+- The first line contains two integers \(N\) and \(Q\).  
+- Each of the next \(Q\) lines is one command in one of the following forms:  
+  - ward \(l\) \(r\)  
+  - unward \(l\) \(r\)  
+  - invert \(l\) \(r\)  
+  - ink \(l\) \(r\) \(c\)
+
+Here, \(1 \le l \le r \le N\), and \(c\) is one of: **ruby**, **amber**, **saffron**, **jade**, **azure**, **indigo**, **violet**.
+
+
+**Output Format**
+Output \(N\) space-separated color names — the final colors of panels \(1, 2, \dots, N\).
+
+
+**Constraints**
+- \(1 \le N, Q \le 2 \times 10^5\)  
+- \(1 \le l \le r \le N\)  
+- All panels start **unwarded** and colored **azure**.
+
+
+**Examples**
+
+**Input:**  
+```
+6 8  
+ink 1 3 ruby  
+ink 4 6 amber  
+ward 3 4  
+ink 2 5 violet  
+invert 3 3  
+ink 3 4 jade  
+unward 4 4  
+ink 3 4 indigo  
+```
+
+**Output:**  
+```
+ruby violet indigo indigo violet amber  
+```
+
+**Input:**  
+```
+3 6  
+ward 1 3  
+ward 1 3  
+ink 1 3 ruby  
+ink 2 2 azure  
+invert 1 1  
+ink 1 3 saffron  
+```
+
+**Output:**  
+```
+saffron azure azure  
+```
+
+
+**Note**
+
+In the first example, we start with all panels unwarded and **azure**.
+
+1. ink \(1\ 3\) ruby → panels \(1..3\) become **ruby**.  
+2. ink \(4\ 6\) amber → panels \(4..6\) become **amber**.  
+3. ward \(3\ 4\) → panels \(3\) and \(4\) are now **warded** (colors unchanged).  
+4. ink \(2\ 5\) violet → only **unwarded** panels in \([2..5]\) change: panel \(2 \rightarrow\) **violet**, panel \(5 \rightarrow\) **violet**; \(3\) and \(4\) ignore.  
+5. invert \(3\ 3\) → panel \(3\) flips to **unwarded**; panel \(4\) remains **warded**.  
+6. ink \(3\ 4\) jade → panel \(3\) (unwarded) becomes **jade**; panel \(4\) (warded) ignores.  
+7. unward \(4\ 4\) → panel \(4\) becomes **unwarded**.  
+8. ink \(3\ 4\) indigo → panels \(3\) and \(4\) (both unwarded) become **indigo**.  
+
+Final colors:  
+\[
+\text{ruby violet indigo indigo violet amber.}
+\]
+
+
+In the second example, we again start **unwarded** and **azure**.
+
+1. ward \(1\ 3\); ward \(1\ 3\) → all three panels are **warded**; the second ward has no additional effect.  
+2. ink \(1\ 3\) ruby; ink \(2\ 2\) azure → both inks are ignored (all warded).  
+3. invert \(1\ 1\) → panel \(1\) becomes **unwarded** (\(2\) and \(3\) remain **warded**).  
+4. ink \(1\ 3\) saffron → only panel \(1\) (unwarded) becomes **saffron**; \(2\) and \(3\) ignore.  
+
+Final colors:  
+\[
+\text{saffron azure azure.}
+\]
+
+
+**Additional Clarifications**
+- Commands are applied in order; intervals \([l..r]\) are inclusive.  
+- A panel only changes color when an **ink** command is executed and the panel is **unwarded** at that moment.  
+- Warding does **not retroactively apply** missed inks:  
+  \[
+  \text{ward} \rightarrow \text{ink} \rightarrow \text{unward}
+  \]
+  does not recolor unless a new **ink** occurs.  
+- invert flips the current ward state; doing it twice on the same panel restores the original state.  
+- ward sets panels to **warded**; unward sets them to **unwarded**. Later commands override earlier ward states on their ranges.  
+- All seven color names are ordinary tokens (note that **azure** is not special beyond being the initial color).
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying goals and constraints before designing any algorithm
+
+**[THOUGHT_01_01]**
+
+We are given \( N \) panels indexed \( 1..N \), each with a binary ward state and a color from a fixed palette of seven names. Initially, all panels are unwarded and colored azure. We must process \( Q \) chronological commands that change ward states (ward, unward, invert) or paint colors (ink) but note that painting only affects currently unwarded panels at the time of the ink command. The output is the final color of each panel.
+
+
+**[THOUGHT_01_02]**
+
+The commands behave as follows. The ward state is binary: \(0\) for unwarded and \(1\) for warded. The commands \(\mathrm{ward}\ (l,r)\) and \(\mathrm{unward}\ (l,r)\) set the ward state on \([l..r]\) to \(1\) or \(0\) respectively. The command \(\mathrm{invert}\ (l,r)\) flips the ward state on \([l..r]\) (warded \( \leftrightarrow \) unwarded). The command \(\mathrm{ink}\ (l,r,c)\) paints panels in \([l..r]\) with color \(c\), but only those panels that are currently unwarded; warded panels ignore paint and remain unchanged.
+
+
+**[THOUGHT_01_03]**
+
+The primary challenge arises from the temporal gating: the effect of an ink command depends on the current ward configuration. Later changes to warding do not retroactively change which panels a past ink affected. Any solution must apply painting precisely to the currently unwarded subset at the time of each ink.
+
+
+
+**[THOUGHT_01_04]**
+
+We must ensure the statement’s inclusive bounds \( [l..r] \), 1-based indexing, and the chronological order of commands are respected. Warding and unwarding never change existing colors; only ink changes colors, and only where the panel is unwarded at that moment.
+
+
+**[THOUGHT_01_05]**
+
+The final output is the color of every panel after all commands have been applied. Each command must take effect exactly at its execution time under the stated rules; only the resulting final panel colors need to be reported.
+
+
+**[THOUGHT_01_06]**
+
+We need stable semantics across operations: warding and unwarding should not alter colors; inverting flips ward states without changing colors; ink only touches currently unwarded panels. Boundaries are inclusive and 1-based. The palette is fixed and finite, making it convenient to map to small integers.
+
+---
+
+**[CHAIN_02]**
+
+Designing a thorough test suite to drive and validate solutions
+
+**[THOUGHT_02_01]**
+Baseline painting without wards
+
+*Setup:* \(N=7\). Commands: ink \(1,7,\mathrm{ruby}\); ink \(3,5,\mathrm{jade}\); ink \(5,7,\mathrm{ruby}\).
+
+*Trace:*  
+Start: all **azure**.  
+1) ink \(1..7\) ruby → panels \(1..7\) **ruby**.  
+2) ink \(3..5\) jade → panels \(3..5\) **jade** (others stay **ruby**).  
+3) ink \(5..7\) ruby → panels \(5..7\) **ruby**.
+
+*Final colors (1→7):* **ruby, ruby, jade, jade, ruby, ruby, ruby**.  
+*What it checks:* plain repainting order with overlapping ranges.
+
+
+**[THOUGHT_02_02]**
+Pure ward state changes (no ink)
+
+*Setup:* \(N=5\). Commands: ward \(1,5\); invert \(2,4\); unward \(3,3\).
+
+*Trace:*  
+Only ward bits change; no ink occurs, so colors never change from **azure**.
+
+*Final colors (1→5):* **azure, azure, azure, azure, azure**.  
+*What it checks:* ward/unward/invert do not affect colors.
+
+
+**[THOUGHT_02_03]**
+
+Gated painting (inks respect current wards only)
+
+*Setup:* \(N=6\). Commands: ward \(2,4\); ink \(1,6,\mathrm{amber}\); invert \(3,5\); ink \(1,6,\mathrm{indigo}\).
+
+*Trace:*  
+Start all **azure**.  
+1) ward \(2..4\) → panels \(2,3,4\) warded.  
+2) ink \(1..6\) amber → unwarded panels \(1,5,6\) become **amber**.  
+3) invert \(3..5\) → \(3,4,5\) flip: wards become \(1:0,2:1,3:0,4:0,5:1,6:0\).  
+4) ink \(1..6\) indigo → unwarded panels \(1,3,4,6\) become **indigo**.
+
+*Final colors (1→6):* **indigo, azure, indigo, indigo, amber, indigo**.  
+*What it checks:* inks act only on the *currently* unwarded set; no retroactive effects.
+
+
+**[THOUGHT_02_04]**
+
+Edges and singletons
+
+*Setup:* \(N=4\). Commands: ink \(1,1,\mathrm{ruby}\); ink \(4,4,\mathrm{violet}\); ward \(1,1\); ink \(1,2,\mathrm{jade}\); unward \(1,1\); ink \(1,1,\mathrm{amber}\).
+
+*Trace:*  
+Start **azure**.  
+1) panel \(1\) → **ruby**.  
+2) panel \(4\) → **violet**.  
+3) ward \(1\) (color unchanged).  
+4) ink \(1..2\) jade → panel \(2\) becomes **jade** (panel \(1\) ignores due to ward).  
+5) unward \(1\).  
+6) ink \(1..1\) amber → panel \(1\) becomes **amber**.
+
+*Final colors (1→4):* **amber, jade, azure, violet**.  
+*What it checks:* \(l=r\), \(l=1\), \(r=N\), inclusive bounds.
+
+
+**[THOUGHT_02_05]**
+
+Heavy invert usage (overlaps and nesting)
+
+*Setup:* \(N=5\). Commands: invert \(1,5\); invert \(2,4\); ink \(1,5,\mathrm{saffron}\); invert \(3,5\); ink \(4,5,\mathrm{ruby}\).
+
+*Trace:*  
+Start **azure**, all unwarded.  
+1) invert \(1..5\) → all warded.  
+2) invert \(2..4\) → panels \(2,3,4\) unwarded; \(1,5\) warded.  
+3) ink \(1..5\) saffron → panels \(2,3,4\) become **saffron**.  
+4) invert \(3..5\) → wards: \(3,4\) become warded; \(5\) unwarded.  
+5) ink \(4..5\) ruby → only panel \(5\) becomes **ruby**.
+
+*Final colors (1→5):* **azure, saffron, saffron, saffron, ruby**.  
+*What it checks:* correctness under many flips and overlaps.
+
+
+**[THOUGHT_02_06]**
+
+Worst-case fragmentation scenario
+
+*Setup:* \(N=8\). Commands: ward \(1,1\); ward \(3,3\); ward \(5,5\); ward \(7,7\); ink \(1,8,\mathrm{indigo}\); invert \(1,8\); ink \(1,8,\mathrm{jade}\).
+
+*Trace:*  
+After four wards: odd indices warded; even unwarded.  
+1) ink \(1..8\) indigo → even indices \(2,4,6,8\) become **indigo**.  
+2) invert \(1..8\) → odd become unwarded; even become warded.  
+3) ink \(1..8\) jade → odd indices \(1,3,5,7\) become **jade**.
+
+*Final colors (1→8):* **jade, indigo, jade, indigo, jade, indigo, jade, indigo**.  
+*What it checks:* behavior when wards alternate every position.
+
+
+**[THOUGHT_02_07]**
+
+Repeated same-color paints and no-ops
+
+*Setup:* \(N=3\). Commands: ink \(1,3,\mathrm{azure}\); ward \(1,3\); ink \(1,3,\mathrm{ruby}\); unward \(2,2\); ink \(2,2,\mathrm{amber}\).
+
+*Trace:*  
+1) ink to **azure** does nothing (already **azure**).  
+2) ward all.  
+3) ink over fully warded range does nothing.  
+4) unward panel \(2\).  
+5) ink \(2\) amber → panel \(2\) becomes **amber**.
+
+*Final colors (1→3):* **azure, amber, azure**.  
+*What it checks:* idempotent paints and fully-warded no-ops.
+
+
+**[THOUGHT_02_08]**
+
+Small randomized-style sequence (manual reference check)
+
+*Setup:* \(N=5\). Commands:  
+ink \(2,5,\mathrm{violet}\); ward \(3,4\); invert \(1,2\); ink \(1,3,\mathrm{ruby}\); unward \(4,4\); ink \(4,5,\mathrm{saffron}\).
+
+*Trace:*  
+Start **azure**.  
+1) ink \(2..5\) violet → panels \(2..5\) **violet**.  
+2) ward \(3,4\).  
+3) invert \(1,2\) → panels \(1,2\) become warded; wards now \(1,2,3,4\) warded, \(5\) unwarded.  
+4) ink \(1..3\) ruby → all covered panels are warded → no change.  
+5) unward \(4\).  
+6) ink \(4..5\) saffron → panels \(4,5\) become **saffron**.
+
+*Final colors (1→5):* **azure, violet, violet, saffron, saffron**.  
+*What it checks:* mixed operations with a few flips and targeted inks.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force to establish a correctness baseline
+
+**[THOUGHT_03_01]**
+
+Approach. Maintain two arrays of length \(N\): a boolean array for ward states and an integer array for color IDs. Each command is applied by iterating across \([l..r]\). For ward/unward/invert, we set or flip the boolean accordingly. For ink, we iterate and recolor only indices where the ward state is 0.
+
+**[THOUGHT_03_02]**
+
+This approach trivially respects the semantics because it touches exactly those indices that should change. There is no ambiguity with deferring updates or partial application. Every ink is applied immediately to the exact set of unwarded panels at that moment.
+
+**[THOUGHT_03_03]**
+
+Each command costs \(O(r - l + 1)\). In the worst case, \([l..r]\) spans the entire array, making each command \(O(N)\). Over \(Q\) commands, the total complexity is \(O(NQ)\). With \(N, Q \le 2 \times 10^5\), the worst-case operations count would be \(4 \times 10^{10}\), which is far beyond feasible limits.
+
+**[THOUGHT_03_04]**
+
+Space is \(O(N)\), which is acceptable. Implementation is straightforward and provides an excellent oracle for small tests, but it cannot scale to the given constraints.
+
+**[THOUGHT_03_05]**
+
+The brute-force method ignores the panel value structure. Many adjacent panels share the same ward state or color; we must exploit runs of equal values to reduce update work from per-index to per-interval.
+
+
+---
+
+**[CHAIN_04]**
+
+Attempting to accelerate with difference arrays and block decomposition
+
+**[THOUGHT_04_01]**
+
+Consider representing ward state updates via a difference array to support range toggles. However, we require both assignments (set to \( 1 \) or \( 0 \)) and flips on \( [l..r] \). Mixing assignment and inversion in a single difference representation is problematic: a later assignment obliterates prior differences, and resolving the true state generally requires revisiting elements, defeating the purpose.
+
+
+**[THOUGHT_04_02]**
+
+With \( \sqrt{N} \)-decomposition, we can partition \( [1..N] \) into blocks, track per-block aggregates (e.g., counts of unwarded), and maintain optional lazy flags for full-block operations. Inks over fully unwarded or fully warded blocks can be handled quickly; boundary blocks require per-element inspection.
+
+
+**[THOUGHT_04_03]**
+
+The gating by ward state implies that, in partially warded blocks, ink must still check each position in \( [l..r] \) to find unwarded panels. If many blocks are partially warded, an ink can devolve to touching \( \Theta(r-l+1) \) elements.
+
+
+**[THOUGHT_04_04]**
+
+Therefore, while block methods may help in practice on clustered inputs, their **worst-case** complexity remains \( O(NQ) \) due to fragmented ward patterns and frequent mixed blocks. This chain is recorded as an exploration rather than an asymptotic improvement over the baseline.
+
+**[THOUGHT_04_05]**
+
+**Conclusion.** Difference arrays and block decomposition do not improve the worst-case cost because partially warded regions still require per-index checks during \(ink\). This chain records that limitation based on the analysis above.
+
+
+---
+
+**[CHAIN_05]**
+
+Lazy segment tree: ward counts \(+\) color assignment
+
+**[THOUGHT_05_01]**
+
+Build a segment tree that tracks, per node, the segment length and the count of unwarded panels. Support three lazy ward operations: assign \(1\), assign \(0\), and invert, using a small tag-composition state machine. For colors, allow range assignment of a specific color.
+
+
+**[THOUGHT_05_02]**
+
+Ward operations can be applied lazily in \(O(1)\) per node: setting to \(1\) updates the unwarded count to \(0\); setting to \(0\) updates it to the full length; an invert switches \(\text{unwarded}\) to \(\text{len} - \text{unwarded}\). Tag composition must handle “set then flip” and “flip then set” correctly.
+
+
+
+**[THOUGHT_05_03]**
+
+For \(\mathrm{ink}\ (l,r,c)\), if a fully covered node is entirely unwarded, we range-assign color \(c\) to that node. If it is entirely warded, we skip it. Otherwise, we push lazy tags and recurse to children so that only unwarded leaves within \([l..r]\) are recolored at the time of the ink.
+
+
+
+**[THOUGHT_05_04]**
+
+Complexity: typical operations run in \(O(\log N)\). An ink descends only through mixed nodes, so in common cases the total time over all commands is near \(O(Q\log N)\). The structure remains correct because painting is applied immediately to the unwarded subset at ink time.
+
+
+
+**[THOUGHT_05_05]**
+
+Adversarial sequences can fragment the ward state into many alternating singletons. Then a single \(\mathrm{ink}\) over a wide range may require visiting \(\Theta(N)\) leaves (descending into many mixed nodes). Across many such inks, the worst-case total can reach \(O(NQ)\), even though balanced cases are much faster.
+
+
+**[THOUGHT_05_06]**
+
+**Conclusion.** A lazy segment tree is correct and often efficient, but under extreme fragmentation its cost can degrade toward \(O(NQ)\). This limitation is noted for completeness.
+
+
+---
+
+**[CHAIN_06]**
+
+Single interval map (ward+color)
+
+**[THOUGHT_06_01]**
+
+Maintain one ordered disjoint interval map over \( [1..N] \) whose value is the pair \( (\text{ward}, \text{color}) \). Each operation first splits at \( l \) and \( r+1 \) to isolate \( [l..r] \), then updates the relevant component(s), followed by coalescing adjacent intervals with identical pairs.
+
+
+**[THOUGHT_06_02]**
+
+Ward-only commands update the ward component inside \( [l..r] \); color-only commands update the color component. Because merging requires **both** attributes to match, this coupling can retain extra boundaries that would not exist if the attributes were tracked independently.
+
+
+**[THOUGHT_06_03]**
+
+Complexity: each split/update/merge is \( O(\log M) \) where \( M \) is the current number of intervals, giving amortized \( O(M\log M) \) over the sequence with \( M = O(Q) \). Practical performance is good, though the coupling may inflate interval counts compared to maintaining separate maps.
+
+
+**[THOUGHT_06_04]**
+
+The combined map complicates merge criteria and increases the chances of subtle bugs. Each operation must reason about and preserve both attributes even when it only intends to modify one, making the implementation error-prone.
+
+**[THOUGHT_06_05]**
+
+Conclusion: Although a single map can be made to work, it introduces unnecessary coupling. An alternative is to maintain ward and color in **separate interval maps**; this can localize changes, reduce gratuitous splits, and simplify correctness reasoning.
+
+
+
+---
+
+**[CHAIN_07]**
+
+Constructing two disjoint-interval maps to localize updates
+
+**[THOUGHT_07_01]**
+
+Maintain two ordered partitions of \([1..N]\): a ward map of maximal intervals labeled with 0 or 1, and a color map of maximal intervals labeled with a color ID. Each map supports splitting at arbitrary positions, range assignment, and coalescing adjacent equal intervals. This leverages the piecewise-constant nature of both attributes independently.
+
+**[THOUGHT_07_02]**
+
+For any \([l..r]\), we first split at \(l\) and \(r+1\) to isolate the exact subrange. For “\(\mathrm{ward}\)” and “\(\mathrm{unward}\)”, we assign \(1\) or \(0\) on the ward map over \([l..r]\) and then merge neighbors. For “\(\mathrm{invert}\)”, we iterate the ward intervals in \([l..r]\) and flip \(0 \rightarrow 1\) and \(1 \rightarrow 0\), then coalesce inside the range and across boundaries. The color map remains untouched by these three operations.
+
+
+**[THOUGHT_07_03]**
+
+For “\(\mathrm{ink}\ l\ r\ c\)”, we query the ward map to collect all sub-intervals \([L..R]\) within \([l..r]\) where the ward value is \(0\). For each such sub-interval, we assign the color \(c\) on the color map over \([L..R]\) and merge neighbors. This ensures we only recolor panels that are unwarded at the exact moment of the ink, matching the temporal semantics.
+
+**[THOUGHT_07_04]**
+
+The ward map records the exact ward state evolution because each operation isolates affected ranges and deterministically updates values, preserving maximality via merges. The ink command consults this ground truth to target exactly the unwarded subranges at that time. The color map accumulates these assignments and merges adjacent equal-color intervals, so expanding to per-index colors at the end yields the precise final result.
+
+**[THOUGHT_07_05]**
+
+Each split, insert, erase, and neighbor-merge in a balanced tree map costs \(O(\log S)\), where \(S\) is the number of intervals in that map. Each operation only touches the intervals intersecting \([l..r]\), so overall time is \(O\big((\text{number of affected intervals}) \log Q\big)\), and the total number of intervals remains \(O(Q)\) amortized. Memory usage is \(O(Q)\) per map.
+
+**[THOUGHT_07_06]**
+
+Always split at \(r+1\) to form a half-open boundary for safe erasure and insertion. If a split is requested at \(N+1\), treat it as end, which simplifies right-boundary handling. After toggling or assigning, merge both inside the target range and across its boundaries to maintain maximal intervals and keep the maps small.
+
+
+---
+
+**[CHAIN_08]**
+
+Validating invariants and walking through tricky interactions
+
+**[THOUGHT_08_01]**
+
+At any time, each map partitions \([1..N]\) into disjoint intervals whose union is the full range. Intervals are maximal with respect to equal values. After every operation, this property must hold. Splits maintain disjointness, while merges restore maximality.
+
+**[THOUGHT_08_02]**
+
+Because we query the ward map at the moment of an ink, the set of subranges we paint is exactly the set that was unwarded then. Later ward flips do not retroactively change the color map since painting is applied immediately to the relevant color intervals, honoring the chronological semantics.
+
+**[THOUGHT_08_03]**
+
+Inverting a range \([l..r]\) flips 0 to 1 and 1 to 0 for every ward interval segment. After toggling, merging adjacent equal-valued intervals both inside the range and across its boundaries is essential to avoid an explosion of tiny intervals.
+
+**[THOUGHT_08_04]**
+
+Splitting at \(r+1\) and treating \(N+1\) as a sentinel ensures we can always isolate \([l..r]\) as a contiguous set of whole intervals to erase and replace. This prevents off-by-one errors and simplifies code by making modifications local and complete within the half-open planning.
+
+**[THOUGHT_08_05]**
+
+The final answer is obtained by iterating the color map’s intervals from left to right and writing the color name for each position count. This is linear in \(N\) and performed once, which is affordable given the constraints.
+
+**[THOUGHT_08_06]**
+
+Robustness checks. Repeated warding of an already warded range or repeated inking with the same color should not produce duplicate intervals or gaps. Our merge-after-update rule guarantees that redundant operations re-coalesce into maximal segments, keeping maps small.
+
+
+---
+
+**[CHAIN_09]**
+
+Quantifying efficiency and comparing alternatives
+
+**[THOUGHT_09_01]**
+
+With \( K \) total interval insert/erase events across all commands, total time is \( O\!\big((Q+K)\log Q\big) \) and memory is \( O(Q) \). Each command touches only the intervals intersecting its range.
+
+
+**[THOUGHT_09_02]**
+
+For inks, the number of painted subranges within \( [l..r] \) is at most the number of ward intervals intersecting that range at ink time. Thus, ink cost scales with structural fragmentation rather than raw range length.
+
+
+**[THOUGHT_09_03]**
+
+Segment trees yield \( O(\log N) \) per ward operation and typical \( O(\log N) \) per ink unless fragmentation forces deeper descent through many mixed nodes. Interval maps naturally bound work to the number of affected runs, which often aligns well with the piecewise-constant nature of the data.
+
+
+**[THOUGHT_09_04]**
+
+A lazy segment tree can correctly implement “paint unwarded” by descending into mixed nodes at ink time; it cannot defer painting without such descent. On highly fragmented ward states, this descent can force \(\Theta(N)\) work per \(\mathrm{ink}\), yielding up to \(O(NQ)\) total in adversarial sequences. Interval maps, by contrast, operate in \(O((Q+K)\log Q)\) with work proportional to the number of affected runs.
+
+**[THOUGHT_09_05]**
+
+Scalability and constants. Standard library balanced trees have small constant factors and are adequate for \(2 \times 10^5\) operations. The approach is simple to implement, less error-prone than a complex multi-tag segment tree, and aligns well with the problem’s piecewise-constant nature.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We have \(N\) panels arranged linearly and indexed \(1..N\). Each panel has:
+- A ward state: \(0\) for unwarded and \(1\) for warded.
+- A color from the fixed palette: ruby, amber, saffron, jade, azure, indigo, violet.
+
+Initially, all panels are **unwarded** and colored **azure**. We must process \(Q\) range operations in order:
+- `ward l r`: set ward state to \(1\) on \([l..r]\).
+- `unward l r`: set ward state to \(0\) on \([l..r]\).
+- `invert l r`: flip ward state on \([l..r]\) \((0 \leftrightarrow 1)\).
+- `ink l r c`: recolor only **currently unwarded** panels in \([l..r]\) to color \(c\), ignoring warded ones.
+
+Key observations:
+- The effect of `ink` depends on the ward configuration **at the exact time** of that command; later changes to warding do **not** retroactively change which panels a past `ink` affected.
+- Direct per-index updates across \([l..r]\) are too slow for \(N, Q \le 2 \times 10^5\).
+- Ward states and colors can be manipulated efficiently if we operate on **64-bit word blocks** rather than individual indices.
+
+
+**2. Approach**
+
+We maintain four packed bitsets, each stored as an array of \(64\)-bit blocks:
+
+- `wardBits`: ward state per panel (bit \(1\) = warded, bit \(0\) = unwarded).
+- `bitPlane0`, `bitPlane1`, `bitPlane2`: the three binary digits of the color id \(c \in \{0,\dots,6\}\) (LSB to MSB).
+
+Let \(B = \lceil N/64 \rceil\) be the number of blocks. For an operation over \([l..r]\) (1-based in input, converted to 0-based internally):
+
+1. **Compute per-block mask:**  
+   For each block index \(b\), compute a \(64\)-bit `rangeMask` with ones exactly at positions inside \([l..r]\) that belong to block \(b\). This safely handles first/last partial blocks and avoids undefined shifts (e.g., never shifting by \(64\)).
+
+2. **Ward operations (on `wardBits` only):**
+   - `ward l r`: `wardBits[b] \mathrel{|\!=} \text{rangeMask}`.
+   - `unward l r`: `wardBits[b] \mathrel{\&\!=} \sim \text{rangeMask}`.
+   - `invert l r`: `wardBits[b] \mathrel{^\!=} \text{rangeMask}`.
+
+3. **Ink operation (`ink l r c`):**
+   - Compute `eligible = rangeMask \& \sim wardBits[b]` (only currently **unwarded** positions).
+   - For each color bit \(k \in \{0,1,2\}\), let `colorMaskK` be all-ones if bit \(k\) of \(c\) is \(1\), else all-zeros. Overwrite plane \(k\) at eligible positions:  
+     \[
+     \text{plane}_k[b] \;=\; \big(\text{plane}_k[b] \;\&\; \sim \text{eligible}\big) \;\; \big|\;\; \big(\text{colorMask}_k \;\&\; \text{eligible}\big).
+     \]
+   - Warded positions (`wardBits[b]` has ones) do not change.
+
+4. **Initialization:**  
+   Set the three color planes to **azure** (\(c=4\)) on used bits of the last block; padding bits remain \(0\).
+
+**Correctness.**  
+- `ink` explicitly targets `eligible = rangeMask & ~wardBits[b]`, so only unwarded panels at that moment are recolored.  
+- Warding operations never touch color planes.  
+- Later `ward`/`unward`/`invert` do not retroactively change any prior `ink` effect, matching the problem’s temporal semantics.
+
+
+
+
+**3. Code**
+```cpp
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <vector>
+
+/**
+ * @brief Aurora Corridor — Wards and Inks (bit-planes implementation).
+ *
+ * Model:
+ *  - Each panel has a ward bit (0 = unwarded, 1 = warded).
+ *  - Each panel has a color id in {0..6} encoded on three bit-planes (b0, b1, b2).
+ *
+ * Operations over [l..r] (1-based):
+ *  - ward:   set ward bits to 1
+ *  - unward: set ward bits to 0
+ *  - invert: xor ward bits with 1
+ *  - ink c:  write color c only where ward == 0 at the moment
+ *
+ * Memory:
+ *  - ward:    N bits
+ *  - b0,b1,b2 N bits each
+ *  Total ~4 * ceil(N/64) * 8 bytes (<< 1 MB for N ≤ 2e5)
+ *
+ * Complexity:
+ *  - Each command scans only the 64-bit blocks intersecting [l..r].
+ *  - Output is streamed by decoding the three color planes per position.
+ */
+
+namespace aurora {
+
+// -------------------------------
+// Constants (kCamelCase style)
+// -------------------------------
+
+/**
+ * @brief Number of bits per storage block.
+ *
+ * We pack panel states into 64-bit blocks (uint64_t). The value 64 comes from the
+ * native width of uint64_t; using it enables efficient word-wise bit operations.
+ * If the underlying word size changes, updating this constant centralizes the change.
+ */
+static constexpr int kBitsPerBlock = 64;
+
+/** @brief Initial color id for all panels: azure (palette index 4). */
+static constexpr int kAzureColorId = 4;
+
+// -------------------------------
+// Helpers and operations
+// -------------------------------
+
+/**
+ * @brief Compute the mask of bits within block @p blockIndex covered by [l..r] (0-based, inclusive).
+ *
+ * Blocks are contiguous chunks of kBitsPerBlock positions:
+ *   block @p blockIndex covers indices [blockIndex*kBitsPerBlock, blockIndex*kBitsPerBlock + kBitsPerBlock-1],
+ *   truncated at @p panelCount.
+ *
+ * @param blockIndex Index of the 64-bit block (0-based).
+ * @param l Zero-based left endpoint of the range (inclusive).
+ * @param r Zero-based right endpoint of the range (inclusive).
+ * @param panelCount Total number of panels N.
+ * @return 64-bit mask with 1s for bits of this block that lie inside [l..r].
+ */
+static inline std::uint64_t computeBlockMask(int blockIndex, int l, int r, int panelCount) {
+    const int blockStart = blockIndex * kBitsPerBlock;
+    const int blockEndExclusive = std::min(blockStart + kBitsPerBlock, panelCount);
+    if (l > r || blockStart >= blockEndExclusive) return 0ULL;
+
+    const int L = std::max(l, blockStart);
+    const int R = std::min(r + 1, blockEndExclusive);  // exclusive
+    if (L >= R) return 0ULL;
+
+    const int startOffset = L - blockStart;  // [0..63]
+    const int endOffset = R - blockStart;    // [1..64]
+
+    const std::uint64_t leftMask  = (startOffset == 0) ? ~0ULL : (~0ULL << startOffset);
+    const std::uint64_t rightMask = (endOffset == kBitsPerBlock) ? ~0ULL
+                              : ((endOffset == 0) ? 0ULL : ((1ULL << endOffset) - 1ULL));
+    return leftMask & rightMask;
+}
+
+/**
+ * @brief Convert a color token to its palette id in [0..6].
+ *
+ * Palette (by id):
+ *   0 ruby, 1 amber, 2 saffron, 3 jade, 4 azure, 5 indigo, 6 violet
+ *
+ * @param token Lowercase color name.
+ * @return Integer id in [0..6].
+ */
+static inline int parseColorIdFromToken(const std::string& token) {
+    if (token == "ruby")    return 0;
+    if (token == "amber")   return 1;
+    if (token == "saffron") return 2;
+    if (token == "jade")    return 3;
+    if (token == "azure")   return 4;
+    if (token == "indigo")  return 5;
+    return 6; // violet
+}
+
+/**
+ * @brief Initialize the three color bit-planes to a uniform color id.
+ *
+ * Only bits within [0..panelCount-1] are set; any padding bits in the last block remain 0.
+ *
+ * @param bitPlane0 LSB color plane (bit 0 of color id) to initialize.
+ * @param bitPlane1 Middle color plane (bit 1 of color id) to initialize.
+ * @param bitPlane2 MSB color plane (bit 2 of color id) to initialize.
+ * @param blockCount Number of 64-bit blocks (ceil(N / kBitsPerBlock)).
+ * @param panelCount Total number of panels N.
+ * @param colorId Palette id to set for all panels (in [0..6]).
+ */
+static inline void initializeColorPlanesToId(std::vector<std::uint64_t>& bitPlane0,
+                                             std::vector<std::uint64_t>& bitPlane1,
+                                             std::vector<std::uint64_t>& bitPlane2,
+                                             int blockCount,
+                                             int panelCount,
+                                             int colorId) {
+    const bool b0 = (colorId & 1);
+    const bool b1 = (colorId & 2);
+    const bool b2 = (colorId & 4);
+    for (int blockIndex = 0; blockIndex < blockCount; ++blockIndex) {
+        const std::uint64_t usedMask = computeBlockMask(blockIndex, 0, panelCount - 1, panelCount);
+        bitPlane0[blockIndex] = b0 ? usedMask : 0ULL;
+        bitPlane1[blockIndex] = b1 ? usedMask : 0ULL;
+        bitPlane2[blockIndex] = b2 ? usedMask : 0ULL;
+    }
+}
+
+/**
+ * @brief Apply "ward" (set ward bits to 1) over [l..r] inclusive, zero-based.
+ *
+ * @param wardBits Vector of 64-bit blocks; 1 = warded, 0 = unwarded.
+ * @param l Zero-based left index inclusive.
+ * @param r Zero-based right index inclusive.
+ * @param panelCount Total number of panels N.
+ * @return void
+ */
+static inline void applyWardSet(std::vector<std::uint64_t>& wardBits,
+                                int l, int r, int panelCount) {
+    const int leftBlock = l / kBitsPerBlock, rightBlock = r / kBitsPerBlock;
+    for (int blockIndex = leftBlock; blockIndex <= rightBlock; ++blockIndex) {
+        std::uint64_t mask = computeBlockMask(blockIndex, l, r, panelCount);
+        wardBits[blockIndex] |= mask;
+    }
+}
+
+/**
+ * @brief Apply "unward" (set ward bits to 0) over [l..r] inclusive, zero-based.
+ *
+ * @param wardBits Vector of 64-bit blocks; 1 = warded, 0 = unwarded.
+ * @param l Zero-based left index inclusive.
+ * @param r Zero-based right index inclusive.
+ * @param panelCount Total number of panels N.
+ * @return void
+ */
+static inline void applyWardClear(std::vector<std::uint64_t>& wardBits,
+                                  int l, int r, int panelCount) {
+    const int leftBlock = l / kBitsPerBlock, rightBlock = r / kBitsPerBlock;
+    for (int blockIndex = leftBlock; blockIndex <= rightBlock; ++blockIndex) {
+        std::uint64_t mask = computeBlockMask(blockIndex, l, r, panelCount);
+        wardBits[blockIndex] &= ~mask;
+    }
+}
+
+/**
+ * @brief Apply "invert" (toggle ward bits) over [l..r] inclusive, zero-based.
+ *
+ * @param wardBits Vector of 64-bit blocks; 1 = warded, 0 = unwarded.
+ * @param l Zero-based left index inclusive.
+ * @param r Zero-based right index inclusive.
+ * @param panelCount Total number of panels N.
+ * @return void
+ */
+static inline void applyWardToggle(std::vector<std::uint64_t>& wardBits,
+                                   int l, int r, int panelCount) {
+    const int leftBlock = l / kBitsPerBlock, rightBlock = r / kBitsPerBlock;
+    for (int blockIndex = leftBlock; blockIndex <= rightBlock; ++blockIndex) {
+        std::uint64_t mask = computeBlockMask(blockIndex, l, r, panelCount);
+        wardBits[blockIndex] ^= mask;
+    }
+}
+
+/**
+ * @brief Apply "ink" to write @p colorId on unwarded positions in [l..r] inclusive (zero-based).
+ *
+ * Color planes bitPlane0/1/2 encode the color id binary digits (LSB..MSB).
+ * We overwrite color at eligible positions only: eligible = rangeMask & ~ward.
+ *
+ * @param wardBits Ward bitset (1 = warded).
+ * @param bitPlane0 LSB color plane (bit 0 of color id).
+ * @param bitPlane1 Middle color plane (bit 1 of color id).
+ * @param bitPlane2 MSB color plane (bit 2 of color id).
+ * @param l Zero-based left index inclusive.
+ * @param r Zero-based right index inclusive.
+ * @param panelCount Total number of panels N.
+ * @param colorId Color id in [0..6].
+ * @return void
+ */
+static inline void applyInkToRange(const std::vector<std::uint64_t>& wardBits,
+                                   std::vector<std::uint64_t>& bitPlane0,
+                                   std::vector<std::uint64_t>& bitPlane1,
+                                   std::vector<std::uint64_t>& bitPlane2,
+                                   int l, int r, int panelCount, int colorId) {
+    const int leftBlock = l / kBitsPerBlock, rightBlock = r / kBitsPerBlock;
+
+    const std::uint64_t mask0 = (colorId & 1) ? ~0ULL : 0ULL;
+    const std::uint64_t mask1 = (colorId & 2) ? ~0ULL : 0ULL;
+    const std::uint64_t mask2 = (colorId & 4) ? ~0ULL : 0ULL;
+
+    for (int blockIndex = leftBlock; blockIndex <= rightBlock; ++blockIndex) {
+        const std::uint64_t rangeMask = computeBlockMask(blockIndex, l, r, panelCount);
+        if (!rangeMask) continue;
+
+        const std::uint64_t eligibleMask = rangeMask & ~wardBits[blockIndex];
+        if (!eligibleMask) continue;
+
+        // Overwrite each color plane at eligible positions.
+        bitPlane0[blockIndex] = (bitPlane0[blockIndex] & ~eligibleMask) | (mask0 & eligibleMask);
+        bitPlane1[blockIndex] = (bitPlane1[blockIndex] & ~eligibleMask) | (mask1 & eligibleMask);
+        bitPlane2[blockIndex] = (bitPlane2[blockIndex] & ~eligibleMask) | (mask2 & eligibleMask);
+    }
+}
+
+}  // namespace aurora
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int panelCount = 0, commandCount = 0;
+    if (!(std::cin >> panelCount >> commandCount)) return 0;
+
+    // Fixed palette order for output (stored as C strings to avoid dynamic allocation).
+    const std::array<const char*, 7> palette = {
+        "ruby", "amber", "saffron", "jade", "azure", "indigo", "violet"
+    };
+
+    // Number of 64-bit blocks required to hold N bits.
+    const int blockCount = (panelCount + aurora::kBitsPerBlock - 1) / aurora::kBitsPerBlock;
+
+    // Ward bitset: 1 = warded, 0 = unwarded (initially all 0).
+    std::vector<std::uint64_t> wardBits(blockCount, 0ULL);
+
+    // Three color bit-planes: bitPlane0 (LSB), bitPlane1, bitPlane2 (MSB).
+    std::vector<std::uint64_t> bitPlane0(blockCount, 0ULL);
+    std::vector<std::uint64_t> bitPlane1(blockCount, 0ULL);
+    std::vector<std::uint64_t> bitPlane2(blockCount, 0ULL);
+
+    // Initialize all panels to azure.
+    aurora::initializeColorPlanesToId(bitPlane0, bitPlane1, bitPlane2,
+                                      blockCount, panelCount, aurora::kAzureColorId);
+
+    // Process commands in order.
+    for (int i = 0; i < commandCount; ++i) {
+        std::string commandName;
+        std::cin >> commandName;
+
+        if (commandName == "ward") {
+            int l, r; std::cin >> l >> r; --l; --r;
+            aurora::applyWardSet(wardBits, l, r, panelCount);
+        } else if (commandName == "unward") {
+            int l, r; std::cin >> l >> r; --l; --r;
+            aurora::applyWardClear(wardBits, l, r, panelCount);
+        } else if (commandName == "invert") {
+            int l, r; std::cin >> l >> r; --l; --r;
+            aurora::applyWardToggle(wardBits, l, r, panelCount);
+        } else {  // "ink"
+            int l, r; std::string colorToken; std::cin >> l >> r >> colorToken; --l; --r;
+            const int colorId = aurora::parseColorIdFromToken(colorToken);
+            aurora::applyInkToRange(wardBits, bitPlane0, bitPlane1, bitPlane2,
+                                    l, r, panelCount, colorId);
+        }
+    }
+
+    // Stream final colors 1..N by decoding the three planes per bit.
+    for (int index = 0; index < panelCount; ++index) {
+        if (index) std::cout << ' ';
+        const int blockIndex = index / aurora::kBitsPerBlock;
+        const int bitOffset  = index % aurora::kBitsPerBlock;
+
+        const int colorId =
+            (int)((bitPlane0[blockIndex] >> bitOffset) & 1ULL) |
+            ((int)((bitPlane1[blockIndex] >> bitOffset) & 1ULL) << 1) |
+            ((int)((bitPlane2[blockIndex] >> bitOffset) & 1ULL) << 2);
+
+        std::cout << palette[colorId];
+    }
+    std::cout << '\n';
+    return 0;
+}
+```
+
+**4. Code Explanation (Bit-Planes, Conceptual)**
+
+- **Packing & masks:** Panels are grouped into \(64\)-bit blocks. A helper computes `rangeMask` for each block intersecting \([l..r]\). This avoids per-index loops and handles boundaries cleanly (no shift-by-\(64\) undefined behavior).
+- **Ward ops:**  
+  - `ward`: bitwise OR sets bits to \(1\) within \([l..r]\).  
+  - `unward`: bitwise AND with the complement clears bits to \(0\).  
+  - `invert`: XOR toggles bits.
+- **Ink op:**  
+  - Compute `eligible = rangeMask & ~wardBits[b]`.  
+  - For each color plane, clear eligible bits then OR in the chosen color’s bit where eligible.
+- **Decoding for output:** For index \(i\), read its bit in each color plane to reconstruct the color id \(c \in [0..6]\) and print the palette token.
+
+*(The concrete implementation uses `kCamelCase` constants and Doxygen-style `@brief` comments for clarity and consistency.)*
+
+**Brief example:**  
+If `wardBits` has bits set at positions \([4..5]\) and we receive `ink 1 5 ruby`, then for blocks covering \([1..5]\) we form `eligible = [1..3]` (since \([4..5]\) are warded). Only color bits at \([1..3]\) are overwritten with ruby; \([4..5]\) remain unchanged.
+
+
+**5. Time and Space Complexity (Bit-Planes)**
+
+Let \(B = \lceil N/64 \rceil\).
+
+- **Per command:** \(O\!\big(\#\text{blocks intersecting } [l..r]\big) \le O\!\big(\lceil (r-l+1)/64 \rceil\big)\).  
+  Each intersecting block does a few word-level operations:
+  - `ward` / `unward` / `invert`: one mask + one RMW on `wardBits`.
+  - `ink`: one mask, the `eligible` AND, and up to three RMWs (one per color plane) on eligible bits.
+- **Total over \(Q\) commands:** \(O\!\left(\sum_{q=1}^{Q} \#\text{blocks}_q\right)\).  
+  In the extreme where every command spans the whole array, this is \(O(Q \cdot B)\) with \(B \le \lceil 2\cdot 10^5 / 64 \rceil \approx 3125\).
+- **Space:** Four bitsets, each \(B\) words: about \(4 \times B \times 8\) bytes \( \ll 1\) MB for \(N \le 2 \times 10^5\).
+
+**Practical note.** A common micro-optimization is to treat the first/last partial blocks with `rangeMask`, and handle interior blocks with full-word fast paths (e.g., `|= ~0ULL`, `&= 0ULL`, `^= ~0ULL`). This reduces mask recomputation and boosts throughput.
+
+
+**6. Conclusion**
+
+The word-packed **bit-planes** design precisely captures the temporal semantics of `ink` versus warding while keeping each operation proportional to the **number of \(64\)-bit blocks touched**, not the raw range length. It is simple, memory-light, and fast in practice for \(N, Q \le 2 \times 10^5\), producing the exact final colors after all commands.

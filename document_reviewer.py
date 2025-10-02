@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - 26 Point Analysis
+Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - Ultimate Point Analysis
 
 This script reads a document from a specified text file and performs comprehensive review checks
-using Claude Opus 4.1 with extended thinking enabled across exactly 26 individual review points. 
+using Claude Opus 4.1 with extended thinking enabled across multiple specialized review points. 
 Each review point is performed by a specialized reviewer class with targeted prompts for maximum precision.
 
 Features:
-- 26 individual review points covering all aspects of document quality
+- Comprehensive review points covering all aspects of document quality
 - Primary: Claude Opus 4.1 with 30k thinking budget for exceptional reasoning
 - Secondary: Claude Sonnet 4 for cleanup operations  
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
@@ -15,8 +15,9 @@ Features:
 - Problem statement and solution validation (Points 12-17)
 - Reasoning chain analysis and approach evaluation (Points 18-21)
 - Subtopic taxonomy and completeness validation (Points 22-25)
-- Thought heading validation (Point 26)
-- Comprehensive reasoning thoughts review (Point 27)
+- Chain 2 test case analysis validation (Point 26)
+- Thought heading violations check (Point 27)
+- Comprehensive reasoning thoughts review (Point 28)
 - Extended thinking provides deep analysis with step-by-step reasoning
 
 Author: AI Assistant
@@ -65,20 +66,26 @@ You are an expert at extracting and cleaning failure information.
 
 TASK: Extract and present ONLY the failure-related information from the provided response. Remove all unnecessary text, explanations, and formatting while keeping every single instance of failure.
 
-REQUIREMENTS:
+CRITICAL REQUIREMENTS:
 1. Keep EVERY instance of failure, even if the same error appears multiple times
-2. Remove all introductory text, long explanations, and verbose descriptions
-3. Present failures in a clear, concise format with bullet points
-4. Keep specific examples of violations and suggested fixes
-5. Remove any "PASS" sections or successful parts
-6. Keep the essential failure details but make them concise
-7. If there are code examples, keep only the essential violation examples and fixes
-8. Remove repetitive explanations but keep all distinct failure instances
-9. DO NOT include "improved code examples", "alternative options", or multiple code variations
-10. DO NOT include "Option 1", "Option 2" or similar alternative implementations
-11. Focus only on what is wrong and the direct fix needed
+2. Keep ALL violation locations (CHAIN_XX, THOUGHT_XX_YY, section names) exactly as specified
+3. Keep ALL specific quotes and examples that show violations
+4. Remove all introductory text, long explanations, and verbose descriptions
+5. Present failures in a clear, concise format with bullet points
+6. Keep specific examples of violations and suggested fixes
+7. Remove any "PASS" sections or successful parts
+8. Keep the essential failure details but make them concise
+9. If there are code examples, keep only the essential violation examples and fixes
+10. Remove repetitive explanations but keep all distinct failure instances
+11. DO NOT include "improved code examples", "alternative options", or multiple code variations
+12. DO NOT include "Option 1", "Option 2" or similar alternative implementations
+13. Focus only on what is wrong and the direct fix needed
+14. PRESERVE ALL LOCATION INFORMATION - do not summarize or omit any CHAIN_XX or THOUGHT_XX_YY references
+15. PRESERVE ALL SPECIFIC QUOTES that demonstrate violations
 
-FORMAT: Present as a clean, bulleted list of failures with specific examples and fixes.
+FORMAT: Present as a clean, bulleted list of failures with specific examples, quotes, and exact locations.
+
+CRITICAL: Do NOT summarize multiple violations into general statements. Each violation must be listed separately with its exact location.
 
 IMPORTANT: Focus on actionable failure information that helps the user understand what needs to be fixed. Avoid providing multiple code alternatives or improved examples.
 
@@ -180,14 +187,80 @@ Original Response:
         )
 
 class ReviewPrompts:
-    """Centralized prompts for different review processes - 26 individual review points"""
+    """Centralized prompts for different review processes - Ultimate comprehensive analysis"""
     
+    # Point 0: Problem Originality Check
+    @staticmethod
+    def get_problem_originality_prompt():
+        """Check if the problem is original or copied from competitive programming platforms"""
+        return """
+You are an expert competitive programming analyst with deep knowledge of problems from Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, and other major competitive programming platforms.
+
+**TASK:** Search the internet (especially Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, TopCoder, SPOJ) for problems similar to this one. Check if it is original, inspired, or copied.
+
+**ANALYSIS STEPS:**
+1. **[THINK DEEPLY]** - Use extended thinking to carefully analyze the problem
+2. **Comprehensive Search Strategy:** Perform extensive searches across:
+   - **Google Search**: Use targeted Google queries with problem keywords, constraints, and concepts
+   - **Competitive Programming Platforms**: Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, TopCoder, SPOJ
+   - **Academic Sources**: GitHub, research papers, educational sites
+   - **Community Forums**: StackOverflow, Reddit, Discord communities
+   - **Online Judges**: Various online judge platforms and contest archives
+
+3. **Search Queries to Use:**
+   - Exact title searches on Google
+   - Key concept + constraint searches (e.g., "dynamic programming N<=10^5")
+   - Algorithm-specific searches (e.g., "segment tree range query")
+   - Sample input/output pattern searches
+   - Mathematical formulation searches
+
+4. **Comparison Points:**
+   - Title similarity (exact or near-exact matches)
+   - Problem statement similarity (core concept, story, setup)
+   - Constraint ranges (N, M values, time limits, etc.)
+   - Sample input/output format and values
+   - Expected algorithm/approach and complexity
+   - Mathematical formulations and edge cases
+
+**CLASSIFICATION:**
+- **ORIGINAL:** No similar problems found, or only very general algorithmic concepts shared
+- **INSPIRED:** Similar core concept but different constraints, format, or twist
+- **COPIED:** Nearly identical problem statement, constraints, and samples
+- **VARIANT:** Modified version of existing problem with different parameters
+
+**CRITICAL VIOLATION REPORTING:**
+- If COPIED or direct VARIANT is found, provide:
+  - Exact source URL and problem name
+  - Platform name and contest/problem ID
+  - Specific similarities (title, statement, constraints, samples)
+  - Percentage similarity assessment
+- Report ALL similar problems found, not just the closest match
+
+Take your time to compare title, statement, constraints, and samples thoroughly.
+
+RESPONSE FORMAT:
+Provide detailed analysis with search results, then end with:
+FINAL VERDICT: PASS (if ORIGINAL/INSPIRED) or FINAL VERDICT: FAIL (if COPIED/direct VARIANT)
+"""
+
     # Point 1: Style Guide Compliance
     @staticmethod
     def get_style_guide_prompt():
         """Check if code follows style guide"""
         return """
-You are an expert code reviewer. Analyze the provided code and check if it follows the appropriate style guide based on the programming language:
+You are an expert code reviewer. 
+
+**STEP 1: LANGUAGE DETECTION**
+First, carefully analyze the document to determine the programming language by:
+1. Looking for code blocks in the response section (not reasoning chains)
+2. Examining syntax patterns, keywords, and structure
+3. Identifying language-specific elements like:
+   - C++: #include, std::, namespace, class/struct with public/private, semicolons, curly braces, template<>, vector<int>, iostream, using namespace std
+   - Python: def, class without access modifiers, indentation-based blocks, import statements, snake_case, if __name__ == "__main__"
+4. State your conclusion: "DETECTED LANGUAGE: [C++ or Python]"
+
+**STEP 2: STYLE GUIDE ANALYSIS**
+Based on the detected language, analyze the code against the appropriate style guide:
 
 **General Style Guide Requirements:**
 * a. Variables and functions are expected to be named in an explicit and easy-to-understand way 
@@ -254,6 +327,12 @@ def compute_inventory_count(include_reserved: bool) -> int:
 - Aim to write code that is compatible with default Python libraries.
 - Ensure your code can run seamlessly in environments like Google Colab or CodeForces without requiring the installation of additional libraries.
 
+CRITICAL VIOLATION REPORTING:
+- Report ALL violations with exact locations (line numbers, function names, class names where applicable)
+- Provide specific quotes of violating code
+- Do NOT summarize or omit any violations
+- Include the exact location where each violation occurs
+
 Please answer pass or fail and provide specific areas where a rule/guide is violated and suggest how to fix it.
 
 RESPONSE FORMAT:
@@ -266,7 +345,19 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_naming_conventions_prompt():
         """Check naming conventions"""
         return """
-You are an expert code reviewer. Check if the provided code follows the appropriate Naming Conventions based on the programming language:
+You are an expert code reviewer.
+
+**STEP 1: LANGUAGE DETECTION**
+First, carefully analyze the document to determine the programming language by:
+1. Looking for code blocks in the response section (not reasoning chains)
+2. Examining syntax patterns, keywords, and structure
+3. Identifying language-specific elements like:
+   - C++: #include, std::, namespace, class/struct with public/private, semicolons, curly braces, template<>, vector<int>, iostream, using namespace std
+   - Python: def, class without access modifiers, indentation-based blocks, import statements, snake_case, if __name__ == "__main__"
+4. State your conclusion: "DETECTED LANGUAGE: [C++ or Python]"
+
+**STEP 2: NAMING CONVENTIONS ANALYSIS**
+Check if the provided code follows the appropriate Naming Conventions based on the detected programming language:
 
 **C++ Naming Conventions:**
 * 1. Use kCamelCase for constants (e.g., `kMaxN`, `kInfinity`).
@@ -280,6 +371,12 @@ You are an expert code reviewer. Check if the provided code follows the appropri
 * 4. Use snake_case for method names and instance variables.
 * 5. Use leading underscore for internal use (e.g., `_internal_method`).
 
+CRITICAL VIOLATION REPORTING:
+- Report ALL violations with exact locations (line numbers, function names, variable names)
+- Provide specific quotes of violating names
+- Do NOT summarize or omit any violations
+- List each violating identifier separately
+
 Please answer pass or fail and provide specific areas where a rule is violated and suggest how to fix it.
 
 RESPONSE FORMAT:
@@ -292,7 +389,19 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_documentation_prompt():
         """Check appropriate documentation style"""
         return """
-You are an expert code reviewer. Check if the provided code uses appropriate documentation style for all functions, classes, and public APIs to specify arguments, return values, and any relevant details.
+You are an expert code reviewer.
+
+**STEP 1: LANGUAGE DETECTION**
+First, carefully analyze the document to determine the programming language by:
+1. Looking for code blocks in the response section (not reasoning chains)
+2. Examining syntax patterns, keywords, and structure
+3. Identifying language-specific elements like:
+   - C++: #include, std::, namespace, class/struct with public/private, semicolons, curly braces, template<>, vector<int>, iostream, using namespace std
+   - Python: def, class without access modifiers, indentation-based blocks, import statements, snake_case, if __name__ == "__main__"
+4. State your conclusion: "DETECTED LANGUAGE: [C++ or Python]"
+
+**STEP 2: DOCUMENTATION ANALYSIS**
+Check if the provided code uses appropriate documentation style for all functions, classes, and public APIs to specify arguments, return values, and any relevant details.
 
 **C++ Documentation Requirements:**
 - Use doxygen-style comments for all functions, classes, and public APIs
@@ -316,6 +425,11 @@ def function_name(parameter: type) -> return_type:
 ```
 - Use comments to explain complex or non-obvious parts of code
 - Avoid redundant comments that don't add value
+
+CRITICAL VIOLATION REPORTING:
+- Report ALL violations with exact locations (function names, class names)
+- Identify which functions/classes lack proper documentation
+- Do NOT summarize or omit any violations
 
 Please answer pass or fail.
 
@@ -733,7 +847,81 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 27: Reasoning Thoughts Review Process
+    # Point 27: Chain 2 Test Case Analysis Validation
+    @staticmethod
+    def get_chain2_testcase_analysis_prompt():
+        """Check if Chain 2 actually performs test case analysis"""
+        return """
+You are an expert response evaluator. Check if Chain 2 (CHAIN_02) actually performs detailed test case analysis with step-by-step execution, rather than just suggesting test cases that need to be analyzed.
+
+REQUIREMENTS FOR CHAIN 2:
+- Must contain actual step-by-step analysis of test cases
+- Must show detailed execution traces or walkthroughs
+- Must demonstrate how the algorithm works on specific examples
+- Must NOT be just suggestions like "we should test case X" or "consider testing edge case Y"
+
+WHAT TO LOOK FOR (PASS criteria):
+- Actual step-by-step execution of test cases
+- Detailed walkthroughs showing algorithm behavior
+- Concrete examples with input/output analysis
+- Manual tracing through algorithm steps
+
+WHAT COUNTS AS FAIL:
+- Only suggestions for test cases without actual analysis
+- Vague statements like "we need to test edge cases"
+- Lists of test cases without execution details
+- General recommendations without concrete analysis
+
+Please provide ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY) and specific quotes.
+
+RESPONSE FORMAT:
+Provide detailed analysis, then end with:
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    # Point 28: Thought Heading Violations
+    @staticmethod
+    def get_thought_heading_violations_prompt():
+        """Check if thoughts have prohibited headings"""
+        return """
+You are an expert response evaluator. Check if any THOUGHT_XX_YY sections contain prohibited headings or titles.
+
+CRITICAL REQUIREMENTS:
+- THOUGHT_XX_YY sections must NOT have any headings or titles
+- Thoughts should contain only analysis content, not descriptive headings
+- Any heading-like text in thoughts is a violation
+
+PROHIBITED EXAMPLES (these are VIOLATIONS):
+- "Going for best approach: ..."
+- "Optimizing approach: ..."
+- "Analyzing complexity: ..."
+- "Edge cases consideration: ..."
+- "Algorithm selection: ..."
+- Any colon-followed descriptions that act as headings
+
+ACCEPTABLE CONTENT:
+- Direct analysis without headings
+- Plain explanatory text
+- Questions and reasoning without title formatting
+
+INSTRUCTIONS:
+1. Examine EVERY THOUGHT_XX_YY section systematically
+2. Identify ALL violations with exact THOUGHT_XX_YY numbers
+3. Provide the exact heading text that violates the rule
+4. List ALL violations - do not summarize or omit any
+
+Please provide ALL violations with exact locations (THOUGHT_XX_YY) and the specific prohibited heading text.
+
+RESPONSE FORMAT:
+For each violation, use this format:
+• **[THOUGHT_XX_YY]**: "[Exact prohibited heading text]"
+
+If no violations found, state "No heading violations found in thoughts."
+
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    # Point 29: Reasoning Thoughts Review Process
     @staticmethod
     def get_reasoning_thoughts_review_prompt():
         """Comprehensive review of reasoning thought chains"""
@@ -765,6 +953,12 @@ CRITICAL ANALYSIS REQUIREMENTS:
    c. No redundant, repeated, or similar data compared to previous thoughts
    d. Account for dependencies between chains or thoughts
 
+CRITICAL VIOLATION REPORTING:
+- Report ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY)
+- Provide specific quotes and context for each violation
+- Do NOT summarize or omit any violations
+- Include the exact section/thought number where each issue occurs
+
 ANALYSIS METHODOLOGY:
 - Review EVERY single thought in EVERY chain systematically
 - Check each thought against ALL criteria
@@ -786,7 +980,54 @@ CRITICAL: Use VERY EXTENDED THINKING to ensure comprehensive analysis. Miss no i
 
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
-# 26 Individual Reviewer Classes - One for each review point
+
+# Ultimate Individual Reviewer Classes - One for each review point
+
+class ProblemOriginalityReviewer(BaseReviewer):
+    """Point 0: Reviews problem originality against competitive programming platforms"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_problem_originality_prompt()
+        response = self._make_api_call_with_web_search(prompt, document)
+        return self._parse_response(response)
+    
+    def _make_api_call_with_web_search(self, prompt: str, document: str) -> str:
+        """Make API call to Claude with web search enabled for originality checking"""
+        thinking_budget = 30000  # Large thinking budget for complex analysis
+        max_output = 32000  # Maximum output tokens
+        
+        # Web search tool configuration - comprehensive search including Google and major platforms
+        web_search_tool = {
+            "type": "web_search_20250305",
+            "name": "web_search",
+            "max_uses": 20,  # Generous limit for thorough checking across multiple platforms
+            # No domain restrictions to allow Google, GitHub, StackOverflow, and all CP platforms
+        }
+        
+        response_text = ""
+        
+        with self.client.messages.stream(
+            model=self.primary_model,
+            max_tokens=max_output,
+            temperature=1.0,  # Must be 1.0 when thinking is enabled
+            thinking={
+                "type": "enabled",
+                "budget_tokens": thinking_budget
+            },
+            tools=[web_search_tool],
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                }
+            ]
+        ) as stream:
+            for event in stream:
+                if event.type == "content_block_delta":
+                    if hasattr(event.delta, 'text') and event.delta.text:
+                        response_text += event.delta.text
+                        
+        return response_text if response_text else "No text content in response"
 
 class StyleGuideReviewer(BaseReviewer):
     """Point 1: Reviews code style guide compliance"""
@@ -988,15 +1229,87 @@ class PredictiveHeadingsReviewer(BaseReviewer):
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
+class Chain2TestCaseAnalysisReviewer(BaseReviewer):
+    """Point 27: Reviews if Chain 2 performs actual test case analysis"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_chain2_testcase_analysis_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response_no_cleanup(response)
+
+    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
+        """Parse response without cleanup to preserve detailed violation information"""
+        response_lower = response.lower()
+        
+        if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
+            result = ReviewResult.PASS
+            lines = response.split('\n')
+            for line in lines:
+                if 'final verdict: pass' in line.lower() or 'conclusion: pass' in line.lower():
+                    reasoning = line.strip()
+                    break
+            else:
+                reasoning = "PASS - Chain 2 contains actual test case analysis"
+        elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
+            result = ReviewResult.FAIL
+            reasoning = response.strip()
+        elif "✅" in response or "pass" in response_lower.split()[-20:]:
+            result = ReviewResult.PASS
+            reasoning = "PASS - Chain 2 contains actual test case analysis"
+        elif "❌" in response or "fail" in response_lower.split()[-20:]:
+            result = ReviewResult.FAIL
+            reasoning = response.strip()
+        else:
+            result = ReviewResult.FAIL
+            reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
+        
+        return ReviewResponse(result=result, reasoning=reasoning)
+
+class ThoughtHeadingViolationsReviewer(BaseReviewer):
+    """Point 28: Reviews for prohibited headings in thoughts"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_thought_heading_violations_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response_no_cleanup(response)
+
+    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
+        """Parse response without cleanup to preserve detailed violation information"""
+        response_lower = response.lower()
+        
+        if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
+            result = ReviewResult.PASS
+            lines = response.split('\n')
+            for line in lines:
+                if 'final verdict: pass' in line.lower() or 'conclusion: pass' in line.lower():
+                    reasoning = line.strip()
+                    break
+            else:
+                reasoning = "PASS - No prohibited headings found in thoughts"
+        elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
+            result = ReviewResult.FAIL
+            reasoning = response.strip()
+        elif "✅" in response or "pass" in response_lower.split()[-20:]:
+            result = ReviewResult.PASS
+            reasoning = "PASS - No prohibited headings found in thoughts"
+        elif "❌" in response or "fail" in response_lower.split()[-20:]:
+            result = ReviewResult.FAIL
+            reasoning = response.strip()
+        else:
+            result = ReviewResult.FAIL
+            reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
+        
+        return ReviewResponse(result=result, reasoning=reasoning)
+
 class ReasoningThoughtsReviewer(BaseReviewer):
-    """Point 26: Comprehensive review of reasoning thought chains"""
+    """Point 29: Comprehensive review of reasoning thought chains"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_reasoning_thoughts_review_prompt()
         response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
+        return self._parse_response_no_cleanup(response)
     
-    def _parse_response(self, response: str) -> ReviewResponse:
+    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
         """Parse response without cleanup for detailed reasoning analysis"""
         response_lower = response.lower()
         
@@ -1013,19 +1326,19 @@ class ReasoningThoughtsReviewer(BaseReviewer):
                 reasoning = "PASS - Review completed successfully"
         elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
             result = ReviewResult.FAIL
-            # No cleanup for Point 26 - keep detailed reasoning as-is
+            # No cleanup - keep detailed reasoning as-is
             reasoning = response.strip()
         elif "✅" in response or "pass" in response_lower.split()[-20:]:  # Check last 20 words
             result = ReviewResult.PASS
             reasoning = "PASS - Review completed successfully"
         elif "❌" in response or "fail" in response_lower.split()[-20:]:
             result = ReviewResult.FAIL
-            # No cleanup for Point 26 - keep detailed reasoning as-is
+            # No cleanup - keep detailed reasoning as-is
             reasoning = response.strip()
         else:
             # Default to FAIL if unclear
             result = ReviewResult.FAIL
-            # No cleanup for Point 26 - keep original response
+            # No cleanup - keep original response
             reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
         
         return ReviewResponse(result=result, reasoning=reasoning)
@@ -1042,8 +1355,11 @@ class DocumentReviewSystem:
         self.client = Anthropic(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
         
-        # Initialize all 26 reviewers - each as individual API call
+        # Initialize all Ultimate reviewers - each as individual API call
         self.reviewers = {
+            # Point 0: Problem Originality
+            "0. Problem Originality Check": ProblemOriginalityReviewer(self.client),
+            
             # Points 1-3: Code Quality
             "1. Style Guide Compliance": StyleGuideReviewer(self.client),
             "2. Naming Conventions": NamingConventionsReviewer(self.client),
@@ -1072,13 +1388,15 @@ class DocumentReviewSystem:
             "19. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
             "20. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
             
-            # Points 21-26: Subtopic, Taxonomy, and Reasoning Analysis
+            # Points 21+: Subtopic, Taxonomy, and Reasoning Analysis
             "21. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
             "22. Typo and Spelling Check": TypoCheckReviewer(self.client),
             "23. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "24. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
             "25. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "26. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            "26. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
+            "27. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
+            "28. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
@@ -1091,12 +1409,12 @@ class DocumentReviewSystem:
         except Exception as e:
             raise Exception(f"Error reading document: {str(e)}")
     
-    def run_reviews(self, document: str, resume_from: int = 1) -> Dict[str, ReviewResponse]:
+    def run_reviews(self, document: str, resume_from: int = 0) -> Dict[str, ReviewResponse]:
         """Run all reviews on the document, optionally resuming from a specific point"""
         results = {}
         self.detailed_output = []  # Reset for new run
         
-        header_msg = f"🔍 Resuming 26-point document review from point {resume_from}..." if resume_from > 1 else "🔍 Starting 26-point document review process..."
+        header_msg = f"🔍 Resuming Ultimate document review from point {resume_from}..." if resume_from > 0 else "🔍 Starting Ultimate document review process..."
         print(header_msg)
         self.detailed_output.append(header_msg)
         
@@ -1111,12 +1429,12 @@ class DocumentReviewSystem:
         # Convert reviewers dict to list for indexing
         reviewer_items = list(self.reviewers.items())
         
-        # Skip to resume point (convert from 1-based to 0-based indexing)
-        start_index = resume_from - 1
+        # Skip to resume point (resume_from is already 0-based)
+        start_index = resume_from
         if start_index < 0:
             start_index = 0
         elif start_index >= len(reviewer_items):
-            warning_msg = f"⚠️  Resume point {resume_from} is beyond available reviews (26). Starting from beginning."
+            warning_msg = f"⚠️  Resume point {resume_from} is beyond available reviews ({len(reviewer_items)}). Starting from beginning."
             print(warning_msg)
             self.detailed_output.append(warning_msg)
             start_index = 0
@@ -1144,7 +1462,7 @@ class DocumentReviewSystem:
                 
                 result = reviewer.review(document)
                 
-                # Special rule for Point 26: Run twice if first attempt passes
+                # Special rule for last point (Comprehensive Reasoning Thoughts Review): Run twice if first attempt passes
                 if isinstance(reviewer, ReasoningThoughtsReviewer) and result.result == ReviewResult.PASS:
                     # Calculate and display first run time
                     end_time = time.time()
@@ -1159,7 +1477,7 @@ class DocumentReviewSystem:
                     print(first_result_msg)
                     self.detailed_output.append(first_result_msg)
                     
-                    second_run_msg = "🔄 Running Point 26 again for confirmation..."
+                    second_run_msg = "🔄 Running Point 28 again for confirmation..."
                     print(second_run_msg)
                     self.detailed_output.append(second_run_msg)
                     
@@ -1241,7 +1559,7 @@ class DocumentReviewSystem:
                         self.detailed_output.append(fail_result_msg)
                         
                         # Only show cleanup message for points that actually do cleanup
-                        if not isinstance(reviewer, ReasoningThoughtsReviewer):
+                        if not isinstance(reviewer, (ReasoningThoughtsReviewer, Chain2TestCaseAnalysisReviewer, ThoughtHeadingViolationsReviewer)):
                             cleanup_msg = "🧹 Cleaning up failure details..."
                             print(cleanup_msg)
                             self.detailed_output.append(cleanup_msg)
@@ -1285,7 +1603,7 @@ class DocumentReviewSystem:
         
         report.append("")
         report.append("")
-        report.append("📋 FINAL SUMMARY REPORT - 26 POINT ANALYSIS")
+        report.append("📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS")
         report.append("=" * 70)
         report.append("")
         
@@ -1298,7 +1616,7 @@ class DocumentReviewSystem:
         if skipped > 0:
             report.append(f"📊 SUMMARY: {passed}/{total - skipped} reviews passed ({skipped} skipped)")
         else:
-            report.append(f"📊 SUMMARY: {passed}/26 reviews passed")
+            report.append(f"📊 SUMMARY: {passed}/{total} reviews passed")
         
         if failed > 0:
             report.append(f"⚠️  {failed} review(s) failed")
@@ -1308,7 +1626,7 @@ class DocumentReviewSystem:
         
         # Overall status
         if failed == 0 and skipped == 0:
-            report.append("🎉 OVERALL STATUS: ALL 26 REVIEWS PASSED")
+            report.append("🎉 OVERALL STATUS: ALL REVIEWS PASSED")
         elif failed == 0:
             report.append("🎉 OVERALL STATUS: ALL EXECUTED REVIEWS PASSED")
         else:
@@ -1364,26 +1682,29 @@ def main():
     """Main execution function"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Document Review Script - 26 Point Analysis',
+        description='Document Review Script - Ultimate Point Analysis',
         epilog='Examples:\n'
-               '  python3 document_reviewer.py doc.txt           # Run all 26 reviews on doc.txt\n'
+               '  python3 document_reviewer.py doc.txt           # Run all Ultimate reviews on doc.txt\n'
                '  python3 document_reviewer.py doc.txt --resume 16   # Resume from review point 16\n',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('file', help='Path to the text file to review')
-    parser.add_argument('--resume', type=int, default=1, metavar='X',
-                       help='Resume from review point X (1-26, default: 1)')
+    parser.add_argument('--resume', type=int, default=0, metavar='X',
+                       help='Resume from review point X (0-N, default: 0)')
     
     args = parser.parse_args()
     
     # Validate resume point
-    if args.resume < 1 or args.resume > 26:
-        print(f"❌ Invalid resume point: {args.resume}. Must be between 1 and 26.")
+    # Initialize review system first for dynamic validation
+    review_system = DocumentReviewSystem()
+    max_points = len(review_system.reviewers) - 1
+    if args.resume < 0 or args.resume > max_points:
+        print(f"❌ Invalid resume point: {args.resume}. Must be between 0 and {max_points}.")
+        sys.exit(1)
         sys.exit(1)
     
     try:
-        # Initialize review system
-        review_system = DocumentReviewSystem()
+        # Review system already initialized for validation above
         
         # Load document
         print(f"📖 Loading document from {args.file}...")
@@ -1402,7 +1723,7 @@ def main():
         
         # Generate and display report
         print("\n" + "=" * 70)
-        print("📋 GENERATING FINAL REPORT - 26 POINT ANALYSIS")
+        print("📋 GENERATING FINAL REPORT - ULTIMATE POINT ANALYSIS")
         print("=" * 70)
         
         report = review_system.generate_report(results)
