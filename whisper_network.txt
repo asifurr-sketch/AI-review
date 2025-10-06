@@ -1,0 +1,1111 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** -["Trees and Tries", "Graph Algorithms", "Graphs and Networks", "Arrays and Lists", "Basic Data Structures", "Algorithm Complexity and Big O Notation", "Searching Algorithms","Dynamic Programming","Divide and Conquer","Memoization"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of approaches:** - 4, $O(n), O(n), O(1)$ with $O(n^2)$ space (rejected), $O(n), O(\log n)$
+
+**Number of Sections:** - 11
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+Time Limit: **2 seconds**  
+Memory Limit: **512 MB**
+
+On wind-scoured ridgelines, monks raise beacons that pass along whispers through taut signal-ropes. Each newly built beacon is fastened to an existing one, and a whisper traveling along a rope experiences a delay equal to the rope’s length. As the network grows, the abbots demand live reports:
+- What is the longest possible whisper path in the entire network right now?
+- How far can a particular beacon’s whisper ultimately reach?
+- What is the delay between any two beacons?
+
+You must process the construction of this network and answer these queries online. The network is always a single connected tree that starts with a single beacon.
+
+**Input Format:-**
+- The first line contains two integers $n$ and $q$:
+  - $n$ — the final number of beacons $(2 \leq n \leq 200000)$.
+  - $q$ — the total number of operations $(q = (n - 1) + \text{number\_of\_queries})$.
+- Each of the next $q$ lines describes one operation:
+- $B\ p\ w$  
+  Add a new beacon with the next id $k$ (ids are $1..n$, initially only 1 exists).  
+  Connect this new beacon $k$ to an existing beacon $p$ ($1 \leq p < k$) by a rope with delay $w$ ($1 \leq w \leq 10^9$).
+
+- $L$  
+  Query the current length of the longest whisper path (the tree’s weighted diameter).
+
+- $R\ r$  
+  Query the reach of beacon $r$: the maximum weighted distance from $r$ to any other existing beacon (its eccentricity).
+
+- $S\ u\ v$  
+  Query the weighted delay (distance) between beacons $u$ and $v$ along the unique path connecting them.
+
+It is guaranteed that every id referenced in a query exists at the time it appears and that there are exactly $n-1$ operations of type $B$ overall.
+
+It is guaranteed that every id referenced in a query exists at the time it appears and that there are exactly $n-1$ operations of type $B$ overall.
+
+
+**Output Format:-**
+For each query $L$, $R\ r$, or $S\ u\ v$, output the answer on its own line.
+
+**Constraints:-**
+- $2 \leq n \leq 200000$  
+- $1 \leq w \leq 10^9$  
+- Distances can be large; use 64-bit integers.  
+- The network is always a single connected tree that grows by adding leaves.  
+- It is valid to have queries before any beacon is added beyond the initial one:  
+- Initially, $L = 0$, $R(1) = 0$, and $S(1,1) = 0$.
+
+**Examples:-**
+ - **Input:**
+```
+6 10
+B 1 3
+L
+B 1 2
+B 2 4
+L
+R 1
+B 2 1
+S 5 3
+B 3 7
+L
+```
+
+ - **Output:**
+```
+3
+9
+7
+6
+16
+```
+**Explanation:**  
+- After $B\ 1\ 3$, longest path = $3$.  
+- After $B\ 1\ 2$, $B\ 2\ 4$, diameter = $9$.  
+- $R\ 1$: farthest from beacon $1$ is beacon $4$ with distance $7$.  
+- $S\ 5\ 3$: path is $5 \to 2 \to 1 \to 3$, total = $6$.  
+- After $B\ 3\ 7$, diameter becomes $16$.
+
+
+ - **Input:**
+```
+3 4
+B 1 5
+L
+B 2 7
+R 2
+```
+
+ - **Output:**
+```
+5
+7
+```
+**Explanation:**  
+- $B\ 1\ 5$: diameter = $5$.  
+- After $B\ 2\ 7$, beacon $2$ can reach beacon $3$ with distance $7$.
+
+ - **Input:**
+```
+2 3
+L
+R 1
+B 1 7
+```
+
+ - **Output:**
+```
+0
+0
+```
+**Explanation:**  
+- Initially only beacon $1$ exists: diameter = $0$, reach($1$) = $0$.
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Problem Understanding and Algorithmic Approaches
+
+**[THOUGHT_01_01]**
+
+The network starts with a single beacon (node $1$). Each B p w operation attaches a new beacon with the next available ID to an existing beacon $p$ via an edge of positive weight $w$. The tree structure is preserved since every new node connects by a single edge.
+
+
+
+**[THOUGHT_01_02]**
+
+List the queries to answer online:  
+- $L$ asks for the current weighted diameter (the longest weighted distance between any two nodes).  
+- $R\ r$ asks for the eccentricity of node $r$ (the maximum weighted distance from $r$ to any other node).  
+- $S\ u\ v$ asks for the weighted distance between nodes $u$ and $v$ along the unique simple path.
+
+
+**[THOUGHT_01_03]**
+
+For nodes $u$ and $v$, the weighted distance is the sum of edge weights along the unique simple path connecting them. Because all weights are positive, distances along any path are monotonic with respect to added edges.
+
+
+**[THOUGHT_01_04]**
+
+
+Initially, only node $1$ exists. Consequently:  
+- Diameter = $0$  
+- Eccentricity of node $1$ = $0$  
+- Distance from node $1$ to itself = $0$  
+
+Queries may occur before any additional nodes are added. Every node referenced in a query exists at that moment.
+
+
+**[THOUGHT_01_05]**
+
+Consider potential effects of operations:  
+- Each query refers to distances within the current tree.  
+- As the tree grows, the set of possible paths expands, which may increase the maximum distance (diameter) or alter eccentricities.  
+- Distances between nodes are always determined by the unique path in the tree.  
+- The notion of “farthest node” for a given beacon is tied directly to the current structure of the tree.
+
+
+**[THOUGHT_01_06]**
+
+Explore relationships between different queries:  
+- Adding a new beacon extends the tree by one leaf, possibly changing the longest path.  
+- The diameter depends on the endpoints of the longest path in the tree.  
+- The reach of a beacon is the maximum distance from it to any other beacon, closely related to diameter endpoints.  
+- Distance queries between arbitrary pairs simply follow the unique connecting path in the tree.  
+
+---
+
+**[CHAIN_02]**
+
+Analyzing test cases and edge cases for correctness and robustness
+
+**[THOUGHT_02_01]**
+
+**Minimal tree (single node):**  
+Initially, only node $1$ exists. Queries before any additions:  
+- $L \rightarrow 0$  
+- $R\ 1 \rightarrow 0$  
+- $S\ 1\ 1 \rightarrow 0$  
+
+This confirms that the implementation handles the trivial base case.
+
+
+**[THOUGHT_02_02]**
+
+**Example Test Case 1:**
+
+Input:
+
+\[
+\begin{aligned}
+6 & \quad 10 \\
+B & \ 1 \ 3 \\
+L & \\
+B & \ 1 \ 2 \\
+B & \ 2 \ 4 \\
+L & \\
+R & \ 1 \\
+B & \ 2 \ 1 \\
+S & \ 5 \ 3 \\
+B & \ 3 \ 7 \\
+L &
+\end{aligned}
+\]
+
+Expected Output:
+
+\[
+\begin{aligned}
+3 \\
+9 \\
+7 \\
+6 \\
+16
+\end{aligned}
+\]
+
+This tests incremental diameter updates, eccentricity, and distance queries in a growing tree.
+
+
+
+**[THOUGHT_02_03]**
+
+
+**Example Test Case 2:**
+
+Input:
+
+\[
+\begin{aligned}
+3 & \quad 4 \\
+B & \ 1 \ 5 \\
+L & \\
+B & \ 2 \ 7 \\
+R & \ 2
+\end{aligned}
+\]
+
+Expected Output:
+
+\[
+\begin{aligned}
+5 \\
+7
+\end{aligned}
+\]
+
+This verifies correctness with a small tree and queries interleaved with insertions.
+
+
+**[THOUGHT_02_04]**
+
+Linear chain edge case:
+
+Construct a tree by repeatedly attaching each new node to the most recently added node, forming a single path:
+
+\[
+1 - 2 - 3 - \dots - n
+\]
+
+After each insertion, queries $L$ (longest path) and $R_r$ (eccentricity) should return cumulative distances along the path. This stresses diameter updates and verifies that distances accumulate correctly along a deep linear chain.
+
+**[THOUGHT_02_05]**
+
+Star-shaped tree edge case:
+
+Attach multiple nodes directly to a single root node to form a star topology:
+
+\[
+\text{Root } 1 \text{ with children } 2, 3, \dots, n
+\]
+
+- Diameter = sum of the two largest edge weights.  
+- Eccentricity of the root = maximum edge weight among its children.  
+- Eccentricity of a leaf = its edge weight + the largest edge weight among its sibling leaves.  
+
+This tests correct computation of diameter and eccentricities in wide, shallow trees.
+
+
+---
+
+
+
+
+**[CHAIN_03]**
+
+Implementing baseline approach and understanding tree growth
+
+**[THOUGHT_03_01]**  
+
+For each query, recompute distances from scratch:  
+
+- For $L$, perform two BFS/DFS traversals from arbitrary nodes to find the tree diameter. Each BFS/DFS takes $O(n)$, and you may need two per query, so $O(n)$ per query.  
+- For $R r$, run BFS/DFS from node $r$ to compute distances to all other nodes. This is $O(n)$ per query.  
+- For $S u v$, traverse the path from $u$ to $v$ along tree edges, which can take $O(n)$ in the worst case if the tree is skewed.  
+
+- Suppose there are up to $O(n)$ queries interleaved with insertions. Then total time complexity is $O(n^2)$.  
+- For $n \le 2 \cdot 10^5$, $O(n^2) = 4 \cdot 10^{10}$ operations, which is far beyond feasible limits for a 2-second time constraint.  
+
+Conclusion:
+
+- This naive approach is conceptually correct but impractical for large trees.  
+- Efficient solutions require using LCA, depth arrays, and maintaining diameter endpoints to answer queries faster.
+
+
+**[THOUGHT_03_02]**
+
+Time complexity analysis:
+
+- Diameter computation via BFS/DFS: $O(n)$.  
+- Eccentricity computation per query: $O(n)$.  
+- Path distance computation: $O(n)$ in the worst case.  
+- With up to $O(n)$ queries, total time complexity becomes $O(n^2)$, which is intractable for $n \le 2 \cdot 10^5$.
+
+
+**[THOUGHT_03_03]**
+
+Observations for optimization:
+
+- Tree grows by adding leaves only.  
+- The farthest node from any node is always an endpoint of the diameter.  
+- Maintaining the endpoints of the current diameter allows constant-time $L$ queries.  
+- Tracking distances from the diameter endpoints enables $R\ r$ queries in $O(1)$ per query.  
+- $S\ u\ v$ queries can be handled using depth and parent arrays with binary lifting for $O(\log n)$ computation.
+
+
+**[THOUGHT_03_04]**
+
+Conclusion:
+
+- Brute-force recomputation is too slow.  
+- Leveraging tree properties (leaf additions, diameter endpoints, depth tables, LCA) enables efficient online query processing.  
+- This approach scales to the full problem constraints and ensures all queries are answered quickly.
+
+---
+
+**[CHAIN_04]**
+
+Attempting to precompute all-pairs distances and recognizing its infeasibility
+
+**[THOUGHT_04_01]**
+
+
+Compute all distances explicitly whenever a query is made.  
+
+- For `L`, compute the weighted distance between all pairs of nodes to determine the diameter.  
+- For `R r`, compute distances from node $r$ to all other nodes to find its eccentricity.  
+- For `S u v`, traverse the tree from $u$ to $v$ along the unique path to find the distance.
+
+
+
+**[THOUGHT_04_02]**
+
+Algorithm Breakdown:
+
+- Insertion ($B\ p\ w$)  
+  Add the new node to the adjacency list of node $p$.  
+  Store the edge weight $w$ with the corresponding edge.
+
+- Diameter Query ($L$)  
+  Perform BFS or DFS from every node to compute all pairwise distances.  
+  Return the maximum distance found.
+
+- Eccentricity Query ($R\ r$)  
+  Perform BFS/DFS from node $r$ to all other nodes.  
+  Return the maximum distance from node $r$.
+
+- Distance Query ($S\ u\ v$)  
+  Perform BFS/DFS starting from node $u$ to locate node $v$.  
+  Sum the edge weights along the path to return the distance.
+
+**[THOUGHT_04_03]**
+
+Time and Space Complexity:
+
+- Insertion ($B$) : $O(1)$ to update the adjacency list.  
+- Diameter Query ($L$) : $O(n^2)$ because BFS/DFS from each node computes distances to all other nodes.  
+- Eccentricity Query ($R\ r$) : $O(n)$ per query using BFS/DFS.  
+- Distance Query ($S\ u\ v$) : $O(n)$ per query in the worst case.  
+- Space Complexity : $O(n)$ for adjacency list storage; $O(n)$ additional for BFS/DFS traversal.
+
+
+**[THOUGHT_04_04]**
+
+Limitations or Advantages over previous approaches:
+
+- Limitations:  
+  - Extremely slow for large $n$ (up to $200{,}000$), especially for $L$ queries requiring all pairwise distances.  
+  - Not suitable for online queries since each query may trigger a full traversal.
+
+- Advantages:  
+  - Simple to implement.  
+  - Works correctly for very small trees or for verifying correctness of optimized approaches.
+
+- Conclusion:  
+  - Serves as a baseline approach to compare with more efficient incremental or LCA-based methods.
+
+---
+
+**[CHAIN_05]**
+
+Naive Parent Pointers and Depth with LCA Climbing
+
+
+**[THOUGHT_05_01]**
+
+Key Idea: Maintain for each node $v$:
+
+\[
+\text{par}[v] \quad \text{— parent of } v
+\]
+
+\[
+\text{depth}[v] \quad \text{— number of edges from the root}
+\]
+
+\[
+\text{distRoot}[v] = \text{distRoot}[\text{par}[v]] + w \quad \text{— weighted distance from the root}
+\]
+
+
+**[THOUGHT_05_02]**
+
+To compute $\text{LCA}(u,v)$:  
+
+- Lift the deeper node step by step until depths match.  
+- Then lift both nodes together until parents match.  
+
+Distance formula:
+
+\[
+d(u,v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u,v)]
+\]
+
+**[THOUGHT_05_03]**
+
+- $S\ u\ v$ and $R\ r$ queries cost $O(h)$, where $h$ is the tree height.  
+- $L$ requires either multiple LCAs or a full traversal.  
+- Space: $O(n)$ for the parent, depth, and distRoot arrays.
+
+
+**[THOUGHT_05_04]**
+
+- Linear-time LCA in worst-case chain makes queries slow.  
+- Cannot guarantee logarithmic-time queries for tall trees.
+
+
+**[THOUGHT_05_05]**
+
+Conclude insufficiency: While this introduces a useful distance formula and root distances, naive LCA climbing fails to guarantee logarithmic time under adversarial tree shapes. We need a logarithmic LCA mechanism.
+
+
+---
+
+**[CHAIN_06]**
+
+Building binary lifting for fast LCA and distances to unlock logarithmic queries
+
+**[THOUGHT_06_01]**
+
+Precompute ancestors at powers of two to enable O(log n) LCA queries.
+
+**[THOUGHT_06_02]**
+
+
+Maintain $\text{up}[v][j]$ — $2^j$-th ancestor of $v$.  
+
+On insertion of $v$ with parent $p$:
+
+\[
+\text{up}[v][0] = p
+\]
+
+\[
+\text{up}[v][j] = \text{up}[\text{up}[v][j-1]][j-1]
+\]
+
+Use depth alignment and binary lifting to find $\text{LCA}(u,v)$ in $O(\log n)$.  
+
+Distance:
+
+\[
+d(u,v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u,v)]
+\]
+
+
+
+**[THOUGHT_06_03]**
+
+- Each insertion: $O(\log n)$ to fill lifting table.  
+- LCA/distance queries: $O(\log n)$.  
+- Memory: $O(n \log n)$.
+
+
+**[THOUGHT_06_04]**
+
+- Eliminates linear-height penalty in naive climbing.  
+- Makes distance computations efficient for arbitrary node pairs.
+
+**[THOUGHT_06_05]**
+
+Resolve prior failure: This upgrade removes the linear-in-height penalty in LCA and makes "S u v" and any operation dependent on distances between arbitrary pairs feasible within logarithmic time.
+
+
+---
+
+**[CHAIN_07]**
+
+Maintaining the diameter online using two dynamic endpoints instead of recomputation
+
+**[THOUGHT_07_01]**
+
+Track two nodes $A$ and $B$ as current diameter endpoints and update on each node addition.
+
+
+**[THOUGHT_07_02]**
+
+When adding $v$:
+
+- Compute $d(v,A)$ and $d(v,B)$ via LCA.  
+- If $d(v,A) > D$, set $B = v$ and $D = d(v,A)$.  
+- Else if $d(v,B) > D$, set $A = v$ and $D = d(v,B)$.
+
+$L$ query returns $D$.
+
+
+**[THOUGHT_07_03]**
+
+- Per addition: two distance computations $O(\log n)$.  
+- $L$ query: $O(1)$.  
+- Memory: $O(1)$ extra for the endpoints.
+
+
+**[THOUGHT_07_04]**
+
+Avoids $O(n)$ traversal or multiple DFS for diameter updates.  
+Correct because any new longest path includes the newly added leaf.
+
+**[THOUGHT_07_05]**
+
+
+**Eliminate previous recomputation:**  
+This approach replaces $O(n)$ or multi-DFS recalculations with constant or logarithmic-time updates, addressing the core bottleneck in brute-force strategies.
+
+---
+
+**[CHAIN_08]**
+
+Answering node reach (eccentricity) queries via the maintained diameter endpoints
+
+**[THOUGHT_08_01]**
+
+For any node $r$, eccentricity can be computed as:  
+
+\[
+\text{ecc}(r) = \max(d(r,A), d(r,B))
+\]
+
+This leverages the property that a farthest node from $r$ is one of the diameter endpoints.
+
+
+**[THOUGHT_08_02]**
+
+Compute distances to $A$ and $B$ using binary lifting LCA.  
+Return the maximum.
+
+**[THOUGHT_08_03]**
+
+Time \& Space Complexity:
+
+- $R\ r$ query: $O(\log n)$  
+- Memory: no extra storage beyond the previous structures.
+
+
+**[THOUGHT_08_04]**
+
+**Advantages**:
+
+- Avoids full traversal from $r$ ($O(n)$) while preserving exactness.
+
+---
+
+**[CHAIN_09]**
+
+Integrating all components and attending to robustness concerns
+
+**[THOUGHT_09_01]**
+
+Combine binary lifting, diameter endpoints, and incremental updates to support online queries safely.
+
+
+**[THOUGHT_09_02]**
+
+Initialization:
+
+- Root: $\text{depth}[1] = 0$, $\text{distRoot}[1] = 0$, $\text{up}[1][j] = 0$  
+- Diameter endpoints: $A = B = 1$, $D = 0$
+
+For each $B\ p\ w$ addition:
+
+- Update $\text{depth}$, $\text{distRoot}$, and the lifting table ($\text{up}$).  
+- Update diameter endpoints as described in prior chains.
+
+
+**[THOUGHT_09_03]**
+
+Time \& Space Complexity:
+
+- Addition per node: $O(\log n)$  
+- Queries: $L$: $O(1)$, $R$: $O(\log n)$, $S$: $O(\log n)$  
+- Memory: $O(n \log n)$ for the lifting table, plus $O(n)$ for $\text{depth}$ and $\text{distRoot}$
+
+
+**[THOUGHT_09_04]**
+
+**Advantages**:
+
+- Supports fully online processing.  
+- Handles edge cases and large weights using 64-bit integers.
+
+
+**[THOUGHT_09_05]**
+
+Validate query safety: The problem guarantees that any node referenced exists at the time of the query, so no additional existence checks or delayed evaluations are needed.
+
+
+---
+
+**[CHAIN_10]**
+
+Implementation notes, pitfalls, and verification plan
+
+**[THOUGHT_10_01]**
+
+Implementation order when adding node $k$: set $\text{parent}[0][k]=p$, set $\text{depth}[k]$ and $\text{distRoot}[k]$, then fill higher parents $\text{parent}[j][k]$. Only after these are set may you safely answer queries involving $k$.
+
+
+**[THOUGHT_10_02]**
+
+Edge cases to test (unit tests / sanity checks):
+- No insertions yet: $L=0$, $R(1)=0$, $S(1,1)=0$.
+- Chain (every new node attached to previous): test deep lifting and large distances.
+- Star-like growth (many children of node 1): ensure ancestor table and depth consistent.
+- Alternating insert/query sequences to ensure incremental updates behave correctly.
+- Large weights near $10^9$ to verify 64-bit safety.
+
+
+**[THOUGHT_10_03]**
+
+
+Final verification strategy:
+- Run the provided samples and a small randomized brute-force generator (generate small trees and run both the online algorithm and brute-force DFS checks) to confirm correctness.
+- Measure time on worst-case patterns (e.g., all insertions form a chain; many queries interleaved) to validate performance.
+
+
+**[THOUGHT_10_04]**
+
+Verify dynamic updates: Interleave queries with insertions and confirm that the maintained $A$, $B$, and $D$ correctly reflect the new diameter after each addition, especially when the new node creates a longer path that changes only one endpoint.
+
+
+---
+
+**[CHAIN_11]**
+
+Summarizing complexity improvements and justifying the final approach
+
+**[THOUGHT_11_01]**
+
+Compare the time and space complexities of different approaches to emphasize why the final solution is efficient and feasible for large trees.
+
+
+**[THOUGHT_11_02]**
+
+ Complexity Across Approaches:
+
+- Brute force:  
+  - Time: $O(n)$ per query, leading to $O(n^2)$ in the worst case.
+
+- All-pairs distance precomputation:  
+  - Time: $O(1)$ per query, but memory and preprocessing cost $O(n^2)$, infeasible for $n \le 2 \cdot 10^5$.
+
+- Naive LCA with parent climbing:  
+  - Distance queries cost $O(h)$, where $h$ is the tree height; worst-case linear for skewed trees.
+
+- Binary lifting + diameter endpoints (final approach):  
+  - Node addition: $O(\log n)$  
+  - Distance queries ($R\ r, S\ u\ v$): $O(\log n)$  
+  - Diameter query ($L$): $O(1)$
+
+
+**[THOUGHT_11_03]**
+
+- $B\ p\ w$: $O(\log n)$ to fill $\text{up}[v][j]$ plus $O(\log n)$ for two distance computations (updating diameter endpoints).  
+- $L$: $O(1)$ — simply return the stored diameter length $D$.  
+- $R\ r$: $O(\log n)$ — compute distances to endpoints $A$ and $B$ using LCA.  
+- $S\ u\ v$: $O(\log n)$ — compute distance via  
+\[
+d(u,v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u,v)]
+\]
+
+
+**[THOUGHT_11_04]**
+
+Memory Feasibility:
+
+- Binary lifting table $\text{up}$: $O(n \log n)$  
+- Depth and $\text{distRoot}$ arrays: $O(n)$  
+- Total memory fits comfortably within typical constraints for $n \le 2 \cdot 10^5$
+
+
+**[THOUGHT_11_05]**
+
+Correctness Justification
+- Binary lifting ensures exact LCA computation in $O(\log n)$.  
+- Distance formula $d(u,v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u,v)]$ is correct for trees.  
+- Diameter endpoints update is correct because any new longest path after inserting a node must include the new leaf, and the farthest existing node from it is guaranteed to be one of the current endpoints.
+
+---
+
+**[RESPONSE]**
+
+## 1. Problem Understanding
+
+We are given a growing weighted tree (initially a single node 1). Each operation either adds a new node as a leaf with a weighted edge to an existing node, or queries one of the following:
+
+- **L:** The current weighted diameter of the tree (the longest distance between any two nodes).  
+- **R r:** The eccentricity of node $r$ (the maximum distance from $r$ to any node).  
+- **S u v:** The distance between $u$ and $v$ along the unique simple path.
+
+Constraints are large ($n \le 2 \cdot 10^5$), so per-operation time must be sublinear. All edge weights are positive, and queries can appear before any insertion beyond node 1. Distances can be large, requiring 64-bit integers.
+
+**Key observations:**
+
+- For any nodes $u$ and $v$, if we maintain the distance from root 1 to every node ($\text{distRoot}[x]$) and can compute $\text{LCA}(u, v)$ (lowest common ancestor), then:
+
+\[
+d(u, v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u, v)]
+\]
+
+- The diameter can be maintained online using two endpoints $A$ and $B$. When a new node $v$ is added, comparing distances $d(v, A)$ and $d(v, B)$ against the current diameter suffices to update it.
+
+- For any node $r$ in a tree with nonnegative weights, one of the diameter endpoints is a farthest node from $r$. Hence:
+
+\[
+\text{ecc}(r) = \max(d(r, A), d(r, B))
+\]
+
+
+## 2. Optimal Approach
+
+We maintain:
+
+- Binary lifting tables $up[v][j]$ for $2^j$-th ancestors, enabling $O(\log n)$ LCA computation.  
+- Depths $depth[v]$ and root distances $\text{distRoot}[v]$ for every node.  
+- Two diameter endpoints $A$ and $B$, and diameter length $D = d(A, B)$.
+
+**Steps:**
+
+1. **Initialization:**
+   - Start with node 1: $depth[1] = 0$, $\text{distRoot}[1] = 0$, all ancestors are 0.  
+   - Set $A = B = 1$, $D = 0$, and the next available id is 2.
+
+2. ### Adding a node $B\ p\ w$:
+   - Assign id $v = \text{next\_id}$, set $up[v][0] = p$, $depth[v] = depth[p] + 1$, $\text{distRoot}[v] = \text{distRoot}[p] + w$.  
+   - For $j \ge 1$, fill $up[v][j] = up[ up[v][j-1] ][j-1]$ in $O(\log n)$.  
+   - Update the diameter by computing $d(v, A)$ and $d(v, B)$ in $O(\log n)$:
+     - If $d(v, A) > D$, set $B = v$, $D = d(v, A)$.  
+     - Else if $d(v, B) > D$, set $A = v$, $D = d(v, B)$.
+
+3. **Queries:**
+   - **L:** Output $D$ in $O(1)$.  
+   - **R r:** Output $\max(d(r, A), d(r, B))$ in $O(\log n)$.  
+   - **S u v:** Output $d(u, v)$ via LCA and root distances in $O(\log n)$.
+
+4. **Example Walkthrough**
+   
+    - **Input:**
+```
+6 10
+B 1 3
+L
+B 1 2
+B 2 4
+L
+R 1
+B 2 1
+S 5 3
+B 3 7
+L
+```
+
+ - **Output:**
+```
+3
+9
+7
+6
+16
+```
+
+**Execution:**
+
+1. Add $B 1 3$ \... new node $2$, distance from root = $3$. Diameter $D = 3$.  
+2. Query $L$ \... output $3$.  
+3. Add $B 1 2$ \... new node $3$, distance from root = $2$.  
+4. Add $B 2 4$ \... new node $4$, distance from root = $7$. Diameter $D = 9$ (between node $3$ and $4$).  
+5. Query $L$ \... output $9$.  
+6. Query $R 1$ \... eccentricity of node $1 = \max(d(1,3), d(1,4)) = 7$.  
+7. Add $B 2 1$ \... node $5$, distance from root = $4$.  
+8. Query $S 5 3$ \... distance $d(5,3) = 6$.  
+9. Add $B 3 7$ \... node $6$, distance from root = $9$. Update diameter $D = 16$ (between node $4$ and $6$).  
+10. Query $L$ \... output $16$.
+
+
+**Performance:**  
+- Time: $O(\log n)$ per addition and per query (except $L$ which is $O(1)$)  
+- Space: $O(n \log n)$
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cstdint>
+
+using namespace std;
+
+/// Example constant using kCamelCase naming.
+const int kMaxLog = 20;
+
+/**
+ * @class DynamicTree
+ * @brief Maintains a growing weighted tree with online LCA, distances, and diameter tracking.
+ */
+class DynamicTree {
+public:
+    /**
+     * @brief Construct a new DynamicTree instance.
+     * @param maxNodes Maximum number of nodes (used to size internal structures).
+     */
+    explicit DynamicTree(int maxNodes) {
+        logSize = 1;
+        while ((1 << logSize) <= maxNodes) {
+            ++logSize;
+        }
+        int size = maxNodes + 2;
+        upAncestors.assign(size, vector<int>(logSize, 0));
+        depth.assign(size, 0);
+        distFromRoot.assign(size, 0);
+
+        nextId = 2;
+        endpointA = 1;
+        endpointB = 1;
+        diameterLength = 0;
+    }
+
+    /**
+     * @brief Add a new node as a child of parent with edge weight weight.
+     * @param parent The parent node id (existing).
+     * @param weight The positive edge weight from parent to the new node.
+     * @return The id of the newly added node.
+     */
+    int addNode(int parent, long long weight) {
+        int nodeId = nextId++;
+        upAncestors[nodeId][0] = parent;
+        depth[nodeId] = depth[parent] + 1;
+        distFromRoot[nodeId] = distFromRoot[parent] + weight;
+        for (int j = 1; j < logSize; ++j) {
+            upAncestors[nodeId][j] = upAncestors[ upAncestors[nodeId][j - 1] ][j - 1];
+        }
+        return nodeId;
+    }
+
+    /**
+     * @brief Compute distance between two nodes using LCA.
+     * @param u First node.
+     * @param v Second node.
+     * @return Weighted distance between u and v.
+     */
+    long long distance(int u, int v) const {
+        int ancestor = lca(u, v);
+        return distFromRoot[u] + distFromRoot[v] - 2LL * distFromRoot[ancestor];
+    }
+
+    /**
+     * @brief Update the tracked diameter considering a newly added node nodeId.
+     * @param nodeId The newly added node id.
+     */
+    void considerForDiameter(int nodeId) {
+        long long distanceToA = distance(nodeId, endpointA);
+        long long distanceToB = distance(nodeId, endpointB);
+
+        if (distanceToA >= distanceToB && distanceToA > diameterLength) {
+            // New diameter is between nodeId and endpointA
+            endpointB = nodeId;
+            diameterLength = distanceToA;
+        } else if (distanceToB > distanceToA && distanceToB > diameterLength) {
+            // New diameter is between nodeId and endpointB
+            endpointA = nodeId;
+            diameterLength = distanceToB;
+        }
+    }
+
+    /**
+     * @brief Compute the eccentricity (maximum distance to any node) of node r.
+     * @param r Node id.
+     * @return The eccentricity of r.
+     */
+    long long eccentricity(int r) const {
+        long long distanceToA = distance(r, endpointA);
+        long long distanceToB = distance(r, endpointB);
+        return max(distanceToA, distanceToB);
+    }
+
+    int nextId;              ///< Next node id to assign on insertion.
+    int endpointA;           ///< One endpoint of current diameter.
+    int endpointB;           ///< Other endpoint of current diameter.
+    long long diameterLength;///< Current diameter length.
+
+private:
+    int logSize;
+    vector<vector<int>> upAncestors;
+    vector<int> depth;
+    vector<long long> distFromRoot;
+
+    /**
+     * @brief Lift node u up by k ancestors (k steps), or to 0 if none.
+     * @param u Node id to lift.
+     * @param k Number of steps to lift.
+     * @return The ancestor reached after lifting.
+     */
+    int lift(int u, int k) const {
+        for (int j = 0; j < logSize; ++j) {
+            if (k & (1 << j)) {
+                u = upAncestors[u][j];
+            }
+            if (u == 0) {
+                break;
+            }
+        }
+        return u;
+    }
+
+    /**
+     * @brief Compute the Lowest Common Ancestor (LCA) of u and v.
+     * @param u First node.
+     * @param v Second node.
+     * @return The LCA node id.
+     */
+    int lca(int u, int v) const {
+        if (u == v) {
+            return u;
+        }
+        if (depth[u] < depth[v]) {
+            swap(u, v);
+        }
+        int diff = depth[u] - depth[v];
+        u = lift(u, diff);
+        if (u == v) {
+            return u;
+        }
+        for (int j = logSize - 1; j >= 0; --j) {
+            if (upAncestors[u][j] != upAncestors[v][j]) {
+                u = upAncestors[u][j];
+                v = upAncestors[v][j];
+            }
+        }
+        return upAncestors[u][0];
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, q;
+    if (!(cin >> n >> q)) {
+        return 0;
+    }
+
+    DynamicTree tree(n);
+
+    for (int i = 0; i < q; ++i) {
+        string operation;
+        cin >> operation;
+        if (operation == "B") {
+            int parent;
+            long long weight;
+            cin >> parent >> weight;
+            int newNode = tree.addNode(parent, weight);
+            tree.considerForDiameter(newNode);
+        } else if (operation == "L") {
+            cout << tree.diameterLength << '\n';
+        } else if (operation == "R") {
+            int r;
+            cin >> r;
+            cout << tree.eccentricity(r) << '\n';
+        } else if (operation == "S") {
+            int u, v;
+            cin >> u >> v;
+            cout << tree.distance(u, v) << '\n';
+        }
+    }
+
+    return 0;
+}
+
+```
+
+# 4. Code Explanation
+
+- We encapsulate the online tree logic in the `DynamicTree` class.  
+
+- **Binary lifting:**  
+  - For each node $v$, $up[v][j]$ stores its $2^j$-th ancestor.  
+  - This allows lifting nodes by powers of two to equalize depths and find LCA in $O(\log n)$ time.
+
+- **Distances:**  
+  - Maintain $\text{distRoot}[v]$, the weighted distance from root 1 to $v$.  
+  - Using $w = \text{LCA}(u, v)$, compute
+
+\[
+d(u, v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[w]
+\]
+
+in $O(\log n)$ due to LCA.
+
+- **Diameter maintenance:**  
+  - Track endpoints $A$ and $B$ of the current diameter.  
+  - When a new node $v$ is inserted, compare $d(v, A)$ and $d(v, B)$ to the current diameter.  
+  - If either is larger, update the corresponding endpoint and diameter length.
+
+- **Queries:**  
+  - $L$ returns the current diameter value $D$.  
+  - $R\ r$ returns $\max(d(r, A), d(r, B))$, leveraging the property that one of the diameter endpoints is farthest from $r$.  
+  - $S\ u\ v$ computes the LCA-based distance as described above.
+**Example Execution Outline:**
+
+1. Adding $B\ p\ w$:  
+   - Set parent, depth, and $\text{distRoot}$ for the new node.  
+   - Compute its ancestor table row in $O(\log n)$.  
+   - Update the diameter by comparing distances to the two endpoints.
+
+2. Query $L$:  
+   - Return the already maintained diameter value $D$.
+
+3. Query $R\ r$:  
+   - Compute distances to $A$ and $B$ and return the maximum.
+
+4. Query $S\ u\ v$:  
+   - Compute the LCA and apply the distance formula:
+   \[
+   d(u,v) = \text{distRoot}[u] + \text{distRoot}[v] - 2 \cdot \text{distRoot}[\text{LCA}(u,v)]
+   \]
+
+
+
+# 5. Time and Space Complexity
+
+- **Memory Preallocation:**  
+  - Binary lifting table: $O(n \log n)$  
+  - Depths and root distances: $O(n)$
+
+- **Per Operation:**
+
+- $B\ p\ w$: $O(\log n)$ to fill the ancestor table plus $O(\log n)$ for two distance computations → total $O(\log n)$  
+- $L$: $O(1)$  
+- $R\ r$: $O(\log n)$ (two distance computations)  
+- $S\ u\ v$: $O(\log n)$ (one LCA plus constant arithmetic)
+
+- **Numeric Limits:**  
+  - All distances fit in 64-bit integers ($int64\_t$ in C++).
+
+
+# 6. Conclusion
+
+- Binary lifting + root-distance arrays enable answering arbitrary distance queries in $O(\log n)$.  
+- Maintaining the diameter online with two endpoints allows constant-time diameter queries and logarithmic-time updates on insertions.  
+- Leveraging the property that a farthest node from any node lies among the diameter endpoints allows eccentricity queries in $O(\log n)$.  
+- The solution is both time-efficient and memory-feasible for $n \le 2 \cdot 10^5$.

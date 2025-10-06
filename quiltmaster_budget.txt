@@ -1,0 +1,981 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Divide and Conquer", "Searching Algorithms", "Sorting Algorithms", "Segment Trees", "Arrays and Lists", "Hash Tables", "Algorithm Complexity and Big-O Notation", "Basic Data Structures"]
+
+**Difficulty:** - Hard
+
+**Languages:** - Python
+
+**Number of Approaches:** - 5, ($\mathcal{O}(A_{\text{union}}/L^2)$ → $\mathcal{O}(N_{\text{cells}})$ → $\mathcal{O}(S^2)$ → $\mathcal{O}(S \log S)$ → $\mathcal{O}(S \log S \log M)$)
+
+**Number of Chains:** - 9
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Quiltmaster’s Budget — Stitching Provinces with Power-of-Two Squares**
+
+Time Limit: **2 seconds**
+
+Memory Limit: **100 MB**
+
+You are given $S$ axis-aligned rectangles (provinces) on an infinite integer grid. Province $i$ covers the half-open region $[x_i, x_i + w_i) \times [y_i, y_i + h_i)$.
+
+You may place square patches of side length $L$, where $L$ must be a power of two and $1 \le L \le M$. Each patch must align to the global grid and cover exactly one grid cell of the form $[kL, (k+1)L) \times [\ell L, (\ell+1)L)$ for integers $k, \ell$. You may place at most $K$ patches in total. Patches may extend beyond the union of provinces (overshoot is allowed).
+
+Your task is to choose the smallest possible $L$ (a power of two not exceeding $M$) such that the union of all provinces is fully covered by at most $K$ patches. If no such $L$ exists, output $-1$.
+
+Notes:
+- Rectangles may overlap; you must cover their union.
+- For a fixed $L$, the minimal number of required patches equals the number of $L \times L$ grid cells that intersect the union of the provinces.
+
+**Input Format:-**
+
+- The first line contains an integer $T$, the number of test cases.
+- For each test case:
+  - A line with three integers: $S$, $K$, $M$.
+  - Then $S$ lines follow, each containing four integers $x_i$, $y_i$, $w_i$, $h_i$ describing a province $[x_i, x_i + w_i) \times [y_i, y_i + h_i)$.
+
+**Output Format:-**
+
+For each test case, print a single integer: the minimal valid $L$ (a power of two with $L \le M$) that allows covering the union with at most $K$ patches, or $-1$ if it is impossible.
+
+**Constraints:-**
+
+- $1 \le T \le 2 \cdot 10^5$
+- $1 \le S$ and $\sum S \le 2 \cdot 10^5$ across all test cases
+- $0 \le x_i, y_i \le 10^{18}$
+- $1 \le w_i, h_i \le 10^{18}$
+- $1 \le K, M \le 10^{18}$
+- $L$ must be a power of two and $L \le M$
+**Examples:-**
+ - **Input:**
+```
+1
+2 2 8
+0 0 8 8
+8 0 8 8
+```
+
+ - **Output:**
+```
+8
+```
+
+ - **Input:**
+```
+1
+2 1 4
+1 1 1 1
+3 3 1 1
+```
+
+ - **Output:**
+```
+4
+```
+
+**Note:-**
+In the first example, the allowed side lengths are $L \in \{1,2,4,8\}$ with $K=2$. The provinces are $[0,8)\times[0,8)$ and $[8,16)\times[0,8)$. For $L=8$, each province aligns to exactly one $8\times 8$ grid cell, so the union intersects exactly $2$ cells, which meets $K$. For smaller $L$, the number of intersected cells is larger (e.g., for $L=4$ it is $4\times 2=8>2$). Hence the minimal valid $L$ is $8$.
+
+In the Second example, the allowed side lengths are $L \in \{1,2,4\}$ with $K=1$. The provinces are two unit squares at $(1,1)$ and $(3,3)$. Because the grid is anchored at multiples of $L$: for $L=1$, the union hits $2$ cells; for $L=2$, the two points lie in different $2\times 2$ cells, $[0,2)\times[0,2)$ and $[2,4)\times[2,4)$, so still $2>K$; for $L=4$, both lie inside the single cell $[0,4)\times[0,4)$, so only $1$ patch is needed. Therefore, the minimal valid $L$ is $4$.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the objective and constraints before designing any algorithm
+
+**[THOUGHT_01_01]**
+
+We must cover the union of $S$ axis-aligned rectangles using grid-aligned squares of a single side length $L$. Each rectangle $i$ is given as the half-open region $[x_i, x_i + w_i) \times [y_i, y_i + h_i)$ with all values being integers. We may place patches that are aligned to cells $[kL, (k+1)L) \times [\ell L, (\ell+1)L)$, where $L$ must be a power of two and $1 \le L \le M$. Overshoot is allowed, i.e., patches can extend beyond the union of rectangles. The budget $K$ limits the number of patches.
+
+
+**[THOUGHT_01_02]**
+
+The objective is to find the smallest power-of-two $L \le M$ such that the union of rectangles is fully covered using no more than $K$ patches. If this is impossible even for the largest allowed power of two, we must output $-1$.
+
+
+**[THOUGHT_01_03]**
+
+For a fixed $L$, the minimal number of patches equals the number of $L \times L$ cells that intersect the union. It is natural to map world coordinates to an index grid at scale $L$: define
+$$
+L_x=\left\lfloor \frac{x}{L}\right\rfloor,\quad
+R_x=\left\lfloor \frac{x + w - 1}{L}\right\rfloor,\quad
+L_y=\left\lfloor \frac{y}{L}\right\rfloor,\quad
+R_y=\left\lfloor \frac{y + h - 1}{L}\right\rfloor.
+$$
+This maps a rectangle to an inclusive integer rectangle $[L_x, R_x] \times [L_y, R_y]$ in index space. The count of required patches is the cardinality of the union of these integer rectangles.
+
+
+**[THOUGHT_01_04]**
+
+$0 \le x_i, y_i \le 10^{18}$ and $1 \le w_i, h_i \le 10^{18}$, with $\sum S \le 2 \cdot 10^5$. Any method must avoid enumerating world-scale or cell-scale areas and must operate via compact boundary representations and integer arithmetic.
+
+
+**[THOUGHT_01_05]**
+
+When $L$ is restricted to powers of two, the function $F(L)$—the number of intersected cells—is non-increasing as $L$ increases along the sequence $\{1,2,4,\dots\}$.
+
+
+
+
+---
+
+**[CHAIN_02]**
+
+Designing comprehensive test scenarios to expose pitfalls early
+
+**[THOUGHT_02_01]**
+
+Single small rectangle near the origin
+
+- **Instance.** $S=1$; rectangle $[0,3)\times[0,2)$; $K=1$; $M=4$.
+- **Allowed $L$.** $\{1,2,4\}$.
+- **Evaluation.**
+  - $L=1$: cells $=3\times 2=6>1$.
+  - $L=2$: cells $=\lceil 3/2\rceil\cdot\lceil 2/2\rceil=2\cdot 1=2>1$.
+  - $L=4$: cells $=1\cdot 1=1\le 1$.
+- **Minimal $L$.** $4$.
+
+**[THOUGHT_02_02]**
+
+Two disjoint small rectangles far apart
+
+- **Instance.** $S=2$; rectangles $[0,1)\times[0,1)$ and $[100,101)\times[0,1)$; $K=1$; $M=64$.
+- **Allowed $L$.** $\{1,2,4,8,16,32,64\}$.
+- **Evaluation.** For $L=64$, $x$-indices are $0$ and $1$, same $y$-index $0$ $\Rightarrow$ $2$ cells $>1$. For any smaller $L\le 64$, they remain in different $x$-cells. No feasible $L$.
+- **Answer.** $-1$.
+
+
+**[THOUGHT_02_03]**
+
+Two disjoint $3\times 3$ blocks with a gap multiple of $L$
+
+- **Instance.** $S=2$; rectangles $[0,3)\times[0,3)$ and $[6,9)\times[0,3)$; $K=6$; $M=8$.
+- **Allowed $L$.** $\{1,2,4,8\}$.
+- **Evaluation.**
+  - $L=1$: $9+9=18>6$.
+  - $L=2$: each block $\lceil 3/2\rceil^2=4\Rightarrow 8>6$.
+  - $L=4$: first block $1$ cell; second block $2$ cells; total $3\le 6$.
+- **Minimal $L$.** $4$ (for $L=8$ the total is $2$, but we need the smallest feasible $L$).
+
+
+
+**[THOUGHT_02_04]**
+
+Aligned and boundary-touching rectangles
+
+- **Instance.** $S=2$; rectangles $[0,4)\times[0,4)$ and $[4,8)\times[0,4)$; $K=2$; $M=4$.
+- **Allowed $L$.** $\{1,2,4\}$.
+- **Evaluation.**
+  - $L=1$: union spans $8\times 4=32>2$.
+  - $L=2$: union spans $4$ columns $\times$ $2$ rows $=8>2$.
+  - $L=4$: exactly two $4\times 4$ cells (indices $x=0$ and $x=1$, $y=0$).
+- **Minimal $L$.** $4$  
+  (Half-open ends ensure no double-count at $x=4$.)
+
+
+**[THOUGHT_02_05]**
+
+Overlapping and nested rectangles
+
+- **Instance.** $S=2$; rectangles $[0,6)\times[0,6)$ and $[2,4)\times[2,4)$; $K=4$; $M=8$.
+- **Allowed $L$.** $\{1,2,4,8\}$.
+- **Evaluation.**
+  - $L=1$: outer gives $6\times 6=36>4$ (inner adds nothing new).
+  - $L=2$: outer gives $3\times 3=9>4$.
+  - $L=4$: outer gives $\lceil 6/4\rceil^2=2^2=4$; inner lies inside these cells.
+- **Minimal $L$.** $4$.
+
+**[THOUGHT_02_06]**
+
+Extremely large coordinates and dimensions
+
+- **Instance.** $S=1$; rectangle $[10^{18}-3,\,10^{18})\times[10^{18}-2,\,10^{18})$; $K=1$; $M=16$.
+- **Allowed $L$.** $\{1,2,4,8,16\}$.
+- **Evaluation.**
+  - $L=1$: $3\times 2=6>1$.
+  - $L=2$: spans two $x$-columns and one $y$-row $\Rightarrow 2>1$.
+  - $L=4$: both ends fall in the same $x$-index and $y$-index $\Rightarrow 1$.
+- **Minimal $L$.** $4$.
+
+
+**[THOUGHT_02_07]**
+
+Stress on $K$ edge cases**
+
+- **Case A (tight just below).** $S=1$; rectangle $[0,5)\times[0,1)$; $K=1$; $M=8$.  
+  Allowed $L=\{1,2,4,8\}$.  
+  Counts: $L=2\Rightarrow \lceil 5/2\rceil\cdot 1=3>1$; $L=4\Rightarrow 2>1$; $L=8\Rightarrow 1\le 1$.  
+  **Minimal $L=8$.**
+- **Case B (very large $K$).** $S=2$; $(1,1)$ and $(3,3)$ unit squares; $K=10^9$; $M=4$.  
+  $L=1\Rightarrow 2\le K$.  
+  **Minimal $L=1$.**
+
+
+**[THOUGHT_02_08]**
+
+$M$ not a power of two
+
+- **Instance.** $S=2$; unit squares at $(1,1)$ and $(3,3)$; $K=1$; $M=12$.
+- **Allowed $L$.** $\{1,2,4,8\}$.
+- **Evaluation.** $L=1\Rightarrow 2>1$; $L=2\Rightarrow$ different $2\times 2$ cells $\Rightarrow 2>1$; $L=4\Rightarrow$ both in $[0,4)\times[0,4)$ $\Rightarrow 1\le 1$.
+- **Minimal $L$.** $4$.
+
+---
+
+**[CHAIN_03]**
+
+World-grid enumeration
+
+**[THOUGHT_03_01]**
+
+Naively enumerate all $L$ in $[1, M]$ and compute the cell count by scanning the world grid: for each rectangle, mark every $L \times L$ cell it intersects; count distinct cells using a set. This requires enumerating $\Theta(A_{\text{union}}/L^2)$ cells, where $A_{\text{union}}$ is the union area.
+
+
+**[THOUGHT_03_02]**
+
+Bounding-box pruning does not help enough. Even restricting to the global bounding box, its area can be enormous, and dividing by any feasible $L^2$ can still leave astronomical numbers of cells.
+
+
+**[THOUGHT_03_03]**
+
+Because $K$ can be as large as $10^{18}$, storing a set of $K+1$ visited cells (even just to trigger early termination) is infeasible in memory. Likewise, the number of cells to iterate scales with the reachable grid size (proportional to $A_{\text{union}}/L^{2}$ in the worst case), so iterating any nontrivial fraction of that space is intractable in time. **Conclusion:** the memory footprint explodes and the runtime becomes prohibitive under these bounds.
+
+
+**[THOUGHT_03_04]**
+
+Given the growth rates established above, world-grid enumeration demands iterating over on the order of $A_{\text{union}}/L^{2}$ cells and storing/marking a comparable number of positions. With $A_{\text{union}}$ and $L$ as large as the bounds permit (e.g., a single $10^{9}\!\times\!10^{9}$ rectangle at $L=1$), this implies up to $10^{18}$ cells—far beyond the time and memory limits. Because both runtime and memory scale linearly with the number of enumerated cells, this approach cannot meet the constraints for worst-case inputs.
+
+
+**[THOUGHT_03_05]**
+
+When $M$ can be as large as $10^{18}$, iterating every integer $L\in[1,M]$ would require at least $O(M)$ steps; even $O(1)$ work per step is infeasible. In addition, $F(L)$ is not monotone over all integers (boundary alignments can increase or decrease the count), so naive pruning is unreliable. Therefore, we must shrink the candidate set drastically. Restricting to powers of two leverages the discrete monotonicity $F(2L)\le F(L)$ and reduces candidates to at most $\lfloor \log_2 M\rfloor+1$.
+
+
+---
+
+**[CHAIN_04]**
+
+Index-grid cell enumeration via hash set
+
+**[THOUGHT_04_01]**
+
+Map each rectangle to $[L_x, R_x] \times [L_y, R_y]$ in index space and insert every cell in that inclusive range into a hash set. This avoids world-scale enumeration and works at cell granularity in index space.
+
+
+**[THOUGHT_04_02]**
+
+However, an index rectangle can still cover a huge number of cells. For example, with $L=1$, a single rectangle of size $10^9 \times 10^9$ spans $10^{18}$ cells. Even with early stopping after $K+1$ insertions, if $K$ is large, enumeration remains infeasible.
+
+
+**[THOUGHT_04_03]**
+
+Trying to optimize by iterating the shorter side or chunking into strips still scales linearly in the number of cells added until hitting the limit. This is unacceptable in the worst case.
+
+
+**[THOUGHT_04_04]**
+
+Even after mapping to index rectangles, a single rectangle can span $\Theta\!\big((R_x-L_x+1)(R_y-L_y+1)\big)$ cells, which can be astronomically large at small $L$. Early stopping after $K{+}1$ insertions only helps when $K$ is tiny; for large $K$ or widely spread rectangles, both runtime and memory still scale with the number of visited cells. Consequently, cell-by-cell insertion into a hash set is not asymptotically viable at the problem’s bounds.
+
+
+**[THOUGHT_04_05]**
+
+Maintaining $y$-coverage by rescanning endpoints or merging intervals at each event incurs at least $\Omega(S)$ per distinct $x$ and leads to $\Theta(S^2)$ in adverse cases. To achieve $O(\log S)$ per update, we need a structure that supports range adds and directly tracks the union length of covered $y$-segments. A segment tree over compressed $y$ with a cover count and covered-length at each node provides exactly this capability.
+
+
+---
+
+**[CHAIN_05]**
+
+Sweep along $x$ with set-based $y$ -union maintenance
+
+**[THOUGHT_05_01]**
+
+Convert each index-rectangle to two $x$-events: at $x=L_{x}$ add the $y$-interval $[L_{y},\,R_{y}+1)$, and at $x=R_{x}+1$ remove it. Sort events by $x$. Between consecutive $x$-positions, the active set of $y$-intervals is constant; the contribution to the union cell count over a slab is $\text{covered_y_length}\times \Delta x$.
+
+
+**[THOUGHT_05_02]**
+
+Naively, we maintain a sorted list of active y-intervals. When processing an event, we insert or remove an interval (cost $O(\log S)$ if we use a balanced structure), and then re-compute the y-union length by scanning and merging overlap in $O(U)$ where $U$ is the current number of active intervals.
+
+
+**[THOUGHT_05_03]**
+
+In the worst case, each of the $O(S)$ distinct $x$-positions triggers a scan of $O(S)$ active intervals, for $O(S^2)$ time per feasibility check. With $\sum S \le 2 \cdot 10^5$ and up to about $60$ candidate $L$, this is too slow. The quadratic factor becomes the dominating bottleneck.
+
+
+**[THOUGHT_05_04]**
+
+We also considered counting coverage by tracking endpoint multiplicities in maps; however, to derive the union length, we still need to scan across all unique y-coordinates to detect covered segments, leading again to an $\Omega(S)$ factor per event. This is not acceptable.
+
+
+**[THOUGHT_05_05]**
+
+The sweep with a sorted container of active intervals still requires repeatedly merging overlaps to obtain the union length, which costs linear time in the number of active intervals and leads to $O(S^2)$ in the worst case across all $x$-events. To avoid this, we require a range-update data structure that returns the total covered $y$-length in $O(1)$ (from the root) after an $O(\log S)$ update. A segment tree over compressed breakpoints with a cover counter implements this efficiently.
+
+
+---
+
+**[CHAIN_06]**
+
+Segment tree over compressed $y$ to track union length
+
+**[THOUGHT_06_01]**
+
+For each rectangle, include $L_{y}$ and $R_{y}+1$. Sorting and uniquing yields an array $Y[0..m-1]$. The elementary segments are $[Y[j],\,Y[j+1])$ for $j=0..m-2$. At any time, the $y$-union length equals the sum of lengths of elementary segments currently covered by at least one active interval.
+
+
+**[THOUGHT_06_02]**
+
+We build a segment tree on indices $[0, m-2]$. Each node stores-
+- a cover count (how many active intervals fully cover this node's segment),
+- the covered length in original y-index units. The covered length at a node is:
+  - the full segment length $(Y[r] - Y[l])$ if cover count is positive,
+  - else the sum of children's covered lengths (or $0$ at leaves).
+
+
+**[THOUGHT_06_03]**
+
+During the sweep:
+- Sort all x-events by $x$.
+- Maintain the current union length in $y$ from the segment tree.
+- For consecutive $x$-values $x_i < x_{i+1}$, accumulate $\text{answer} \mathrel{+}= \text{covered\_y} \times (x_{i+1} - x_i)$.
+- Process all events at $x_{i+1}$ by updating the segment tree with $[Ly, Ry+1)$ and delta $\pm 1$.
+- Early-terminate as soon as the accumulated count exceeds $K$.
+
+
+**[THOUGHT_06_04]**
+
+There are $O(S)$ events; sorting them costs $O(S\log S)$, and each update to maintain the covered $y$-length costs $O(\log S)$. From these components, the per-$L$ complexity is $\mathcal{O}(S\log S)$. Memory usage is $\mathcal{O}(S)$ for events, compressed $y$, and the segment tree. **Conclusion:** this removes the $\mathcal{O}(S^{2})$ bottleneck present in the naive $y$-union maintenance.
+
+
+**[THOUGHT_06_05]**
+
+Use $R_{x}=\big\lfloor (x+w-1)/L\big\rfloor$ and $R_{y}=\big\lfloor (y+h-1)/L\big\rfloor$ to convert half-open rectangles correctly to inclusive index bounds. Accumulate $\text{covered_y}\times \Delta x$ in a wide integer type to avoid overflow, since both factors can be large.
+
+
+---
+
+**[CHAIN_07]**
+
+ Binary searching the answer over powers-of-two side lengths
+
+**[THOUGHT_07_01]**
+
+Define $F(L)$ as the number of index cells intersecting the union. If we restrict $L$ to powers of two, then when $L$ doubles to $2L$, each $2L$ cell is a $2 \times 2$ block of $L$ cells. Any $2L$ cell that intersects the union contains at least one intersecting $L$ cell. Therefore $F(2L) \le F(L)$ along powers of two, making $F$ non-increasing on that discrete set.
+
+
+**[THOUGHT_07_02]**
+
+As a result, the feasibility predicate $\text{ok}(L) \equiv (F(L) \le K)$ is monotone non-decreasing over the powers-of-two list $\{1, 2, 4, \dots, \le M\}$. We first construct this list, which has at most $\lfloor \log_2 M \rfloor + 1 \le 60$ elements.
+
+
+**[THOUGHT_07_03]**
+
+We test the largest allowed $L$ first. If it fails, no smaller $L$ can be feasible, so we output $-1$. Otherwise, we binary search over the list of allowed $L$ values to find the minimal feasible one, invoking the sweep-line feasibility check at each step.
+
+
+**[THOUGHT_07_04]**
+
+For a fixed $L$, we create $O(S)$ events and sort them in $O(S\log S)$. Each event updates the segment tree in $O(\log S)$, contributing another $O(S\log S)$. Multiplying by at most $\lfloor\log_2 M\rfloor{+}1\le 60$ candidate powers gives overall $O(S\log S\log M)$ time per test. Memory remains $O(S)$ for events, compressed coordinates, and the tree. These bounds match the constraints when $\sum S \le 2\cdot 10^{5}$.
+
+
+**[THOUGHT_07_05]**
+
+Over arbitrary integer $L$, $F(L)$ can fluctuate due to boundary alignments and partial overlaps, so a monotone search over all integers is not justified. Along the powers of two, however, each cell at scale $2L$ contains a $2\times 2$ block of $L$-cells, guaranteeing $F(2L)\le F(L)$. This discrete monotonicity legitimizes binary search over the power-of-two list while keeping the candidate set small.
+
+
+---
+
+**[CHAIN_08]**
+
+Validating correctness, addressing edge cases, and accounting for complexity
+
+**[THOUGHT_08_01]**
+
+Half-open to inclusive conversion is crucial. For a rectangle $[x, x+w) \times [y, y+h)$:
+- The smallest index touched is $\lfloor x/L \rfloor$ along $x$ and $\lfloor y/L \rfloor$ along $y$.
+- The largest index touched is $\lfloor (x+w-1)/L \rfloor$ along $x$ and $\lfloor (y+h-1)/L \rfloor$ along $y$. The minus one ensures that when the upper bound lies exactly on a cell boundary, we do not include the cell beyond, matching the half-open semantics.
+
+
+**[THOUGHT_08_02]**
+
+During the sweep for a fixed $L$, the accumulated cell count is non-decreasing across $x$-slabs. Therefore, if the running total exceeds $K$, it implies $F(L)>K$, and we can immediately return “not feasible” without affecting the correctness of the binary search (the feasibility predicate remains accurate).
+
+**[THOUGHT_08_03]**
+
+We must safely handle coordinates near $10^{18}$ and $L$ up to $10^{18}$. All arithmetic should use wide integers (Python’s integers suffice), and when forming event positions such as $R_x{+}1$, we must ensure the type can hold values slightly larger than $\lfloor (x{+}w{-}1)/L\rfloor$.
+
+
+**[THOUGHT_08_04]**
+
+When multiple rectangles contribute events at the same $x$ index, all their updates must be applied before advancing to the next $x$-slab. This guarantees that the covered $y$-length used to accumulate $\text{covered}_y \times \Delta x$ is consistent for the entire slab $[x_i, x_{i+1})$.
+
+
+**[THOUGHT_08_05]**
+
+The per-$L$ complexity consists of sorting $O(S)$ events in $O(S\log S)$ and applying $O(S)$ range updates in $O(\log S)$ each, totaling $O(S\log S)$ time and $O(S)$ memory. Across the at most $60$ powers of two, the aggregate bound is $O(S\log S\log M)$, which is acceptable under the stated constraints.
+
+
+**[THOUGHT_08_06]**
+
+Rectangles with $w=1$ or $h=1$; cases with $K=1$ and widely separated rectangles; situations where $M$ is not a power of two (so we cap at the largest $L\le M$); instances where all rectangles map into a single index cell for large $L$; and correctness when the active set is empty or many events share the same $x$.
+
+
+---
+
+**[CHAIN_09]**
+
+Outlining a clean Python implementation plan aligned with performance goals
+
+**[THOUGHT_09_01]**
+
+For input/output and structure, stream tokens from standard input, then for each test case read $S$, $K$, $M$, followed by $S$ rectangles. Build the list of allowed powers $L$ with $1\le L\le M$. If the feasibility check fails at the largest $L$, print $-1$; otherwise perform a binary search on the power list to find the minimal feasible $L$.
+
+
+**[THOUGHT_09_02]**
+
+For feasibility at a fixed $L$, map each rectangle to $(L_x,R_x,L_y,R_y)$ in index space and create two events at $x=L_x$ and $x=R_x{+}1$ with the $y$-interval $[L_y,\,R_y{+}1)$. Collect all $L_y$ and $R_y{+}1$ for coordinate compression, sort events by $x$, and sweep, updating a segment tree over compressed $y$. Accumulate $\text{covered}_y\times \Delta x$ and terminate early if the running total exceeds $K$.
+
+
+**[THOUGHT_09_03]**
+
+The segment tree stores a cover count and a covered length per node over the elementary segments defined by adjacent compressed breakpoints. Range adds over $[q_\ell,q_r)$ take $O(\log m)$, where $m$ is the number of unique breakpoints, and the current union length is always available at the root.
+
+
+**[THOUGHT_09_04]**
+
+All calculations should use arbitrary-precision integers to avoid overflow. The half-open interval $[L_y, R_y{+}1)$ on $y$ and events at $x=L_x$ and $x=R_x{+}1$ on $x$ enforce correct half-open semantics. While $h\ge 1$ guarantees non-empty $y$-intervals, guarding against degenerate ranges ($q_\ell\ge q_r$) keeps the implementation robust.
+
+
+**[THOUGHT_09_05]**
+
+Functional components include: generating powers of two up to $M$ by repeated doubling; mapping rectangles via
+$
+L_x=\left\lfloor \tfrac{x}{L}\right\rfloor,\;
+R_x=\left\lfloor \tfrac{x+w-1}{L}\right\rfloor,\;
+L_y=\left\lfloor \tfrac{y}{L}\right\rfloor,\;
+R_y=\left\lfloor \tfrac{y+h-1}{L}\right\rfloor;
+$
+building compressed $y$; and a sweep that processes events in order, applies range updates, and aggregates the count with early termination.
+
+
+**[THOUGHT_09_06]**
+
+Boundary-aligned rectangles, widely separated single cells, and randomized small grids to cross-check against brute-force enumeration. Stress tests with $S$ up to $2\cdot 10^{5}$ and randomized intervals help confirm the absence of quadratic behavior and reveal performance cliffs.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given S axis-aligned rectangles (provinces) on an infinite integer grid.
+Each rectangle i is represented as a half-open region
+$[x_i, x_i + w_i) \times [y_i, y_i + h_i)$.
+
+We can place square patches of a fixed side length $L$, where:
+- $L$ must be a power of two and $1 \le L \le M$.
+- Each patch must align to the global grid, covering exactly one cell
+  $[kL, (k+1)L) \times [\ell L, (\ell+1)L)$ for integers $k,\ell$.
+- Overshoot is allowed (patches can extend beyond the union of provinces).
+- The total number of patches used must not exceed $K$.
+
+For any fixed $L$, the minimal number of patches required equals the number
+of $L \times L$ grid cells intersecting the union of rectangles. Our goal is
+to find the smallest valid power-of-two $L \le M$ such that this number is at
+most $K$; otherwise, output $-1$.
+
+Key observations:
+- If we restrict $L$ to powers of two, the number of intersected cells
+  $F(L)$ is non-increasing when $L$ doubles. Thus, the feasibility predicate
+  $F(L) \le K$ is monotone over the powers of two.
+- For a fixed $L$, each rectangle maps to an inclusive rectangle in index
+  space:
+  $Lx = \lfloor x/L \rfloor$, $Rx = \lfloor (x+w-1)/L \rfloor$,
+  $Ly = \lfloor y/L \rfloor$, $Ry = \lfloor (y+h-1)/L \rfloor$.
+  The number of required patches equals the union cardinality of these
+  index-space rectangles.
+- We can compute this union cardinality using a sweep line over x with a
+  segment tree over compressed y to maintain the union length efficiently.
+
+
+**2. Optimal Approach**
+
+We proceed in two layers: a binary search over powers-of-two $L$, and a
+feasibility check for each $L$ using sweep line and a segment tree.
+
+- Enumerate allowed $L$: all powers of two not exceeding $M$
+  (at most $\lfloor \log_2 M \rfloor + 1 \le 60$).
+- Check feasibility at the largest allowed $L$. If it fails, print $-1$.
+- Otherwise, binary search the allowed list to find the minimal feasible $L$.
+
+Feasibility check for a fixed $L$:
+1. Map each rectangle to index space using:
+   $Lx = \lfloor x/L \rfloor$, $Rx = \lfloor (x+w-1)/L \rfloor$,
+   $Ly = \lfloor y/L \rfloor$, $Ry = \lfloor (y+h-1)/L \rfloor$.
+2. Create two x-events per rectangle:
+   - At $x = Lx$: add the y-interval $[Ly, Ry+1)$.
+   - At $x = Rx+1$: remove the same y-interval.
+3. Coordinate-compress all y-values that appear as $Ly$ or $Ry+1$.
+4. Sort events by $x$. Sweep from left to right:
+   - Between consecutive x positions $x_i$ and $x_{i+1}$, the active y-union
+     length is constant. If the current covered $y$ -length is $C$ , then add
+     $C \cdot (x_{i+1} - x_i)$ to the total required cell count.
+   - Use a segment tree over compressed $y$ to maintain the covered $y$ -length
+     under range add updates (add/remove intervals).
+   - Early stop if the accumulated count exceeds $K$.
+
+Why it works:
+- Monotonicity over powers of two allows binary search.
+- The sweep-line with a segment tree computes the exact union cardinality
+  in index-space without enumerating individual cells.
+- Early termination avoids unnecessary work when $F(L)$ is clearly too large.
+
+
+**3. Code**
+```python
+#!/usr/bin/env python3
+"""
+Quiltmaster's Budget — minimal power-of-two patch size.
+
+Given axis-aligned half-open rectangles, find the smallest power-of-two
+side length L (L <= M) such that the union can be covered by at most K
+grid-aligned L×L cells. If not possible, print -1.
+
+Approach:
+- For a fixed L, map each input rectangle to an inclusive rectangle in the
+  index grid of L×L cells and count the number of index cells in the union.
+- Use a sweep-line over x (cell columns) with a segment tree that maintains
+  covered length over y (cell rows).
+- Monotonicity over L (cells needed is non-increasing with larger L) allows
+  binary search over powers of two up to M.
+
+This file is self-contained and uses only the Python standard library.
+"""
+
+import sys
+
+
+class YCoverageSegmentTree:
+    """
+    Segment tree over compressed y breakpoints to maintain the total covered
+    length (in index units) under range-add updates.
+
+    The elementary segments are [y_coords[i], y_coords[i + 1]) for i in the
+    range [0, m - 2], where y_coords is the sorted unique list of y
+    breakpoints in index coordinates.
+    """
+
+    def __init__(self) -> None:
+        """Initialize empty structures."""
+        self.n = 0                  # number of elementary segments (m - 1)
+        self.y_coords = []          # sorted unique y breakpoints
+        self.cover = []             # coverage count per node
+        self.covered_len = []       # covered length per node
+
+    def build(self, y_breaks: list) -> None:
+        """
+        Initialize the tree with sorted unique breakpoints y_breaks.
+
+        Args:
+            y_breaks: Sorted unique y breakpoints in index space.
+
+        Returns:
+            None
+        """
+        self.y_coords = y_breaks
+        self.n = len(y_breaks) - 1
+        # Standard practice: allocate arrays of size ~4*n for segment trees to
+        # simplify index arithmetic and avoid dynamic growth.
+        size = 4 * max(1, self.n)   # avoid zero-sized arrays
+        self.cover = [0] * size
+        self.covered_len = [0] * size
+
+    def _pull(self, node: int, left: int, right: int) -> None:
+        """
+        Recompute covered_len at this node from children or full coverage.
+
+        Args:
+            node: Current node index in the segment tree arrays.
+            left: Left endpoint (index into y_coords).
+            right: Right endpoint (index into y_coords).
+
+        Returns:
+            None
+        """
+        if self.cover[node] > 0:
+            # Entire segment covered.
+            self.covered_len[node] = (
+                self.y_coords[right] - self.y_coords[left]
+            )
+        elif left + 1 == right:
+            # Leaf segment with zero cover.
+            self.covered_len[node] = 0
+        else:
+            # Sum of children.
+            self.covered_len[node] = (
+                self.covered_len[node << 1]
+                + self.covered_len[node << 1 | 1]
+            )
+
+    def _update(
+        self,
+        node: int,
+        left: int,
+        right: int,
+        query_left: int,
+        query_right: int,
+        delta: int
+    ) -> None:
+        """
+        Apply range add 'delta' over [query_left, query_right) within the
+        current node interval.
+
+        Args:
+            node: Current node index in the segment tree arrays.
+            left: Left endpoint (index into y_coords).
+            right: Right endpoint (index into y_coords).
+            query_left: Left index (inclusive) for the update.
+            query_right: Right index (exclusive) for the update.
+            delta: +1 to add coverage, -1 to remove coverage.
+
+        Returns:
+            None
+        """
+        if self.n == 0 or query_left >= right or query_right <= left:
+            return
+        if query_left <= left and right <= query_right:
+            self.cover[node] += delta
+            self._pull(node, left, right)
+            return
+        mid = (left + right) >> 1
+        self._update(node << 1, left, mid, query_left, query_right, delta)
+        self._update(node << 1 | 1, mid, right, query_left, query_right, delta)
+        self._pull(node, left, right)
+
+    def update(self, query_left: int, query_right: int, delta: int) -> None:
+        """
+        Apply range add 'delta' over [query_left, query_right) in compressed
+        y-index units.
+
+        Args:
+            query_left: Left index (inclusive) in compressed coordinates.
+            query_right: Right index (exclusive) in compressed coordinates.
+            delta: +1 to add coverage, -1 to remove coverage.
+
+        Returns:
+            None
+        """
+        if query_left < query_right:
+            self._update(1, 0, self.n, query_left, query_right, delta)
+
+    def total(self) -> int:
+        """
+        Get the total covered length in y index units.
+
+        Returns:
+            The total covered length (number of covered y rows).
+        """
+        if self.n == 0:
+            return 0
+        return self.covered_len[1]
+
+
+def powers_of_two_up_to(limit: int) -> list:
+    """
+    Return all powers of two up to and including 'limit' (ascending).
+
+    Args:
+        limit: Upper bound on powers of two.
+
+    Returns:
+        List of powers of two not exceeding limit.
+    """
+    values = []
+    side = 1
+    while side <= limit:
+        values.append(side)
+        side <<= 1
+    return values
+
+
+def map_half_open_rect_to_cell_indices(
+    x: int, y: int, w: int, h: int, side: int
+) -> tuple:
+    """
+    Map half-open [x, x + w) × [y, y + h) to an inclusive cell-index rectangle
+    in the L-grid (cell side length 'side').
+
+    For cell indices (i, j) meaning the cell:
+    [i*L, (i+1)*L) × [j*L, (j+1)*L).
+
+    Args:
+        x: Lower-left x of the rectangle.
+        y: Lower-left y of the rectangle.
+        w: Width of the rectangle.
+        h: Height of the rectangle.
+        side: Cell side length L.
+
+    Returns:
+        A tuple (ix_min, ix_max, iy_min, iy_max) of inclusive indices.
+    """
+    ix_min = x // side
+    ix_max = (x + w - 1) // side
+    iy_min = y // side
+    iy_max = (y + h - 1) // side
+    return ix_min, ix_max, iy_min, iy_max
+
+
+def is_feasible(rects: list, patch_limit: int, side: int) -> bool:
+    """
+    Check if the union of rectangles can be covered by at most patch_limit
+    cells of size 'side' × 'side'.
+
+    Implementation details:
+    - Convert each rectangle to an inclusive index rectangle.
+    - Create sweep events at x = ix_min (+1) and x = ix_max + 1 (-1).
+    - Compress all y indices; segment tree maintains the union length over y.
+    - Between consecutive x's, contribute covered_rows * delta_x cells.
+
+    Args:
+        rects: List of (x, y, w, h) rectangles (half-open in original space).
+        patch_limit: Maximum allowed number of patches (cells).
+        side: Cell side length L being checked.
+
+    Returns:
+        True if total required cells ≤ patch_limit; False otherwise.
+    """
+    # Events are in index space: (x_index, y1_index, y2_index_exclusive, delta)
+    events = []
+    # y_breaks holds y indices used for compression (still in index space).
+    y_breaks = []
+
+    for x, y, w, h in rects:
+        ix1, ix2, iy1, iy2 = map_half_open_rect_to_cell_indices(
+            x, y, w, h, side
+        )
+        # Convert inclusive [iy1, iy2] to half-open [iy1, iy2 + 1)
+        y1 = iy1
+        y2 = iy2 + 1
+        events.append((ix1, y1, y2, 1))
+        events.append((ix2 + 1, y1, y2, -1))
+        y_breaks.append(y1)
+        y_breaks.append(y2)
+
+    if not events:
+        # No geometry -> requires 0 cells.
+        return 0 <= patch_limit
+
+    # Coordinate compression for y indices (in index space).
+    y_breaks = sorted(set(y_breaks))
+    y_index_of = {v: i for i, v in enumerate(y_breaks)}
+
+    # Convert y values in events to compressed indices.
+    events_comp = []
+    for x_index, y1, y2, d in events:
+        events_comp.append((x_index, y_index_of[y1], y_index_of[y2], d))
+
+    # Sort events by x index; process all events at the same x together.
+    events_comp.sort(key=lambda e: e[0])
+
+    seg = YCoverageSegmentTree()
+    seg.build(y_breaks)
+
+    prev_x = events_comp[0][0]
+    covered_rows = 0          # number of covered rows at current x slab
+    total_cells = 0
+
+    n = len(events_comp)
+    i = 0
+    while i < n:
+        x_cur = events_comp[i][0]
+        delta_x = x_cur - prev_x
+        if delta_x > 0:
+            # Add cells in the vertical slab [prev_x, x_cur)
+            total_cells += covered_rows * delta_x
+            if total_cells > patch_limit:
+                return False
+            prev_x = x_cur
+
+        # Apply all events at x_cur.
+        while i < n and events_comp[i][0] == x_cur:
+            _, y1i, y2i, delta = events_comp[i]
+            seg.update(y1i, y2i, delta)
+            i += 1
+
+        covered_rows = seg.total()
+
+    # No more x slabs remain.
+    return total_cells <= patch_limit
+
+
+def solve() -> None:
+    """
+    Read input, binary search over allowed powers of two, and print the
+    minimal feasible side or -1 per test case.
+
+    Input format:
+        T
+        For each test:
+            S K M
+            S lines: x y w h
+
+    Returns:
+        None
+    """
+    data = sys.stdin.buffer.read().split()
+    it = iter(data)
+    t = int(next(it))
+    outputs = []
+
+    for _ in range(t):
+        num_rects = int(next(it))
+        patch_limit = int(next(it))
+        max_side = int(next(it))
+
+        rects = []
+        for _s in range(num_rects):
+            x = int(next(it))
+            y = int(next(it))
+            w = int(next(it))
+            h = int(next(it))
+            rects.append((x, y, w, h))
+
+        powers = powers_of_two_up_to(max_side)
+
+        # Quick rejection: even the largest L fails.
+        if not is_feasible(rects, patch_limit, powers[-1]):
+            outputs.append("-1")
+            continue
+
+        # Binary search the smallest feasible power.
+        low = 0
+        high = len(powers) - 1
+        while low < high:
+            mid = (low + high) >> 1
+            if is_feasible(rects, patch_limit, powers[mid]):
+                high = mid
+            else:
+                low = mid + 1
+
+        outputs.append(str(powers[low]))
+
+    sys.stdout.write("\n".join(outputs))
+
+
+if __name__ == "__main__":
+    solve()
+```
+
+**4. Code Explanation**
+
+- We generate the list of allowed side lengths $L$ as all powers of two not
+  exceeding $M$.
+- For each test case, we first check feasibility at the largest allowed $L$.
+  If it fails, output $-1$ immediately due to monotonicity.
+- Otherwise, we binary search the allowed list to find the minimal feasible
+  $L$. The feasibility check computes the number of required $L \times L$
+  patches via a sweep line:
+  - Map each rectangle to index space and create two events:
+    add interval at $x=Lx$ and remove interval at $x=Rx+1$.
+  - Coordinate-compress the y-values, build a segment tree over the
+    elementary segments $[Y[i], Y[i+1})$.
+  - Sort events by x. Between consecutive x positions, the active y-union
+    length is constant; multiply it by the x-span and accumulate. Early stop
+    if the total exceeds $K$.
+- The segment tree maintains the union length of active y-intervals with
+  range add updates and propagates coverage using a cover count per node.
+
+Example execution sketch:
+- Suppose $S=1$, rectangle $[0,3)\times[0,2)$, $K=1$, $M=8$.
+- Allowed $L$ are $\{1,2,4,8\}$.
+- For $L=8$, the index rectangle is $[0,0]\times[0,0]$ needing 1 patch,
+  feasible. Binary search checks smaller $L$; for $L=4$, it is still 1 patch
+  and is minimal, so we output 4.
+
+**5. Time and Space Complexity**
+
+- For a fixed $L$, building events and compressing y take $O(S \log S)$.
+- The sweep processes $O(S)$ events with $O(\log S)$ updates using the
+  segment tree, for $O(S \log S)$ time.
+- We binary search over at most $\lfloor \log_2 M \rfloor + 1 \le 60$ values.
+- Per test case: $O(S \log S \cdot \log M)$ time and $O(S)$ extra memory.
+- Across all test cases with $\sum S \le 2 \cdot 10^5$, the total cost
+  remains practical.
+
+**6. Conclusion**
+
+By exploiting the powers-of-two monotonicity of $F(L)$ and computing the
+index-space union via a sweep line with a segment tree over compressed y, we
+efficiently find the minimal feasible $L$ using binary search. The approach
+avoids enumerating grid cells, handles very large coordinates safely, and
+meets the time and memory requirements for the given constraints.
+
+**7. Walkthrough — using the optimal approach on Problem example**
+
+**Instance.** $S=2$, $K=2$, $M=8$. Provinces:
+- $[0,8)\times[0,8)$
+- $[8,16)\times[0,8)$
+
+**Allowed side lengths.** Powers of two not exceeding $M$: $\{1,2,4,8\}$.
+
+**Step A — Pre-check largest $L$**
+Check feasibility at the largest allowed $L=8$.
+
+**Index mapping.** For a rectangle $[x,x+w)\times[y,y+h)$ at scale $L$:
+$$
+L_x=\left\lfloor \frac{x}{L}\right\rfloor,\quad
+R_x=\left\lfloor \frac{x+w-1}{L}\right\rfloor,\quad
+L_y=\left\lfloor \frac{y}{L}\right\rfloor,\quad
+R_y=\left\lfloor \frac{y+h-1}{L}\right\rfloor.
+$$
+- For $[0,8)\times[0,8)$ with $L=8$: $(L_x,R_x,L_y,R_y)=(0,0,0,0)$.
+- For $[8,16)\times[0,8)$ with $L=8$: $(L_x,R_x,L_y,R_y)=(1,1,0,0)$.
+
+**Events in $x$ (index space).** Use $[L_y,R_y+1)$ for $y$-intervals.
+- Rect $1$: add at $x=0$ interval $[0,1)$; remove at $x=1$ interval $[0,1)$.
+- Rect $2$: add at $x=1$ interval $[0,1)$; remove at $x=2$ interval $[0,1)$.
+
+**$y$ compression.** Breakpoints $\{0,1\}$, so one elementary segment (row) of length $1$.
+
+**Sweep in $x$.**
+- Initialize $x_{\text{prev}}=0$, covered $y$-length $C=0$, total cells $T=0$.
+- At $x=0$: apply “add $[0,1)$” $\Rightarrow$ $C=1$.
+- Move to $x=1$: $\Delta x=1$, accumulate $T\mathrel{+}=C\cdot\Delta x=1\cdot 1=1$; at $x=1$ apply “remove $[0,1)$” (rect $1$) then “add $[0,1)$” (rect $2$) $\Rightarrow$ $C$ remains $1$.
+- Move to $x=2$: $\Delta x=1$, accumulate $T\mathrel{+}=1\cdot 1=2$; at $x=2$ apply “remove $[0,1)$” $\Rightarrow$ $C=0$.
+
+**Result for $L=8$.** $T=2\le K(=2)$ $\Rightarrow$ feasible.
+
+
+**Step B — Binary search for minimal $L$**
+The allowed list is $\{1,2,4,8\}$ (ascending). Since $L=8$ is feasible, binary-search smaller values.
+
+- Test $L=4$ (middle of the remaining range):
+  - $[0,8)\times[0,8)$ maps to $(L_x,R_x,L_y,R_y)=(0,1,0,1)$ $\Rightarrow$ $2\times 2=4$ cells.
+  - $[8,16)\times[0,8)$ maps to $(2,3,0,1)$ $\Rightarrow$ $4$ cells.
+  - Disjoint in $x$; total $4+4=8>K(=2)$ $\Rightarrow$ not feasible.
+
+Since $L=4$ fails and $L=8$ succeeds, and $F(L)$ is non-increasing over powers of two, the **minimal feasible** side length is
+$$
+\boxed{8}.
+$$

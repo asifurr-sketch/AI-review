@@ -633,7 +633,47 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 15: Test Case Validation (Note: Point 15 in user's list but numbered as 16)
+    # Point 15: Time Complexity Authenticity Check
+    @staticmethod
+    def get_time_complexity_authenticity_prompt():
+        """Check if time complexity in metadata is authentic and properly formatted"""
+        return """
+You are an expert response evaluator. Check if the time complexity mentioned in the metadata section meets ALL of the following requirements:
+
+**REQUIREMENTS:**
+1. **Overall Complexity Only**: The metadata must mention ONLY the overall time complexity, not individual step complexities
+2. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
+3. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, then use those exact variables)
+4. **Correctness**: The stated time complexity must be mathematically correct for the provided solution
+
+**ACCEPTABLE FORMATS:**
+- O(N)
+- O(N log N)
+- O(N * M)
+- O(N^2)
+- O(K * log N)
+
+**UNACCEPTABLE FORMATS:**
+- "O(N) for the main loop and O(log N) for binary search" (individual step breakdown)
+- "O(N) using dynamic programming approach" (contains approach description)
+- "Time: O(N), Space: O(1)" (mentions space complexity)
+- "O(n)" (wrong variable case if problem uses N)
+- "O(size)" (using variable not mentioned in problem statement)
+
+**VALIDATION STEPS:**
+1. Locate the time complexity statement in metadata
+2. Verify it contains ONLY the overall complexity expression
+3. Confirm all variables used are from the problem statement
+4. Check if the complexity is mathematically sound for the solution
+
+Please answer pass or fail.
+
+RESPONSE FORMAT:
+Provide detailed analysis, then end with:
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    # Point 16: Test Case Validation (Note: Point 15 in user's list but numbered as 16)
     @staticmethod
     def get_test_case_validation_prompt():
         """Validate test cases against code and problem statement"""
@@ -647,7 +687,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 16: Sample Test Case Dry Run Validation
+    # Point 17: Sample Test Case Dry Run Validation
     @staticmethod
     def get_sample_dry_run_validation_prompt():
         """Check if dry runs or explanations of sample test cases match the given examples exactly"""
@@ -679,7 +719,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 17: Note Section Explanation (Point 18 in user's list)
+    # Point 18: Note Section Explanation (Point 18 in user's list)
     @staticmethod
     def get_note_section_prompt():
         """Check note section explanation approach - only applies to problem statement/prompt section"""
@@ -709,7 +749,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 18: Inefficient Approaches Limitations (Point 19 in user's list)
+    # Point 19: Inefficient Approaches Limitations (Point 19 in user's list)
     @staticmethod
     def get_inefficient_limitations_prompt():
         """Check if inefficient approaches mention limitations"""
@@ -723,7 +763,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 19: Final Approach Discussion (Point 21 in user's list)
+    # Point 20: Final Approach Discussion (Point 21 in user's list)
     @staticmethod
     def get_final_approach_discussion_prompt():
         """Check final approach discussion completeness"""
@@ -754,7 +794,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 21: Subtopic Taxonomy Validation
+    # Point 22: Subtopic Taxonomy Validation
     @staticmethod
     def get_subtopic_taxonomy_prompt():
         """Check if subtopics are from taxonomy list and relevant to problem"""
@@ -1141,8 +1181,16 @@ class MetadataCorrectnessReviewer(BaseReviewer):
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
+class TimeComplexityAuthenticityReviewer(BaseReviewer):
+    """Point 15: Reviews time complexity authenticity in metadata"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_time_complexity_authenticity_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response(response)
+
 class TestCaseValidationReviewer(BaseReviewer):
-    """Point 15: Reviews test cases against code and problem statement"""
+    """Point 16: Reviews test cases against code and problem statement"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_test_case_validation_prompt()
@@ -1379,24 +1427,25 @@ class DocumentReviewSystem:
             "12. Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
             "13. Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
             "14. Metadata Correctness": MetadataCorrectnessReviewer(self.client),
-            "15. Test Case Validation": TestCaseValidationReviewer(self.client),
-            "16. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
-            "17. Note Section Explanation Approach": NoteSectionReviewer(self.client),
+            "15. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
+            "16. Test Case Validation": TestCaseValidationReviewer(self.client),
+            "17. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
+            "18. Note Section Explanation Approach": NoteSectionReviewer(self.client),
             
-            # Points 18-20: Reasoning Chain Quality
-            "18. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
-            "19. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
-            "20. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            # Points 19-21: Reasoning Chain Quality
+            "19. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
+            "20. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
+            "21. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
             
-            # Points 21+: Subtopic, Taxonomy, and Reasoning Analysis
-            "21. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
-            "22. Typo and Spelling Check": TypoCheckReviewer(self.client),
-            "23. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
-            "24. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "25. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "26. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "27. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "28. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            # Points 22+: Subtopic, Taxonomy, and Reasoning Analysis
+            "22. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            "23. Typo and Spelling Check": TypoCheckReviewer(self.client),
+            "24. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
+            "25. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
+            "26. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "27. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
+            "28. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
+            "29. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
