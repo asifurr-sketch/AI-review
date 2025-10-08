@@ -1,0 +1,647 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Arrays and Lists", "Searching Algorithms", "Hash Tables", "Backtracking Algorithms", "Algorithm Complexity and Big O Notation", "Basic Data Structures"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 5, $O(2^n \cdot n) \rightarrow O(n) \rightarrow O(n^2) \rightarrow O(n \log n) \rightarrow O(n \log n)$
+
+
+**Number of Chains:** - 10
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Archivist’s Mirror Corridor**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **32 MB**
+
+An archivist is filling a long corridor of alcoves with rune tablets. The corridor has exactly $n$ empty alcoves in a row. Each day, a courier arrives with one tablet. The archivist immediately places it into the earliest empty alcove from the left or the earliest empty alcove from the right (whichever she chooses that day). After $n$ days, the corridor is completely filled. Reading the corridor from left to right gives a final arrangement $b_1, b_2, \dots, b_n$. The order in which tablets arrived (the courier’s log) is unknown.
+
+Your task: among all courier logs $a_1, a_2, \dots, a_n$ that could lead to the final arrangement $b$ via some sequence of left/right placements, output the lexicographically smallest possible log $a$.
+
+Notes:
+- “Lexicographically smaller” means: compare two sequences from the first position; the one with the smaller element at the first differing position is smaller.
+- Reconstructing the log corresponds to “unfilling” the corridor: at each step you may pick the leftmost or rightmost remaining tablet in $b$ and append it as the next element of $a$. Different choices generate different logs.
+
+**Input Format:-**
+- The first line contains an integer $t$, the number of test cases.
+- For each test case:
+  - A line with an integer $n$.
+  - A line with $n$ integers $b_1\ b_2\ \dots\ b_n$.
+
+**Output Format:-**
+- For each test case, print one line containing $n$ integers: the lexicographically smallest possible courier log $a$.
+
+**Constraints:-**
+- $1 \le t \le 2 \cdot 10^5$
+- $1 \le n \le 2 \cdot 10^5$
+- $1 \le b_i \le 10^9$
+- The total sum of $n$ over all test cases does not exceed $2 \cdot 10^5$
+**Examples:-**
+ - **Input:**
+```
+1
+6
+1 3 2 4 3 5
+```
+
+ - **Output:**
+```
+1 3 2 4 3 5
+```
+
+ - **Input:**
+```
+1
+7
+2 5 2 5 1 4 1
+```
+
+ - **Output:**
+```
+1 2 4 1 5 2 5
+```
+
+**Note:-**
+In the first example, we “unfill” by repeatedly choosing from the ends of b to make a lexicographically smallest sequence. Compare the current left and right values and take the smaller:
+- Pick left 1 → a = [1]
+- Pick left 3 → a = [1, 3]
+- Pick left 2 → a = [1, 3, 2]
+- Pick left 4 → a = [1, 3, 2, 4]
+- Pick left 3 → a = [1, 3, 2, 4, 3]
+- Pick right 5 → a = [1, 3, 2, 4, 3, 5]
+This yields the output 1 3 2 4 3 5.
+
+In the second example, at each step pick the smaller end; when ends are equal, look inward until a mismatch (if none, either side works). Steps:
+- Right 1 (since 2 > 1) → a = [1]
+- Left 2 (2 < 4) → a = [1, 2]
+- Right 4 (5 > 4) → a = [1, 2, 4]
+- Right 1 (5 > 1) → a = [1, 2, 4, 1]
+- Ends 5 and 5 tie; inner values 2 and 2 tie → choose left 5 → a = [1, 2, 4, 1, 5]
+- Left 2 → a = [1, 2, 4, 1, 5, 2]
+- Right 5 → a = [1, 2, 4, 1, 5, 2, 5]
+This matches the output 1 2 4 1 5 2 5.
+
+General clarification: to get the lexicographically smallest a, at each step compare b’s current ends. If b[left] < b[right], take left; if b[left] > b[right], take right. If they are equal, scan inward simultaneously from both ends until a mismatch; pick the side with the smaller next differing value. If no mismatch exists (the remainder is a palindrome), either side is acceptable and yields the same lexicographic result.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the problem and its constraints
+
+**[THOUGHT_01_01]**
+
+We are given a final arrangement $b_1, b_2, \dots, b_n$ of tablets in a corridor. The tablets were placed one at a time over $n$ days, where each arriving tablet was immediately placed into either the leftmost empty alcove or the rightmost empty alcove in the corridor. Our goal is to determine a possible arrival order $a_1, a_2, \dots, a_n$ that could have produced the observed final arrangement $b$.
+
+**[THOUGHT_01_02]**
+
+Among all valid arrival orders that could produce $b$, we must output the lexicographically smallest sequence $a$. Lexicographic comparison means comparing sequences element-by-element from the first position, where the sequence with the smaller element at the first differing position is considered smaller.
+
+**[THOUGHT_01_03]**
+
+The placement rule is deterministic once an arrival order is known: each tablet goes to either the leftmost or rightmost empty position, whichever the archivist chooses that day. However, given only the final arrangement $b$, multiple arrival orders may be valid, as different sequences of left/right placement decisions can produce the same result.
+
+**[THOUGHT_01_04]**
+
+The constraints indicate large-scale inputs: up to $2 \cdot 10^5$ test cases with total $\sum n \le 2 \cdot 10^5$. Each test case can have $n$ up to $2 \cdot 10^5$, and tablet values can be as large as $10^9$. The solution must handle these efficiently.
+
+**[THOUGHT_01_05]**
+
+The problem requires both correctness (producing a valid arrival order) and ensuring lexicographic minimality among all valid orders. The combination of these requirements suggests careful consideration of decision-making at each step of reconstruction.
+
+---
+
+**[CHAIN_02]**
+
+Analyzing the provided test case
+
+**[THOUGHT_02_01]**
+
+In the first example with $b = [1, 3, 2, 4, 3, 5]$, the output matches the input exactly: $a = [1, 3, 2, 4, 3, 5]$. This indicates a case where the lexicographically smallest courier log is identical to the final arrangement itself, suggesting that this particular arrangement has a unique reconstruction or one where the optimal choice follows the left-to-right order.
+
+**[THOUGHT_02_02]**
+
+The second example with $b = [2, 5, 2, 5, 1, 4, 1]$ produces a different output $a = [1, 2, 4, 1, 5, 2, 5]$. The output sequence starts with $1$ while the input starts with $2$, demonstrating that the optimal courier log can differ significantly from the final arrangement and that smaller values appearing later in $b$ can appear earlier in $a$.
+
+**[THOUGHT_02_03]**
+
+Comparing the two examples reveals different reconstruction patterns. The first example has $n = 6$ with no repeated values, while the second has $n = 7$ with repeated values (two 1's, two 2's, two 5's, one 4). This demonstrates how duplicate values in the final arrangement affect the reconstruction possibilities.
+
+**[THOUGHT_02_04]**
+
+In the second example, the smallest value $1$ appears at positions 5 and 7 in $b$, yet both appear early in $a$ (at positions 1 and 4). This shows that values near the ends of the final arrangement can be selected early in the reconstruction process, indicating the importance of considering both leftmost and rightmost positions when building the courier log.
+
+**[THOUGHT_02_05]**
+
+The first example shows a relatively smooth progression where values in $a$ generally increase with occasional decreases (1, 3, 2, 4, 3, 5). The second example shows more variation in $a$ (1, 2, 4, 1, 5, 2, 5) with values moving up and down multiple times. This demonstrates different complexity patterns in how the optimal log can be structured.
+
+**[THOUGHT_02_06]**
+
+Both examples produce valid outputs where each value from $b$ appears exactly once in $a$, confirming that the courier log is a permutation of the arrival order. The lexicographic constraint determines which specific permutation among valid reconstructions is selected as the answer.
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+The simplest idea is to enumerate all possible unfill sequences: at each step pick left or right recursively (DFS) or iteratively (BFS), generate all $2^n$ sequences $a$, and choose the lexicographically smallest among those that exactly recreate $b$. This directly mirrors the problem definition.
+
+**[THOUGHT_03_02]**
+
+Complexity analysis: We have a binary choice at each of the $n$ steps, yielding $2^n$ paths. Even with pruning, the worst-case remains exponential. Recording or comparing sequences adds an $O(n)$ factor per path, making it $O(n \cdot 2^n)$, which is untenable for $n$ even as small as 40.
+
+**[THOUGHT_03_03]**
+
+Given $\sum n \le 2 \cdot 10^5$, this approach explodes and cannot handle the smallest nontrivial inputs within time limits. Memory usage also becomes prohibitive if we try to store or track all partial sequences.
+
+**[THOUGHT_03_04]**
+
+Utility: Brute force is only useful as an oracle for tiny $n$ (e.g., $n \le 20$) to validate correctness of more efficient solutions during development.
+
+**[THOUGHT_03_05]**
+
+Conclusion: We discard brute force for production due to exponential complexity and move to greedy strategies that exploit the structure of the problem.
+
+---
+
+**[CHAIN_04]**
+
+Applying naive greedy by immediate ends
+
+**[THOUGHT_04_01]**
+
+A tempting heuristic is to always pick the smaller of the two ends $b[l]$ and $b[r]$. If $b[l] < b[r]$, pick left; if $b[l] > b[r]$, pick right; if they are equal, prefer a fixed side (e.g., left). This runs in $O(n)$ time and is simple to implement.
+
+**[THOUGHT_04_02]**
+
+Counterexample on ties shows failure. Consider $b = [2, 3, 1, 2]$:
+- Ends tie at 2. Naive tie-break picks left, giving $a = [2, 2, 1, 3]$.
+- Optimal tie-break is right first, producing $a = [2, 1, 2, 3]$, which is lexicographically smaller since $2=2$ but $1<2$ at the second position.
+Hence, local tie-breaking without lookahead can yield suboptimal $a$.
+
+**[THOUGHT_04_03]**
+
+This heuristic is correct when $b[l] \ne b[r]$, because the first decision directly sets the first element of $a$, and choosing the smaller end is optimal. However, it fails precisely when $b[l] = b[r]$, where the global structure of the remaining sequence matters.
+
+**[THOUGHT_04_04]**
+
+Conclusion: We must design a tie-breaking mechanism that peeks deeper into the sequence to compare the two futures $b[l..r]$ and its reverse. The next attempt introduces full tie scanning.
+
+---
+
+**[CHAIN_05]**
+
+Scanning ties with two pointers
+
+**[THOUGHT_05_01]**
+
+Approach: At each step, compare $b[l..r]$ and $b[r..l]$ lexicographically using two pointers:
+- Initialize $i=0$.
+- While $l+i \le r-i$ and $b[l+i] = b[r-i]$, increment $i$.
+- If all compared equal, pick left (symmetry). Otherwise, if $b[l+i] < b[r-i]$, pick left; else pick right.
+This ensures globally correct tie-breaking.
+
+**[THOUGHT_05_02]**
+
+Correctness intuition: The first index $k$ where the two sequences differ dictates the smaller future. Choosing the side that yields the smaller element at that index fixes $a$ to be lexicographically minimal at the earliest differing position, independent of later choices.
+
+**[THOUGHT_05_03]**
+
+Limitation: The worst-case time complexity is $O(n^2)$. In sequences with long equal prefixes mirrored at both ends (e.g., all equal elements or long symmetric stretches), each step scans a large portion of the remaining array, and the cumulative work sums to quadratic time.
+
+**[THOUGHT_05_04]**
+
+Given the constraints, $O(n^2)$ is too slow in aggregate across tests. We need to speed up the longest common prefix (LCP) computation between $b[l..r]$ and its reverse to sublinear time per step.
+
+**[THOUGHT_05_05]**
+
+Takeaway: The tie-breaking rule is correct, but the way we compute the first differing position must be optimized. We keep the rule and optimize the comparison.
+
+---
+
+**[CHAIN_06]**
+
+Accelerating tie-breaking with rolling hashes
+
+**[THOUGHT_06_01]**
+
+We precompute double rolling hashes for $b$ and for its reversed sequence $rb$ to answer substring hash queries in $O(1)$. Using two distinct large moduli reduces collision probability. We also store powers of the base to extract substring hashes quickly.
+
+**[THOUGHT_06_02]**
+
+To compare $b[l..r]$ with its reverse efficiently, we need the LCP length $k$ between $b[l..r]$ and $rb[rl..rr]$, where $rl = n - 1 - r$ and $rr = n - 1 - l$. We binary search on $k$ in $[0, r-l+1]$, using $O(1)$ hash equality checks per mid, achieving $O(\log n)$ time per step.
+
+**[THOUGHT_06_03]**
+
+Decision logic:
+- Let $len = r - l + 1$ and $k$ be the LCP length found by hashes.
+- If $k = len$, the segment equals its reverse; pick left (either side is fine).
+- Otherwise, compare $b[l + k]$ and $b[r - k]$. If $b[l + k] \le b[r - k]$, pick left; else pick right. This mirrors the full-scan rule but avoids scanning.
+
+**[THOUGHT_06_04]**
+
+Complexity:
+- Precomputation per test: $O(n)$ time and $O(n)$ memory for powers and prefix hashes.
+- Each of the $n$ picks performs one LCP query in $O(\log n)$.
+- Total per test: $O(n \log n)$, which is fast enough for $\sum n \le 2 \cdot 10^5$.
+
+**[THOUGHT_06_05]**
+
+Implementation notes:
+- Use unsigned 128-bit intermediate multiplication to avoid overflow in modular multiplication.
+- Choose two primes near $10^9$ and a random-looking base.
+- Optionally shift inputs by $+1$ to avoid hashing zero values; while not strictly necessary, it avoids corner cases where leading zeros in polynomial hashes could coincide in edge cases.
+
+---
+
+**[CHAIN_07]**
+
+Exploring a suffix array and RMQ alternative
+
+**[THOUGHT_07_01]**
+
+Alternative idea: Build a suffix array over the concatenation $b \circ [\#] \circ rb$, where $[\#]$ is a separator smaller than any value. Precompute LCP array and support LCE (longest common extension) queries via RMQ in $O(1)$. This enables computing the LCP between $b[l..]$ and $rb[rl..]$ in constant time per step.
+
+**[THOUGHT_07_02]**
+
+Complexity:
+- Building suffix array and LCP: $O(n \log n)$ or $O(n)$ with advanced algorithms.
+- RMQ preprocessing: $O(n \log n)$ or $O(n)$.
+- Each query: $O(1)$.
+Overall: Similar or better asymptotic than rolling hash in query time, but with heavier constants and implementation overhead.
+
+**[THOUGHT_07_03]**
+
+Challenges:
+- Requires careful coordinate compression of values to a contiguous alphabet to build SA.
+- Complex, error-prone implementation for contest settings.
+- Memory usage is larger due to multiple arrays (SA, rank, LCP, RMQ structure).
+
+**[THOUGHT_07_04]**
+
+Decision: While collision-free and theoretically appealing, this approach is overkill here. Double rolling hashes are simpler and sufficiently robust, achieving the required performance with much less implementation complexity.
+
+---
+
+**[CHAIN_08]**
+
+Validating correctness rigorously
+
+**[THOUGHT_08_01]**
+
+Feasibility: At any stage during unfill, the last placed tablet in the original process must occupy one of the ends of the remaining segment. Thus, repeatedly taking from ends is necessary and sufficient to reconstruct a valid $a$.
+
+**[THOUGHT_08_02]**
+
+Optimality via exchange argument: Consider the earliest index $p$ where two candidate logs diverge. That divergence corresponds to the first $k$ at which $b[l..r]$ and its reverse differ. Choosing the side yielding the smaller element at that position fixes $a_p$ to be as small as possible. Any alternative produces a strictly larger element at $p$, making the entire sequence lexicographically larger, regardless of later choices.
+
+**[THOUGHT_08_03]**
+
+Symmetric ties: If $b[l..r]$ equals its reverse, swapping the choice at this step yields a mirror-symmetric continuation that results in the same final $a$. Hence, we can break ties arbitrarily (consistently choosing left).
+
+**[THOUGHT_08_04]**
+
+Hash-based comparison soundness: With double hashing and 64-bit moduli, the collision probability is negligible in practice. Even if a collision occurred, it would require an adversarial input; for standard competitive programming guarantees, this is acceptable. If absolute determinism is required, suffix arrays can be used instead.
+
+---
+
+**[CHAIN_09]**
+
+Preventing implementation pitfalls
+
+**[THOUGHT_09_01]**
+
+Index mapping correctness: For a segment $b[l..r]$, its corresponding segment in the reversed array $rb$ is $rb[rl..rr]$ with $rl = n - 1 - r$ and $rr = n - 1 - l$. Carefully maintain inclusive indices during hash extraction to avoid off-by-one errors.
+
+**[THOUGHT_09_02]**
+
+Binary search bounds: When computing LCP length $k$, search in $[0, len]$ and ensure midpoints and comparisons use inclusive substring hashes. Verify that $k=len$ is handled as a full tie.
+
+**[THOUGHT_09_03]**
+
+Arithmetic safety: Use unsigned 128-bit intermediates for modular multiplication to avoid overflow. Keep hash arrays and powers as 64-bit. Modular additions and subtractions should normalize within modulus.
+
+**[THOUGHT_09_04]**
+
+Input and output handling: Since $\sum n$ is large, use fast I/O, reserve output capacity, and avoid per-element flushing. If shifting $b_i$ by $+1$ to avoid zeros in hashing, remember to subtract $1$ when printing the final answer.
+
+**[THOUGHT_09_05]**
+
+Testing strategy: Cross-validate the rolling-hash solution against the full-scan tie-breaking algorithm on random cases for small $n$. Include crafted adversarial cases with long equal prefixes and symmetric patterns to confirm performance and correctness.
+
+**[THOUGHT_09_06]**
+
+Deterministic seeds and constants: Use fixed moduli and base for reproducibility. Avoid relying on runtime randomness to select base values.
+
+---
+
+**[CHAIN_10]**
+
+Integrating the final decision loop with LCP acceleration
+
+**[THOUGHT_10_01]**
+
+We now outline the core decision loop, integrating the LCP computation via rolling hashes. This replaces the $O(n^2)$ tie scan with $O(\log n)$ binary search on the LCP length, making the overall algorithm $O(n \log n)$.
+
+**[THOUGHT_10_02]**
+
+The main loop maintains two pointers $l$ and $r$ and appends either $b[l]$ or $b[r]$ at each step. On each iteration, it queries the LCP between $b[l..r]$ and $rb[rl..rr]$, decides which side to take based on the first differing position, and updates $l$ or $r$.
+
+**[THOUGHT_10_03]**
+
+The decision loop follows a clear pattern at each iteration:
+- Maintain pointers to the current segment boundaries (left and right ends of the remaining corridor)
+- Compute the length of the longest common prefix between the segment and its reverse
+- If the entire segment matches its reverse (perfect palindrome), choose the left end by convention
+- Otherwise, compare the first pair of differing elements at the mismatch position:
+  - If the left-side element is smaller or equal, append the left end to the result
+  - If the right-side element is smaller, append the right end to the result
+- Update the segment boundaries by advancing the chosen pointer inward
+- Continue until the segment is exhausted
+
+This greedy selection ensures lexicographic minimality because each decision fixes the next position of the output to the smallest possible value given the current state.
+
+**[THOUGHT_10_04]**
+
+Improvements over previous attempts:
+- Retains the correct greedy decision rule from the full-scan method.
+- Replaces linear tie scanning with logarithmic-time LCP via double rolling hashes, reducing the per-step comparison cost.
+- Avoids the complexity of suffix arrays while providing strong performance guarantees under the given constraints.
+
+**[THOUGHT_10_05]**
+
+Final complexity recap:
+- Time: $O(n)$ preprocessing for hashes plus $O(n \log n)$ across all decisions per test case.
+- Space: $O(n)$ for hash and power arrays.
+This meets the problem’s constraints comfortably and produces the lexicographically smallest feasible courier log.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given the final arrangement $b_1, b_2, \dots, b_n$ of tablets placed into a corridor with $n$ alcoves. The placement process is: each arriving tablet is placed immediately either in the leftmost empty position or the rightmost empty position. After $n$ steps the corridor is full. We need to reconstruct a possible arrival log $a_1, a_2, \dots, a_n$ that could have produced $b$, and among all such logs, output the lexicographically smallest one.
+
+Key observations:
+- Reconstructing the log is equivalent to “unfilling” the corridor: at each step, the last placed tablet must be at one of the current segment ends. So we can build $a$ by iteratively taking either $b[l]$ or $b[r]$.
+- To minimize lexicographically, we must compare the two possible futures. The correct greedy rule is to compare the sequences $b[l..r]$ and its reverse $b[r..l]$ lexicographically. At the first position where they differ, choose the side with the smaller element. If equal entirely, either side yields the same final $a$.
+- Naively scanning to find the first differing position can be $O(n^2)$. We need to compute the longest common prefix (LCP) between $b[l..r]$ and its reverse in sublinear time per step to stay efficient for large inputs.
+
+
+**2. Optimal Approach**
+
+We use a greedy strategy with efficient tie-breaking via rolling hashes:
+1. Maintain two pointers $l=0$, $r=n-1$. The remaining corridor is $b[l..r]$.
+2. At each step, compare $b[l..r]$ with its reversed sequence $b[r..l]$ by computing their LCP $k$:
+   - If $k = r - l + 1$, the segment equals its reverse; choose left (either choice is fine).
+   - Else, compare $b[l + k]$ and $b[r - k]$. If $b[l + k] \le b[r - k]$, take left; otherwise, take right.
+3. Append the chosen element to the answer and move the corresponding pointer.
+4. Repeat until $l > r$.
+
+Efficient LCP computation:
+- Precompute double rolling hashes for $b$ and for its reversed array $rb$ using two moduli and a base.
+- For any segment $b[l..r]$, its corresponding reversed segment in $rb$ starts at $rl = n - 1 - r$ and ends at $rr = n - 1 - l$.
+- Compute LCP $k$ by binary searching the length and comparing substring hashes in $O(1)$ per check.
+- Total per test case: $O(n)$ preprocessing + $O(n \log n)$ decisions.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <cstdint>
+#include <utility>
+
+/**
+ * @brief Double rolling hash for array substrings and their reverses.
+ *
+ * Supports O(1) substring hash queries after O(n) preprocessing for both the
+ * original array and its reversed version. Enables LCP queries between a
+ * substring and the corresponding substring in the reversed array using
+ * binary search on the length.
+ */
+class DoubleRollingHash {
+public:
+    static constexpr uint64_t kMod1 = 1000000007ULL;
+    static constexpr uint64_t kMod2 = 1000000009ULL;
+    static constexpr uint64_t kBase = 911382323ULL;
+
+    DoubleRollingHash() : n_(0) {}
+
+    /**
+     * @brief Builds prefix hashes and power tables for the given sequence and its reverse.
+     *
+     * @param values The input sequence to hash.
+     */
+    void build(const std::vector<uint64_t>& values) {
+        n_ = static_cast<int>(values.size());
+        power1_.assign(n_ + 1, 1);
+        power2_.assign(n_ + 1, 1);
+        for (int i = 1; i <= n_; ++i) {
+            power1_[i] = mulMod(power1_[i - 1], kBase, kMod1);
+            power2_[i] = mulMod(power2_[i - 1], kBase, kMod2);
+        }
+
+        pref1_.assign(n_ + 1, 0);
+        pref2_.assign(n_ + 1, 0);
+        for (int i = 0; i < n_; ++i) {
+            pref1_[i + 1] = addMod(mulMod(pref1_[i], kBase, kMod1), values[i] % kMod1, kMod1);
+            pref2_[i + 1] = addMod(mulMod(pref2_[i], kBase, kMod2), values[i] % kMod2, kMod2);
+        }
+
+        std::vector<uint64_t> rev(values.rbegin(), values.rend());
+        revPref1_.assign(n_ + 1, 0);
+        revPref2_.assign(n_ + 1, 0);
+        for (int i = 0; i < n_; ++i) {
+            revPref1_[i + 1] = addMod(mulMod(revPref1_[i], kBase, kMod1), rev[i] % kMod1, kMod1);
+            revPref2_[i + 1] = addMod(mulMod(revPref2_[i], kBase, kMod2), rev[i] % kMod2, kMod2);
+        }
+    }
+
+    /**
+     * @brief Retrieves the double hash of the substring values[l..r] (inclusive).
+     *
+     * @param l Left index (inclusive).
+     * @param r Right index (inclusive).
+     * @return Pair of hashes modulo kMod1 and kMod2.
+     */
+    std::pair<uint64_t, uint64_t> getForward(int l, int r) const {
+        uint64_t hash1 = subMod(pref1_[r + 1], mulMod(pref1_[l], power1_[r - l + 1], kMod1), kMod1);
+        uint64_t hash2 = subMod(pref2_[r + 1], mulMod(pref2_[l], power2_[r - l + 1], kMod2), kMod2);
+        return {hash1, hash2};
+    }
+
+    /**
+     * @brief Retrieves the double hash of the substring in the reversed array at indices [l..r] (inclusive).
+     *
+     * @param l Left index in the reversed array (inclusive).
+     * @param r Right index in the reversed array (inclusive).
+     * @return Pair of hashes modulo kMod1 and kMod2.
+     */
+    std::pair<uint64_t, uint64_t> getReverse(int l, int r) const {
+        uint64_t hash1 = subMod(revPref1_[r + 1], mulMod(revPref1_[l], power1_[r - l + 1], kMod1), kMod1);
+        uint64_t hash2 = subMod(revPref2_[r + 1], mulMod(revPref2_[l], power2_[r - l + 1], kMod2), kMod2);
+        return {hash1, hash2};
+    }
+
+    /**
+     * @brief Computes LCP length between b[l..r] and reverse(b[l..r]).
+     *
+     * @param l Left index in the forward array (inclusive).
+     * @param r Right index in the forward array (inclusive).
+     * @return Length of the longest common prefix.
+     */
+    int lcpSegment(int l, int r) const {
+        int len = r - l + 1;
+        int reversedLeft = n_ - 1 - r; // Start index in reversed array
+        int lowBound = 0, highBound = len;
+        while (lowBound < highBound) {
+            int midPoint = (lowBound + highBound + 1) >> 1;
+            if (getForward(l, l + midPoint - 1) == getReverse(reversedLeft, reversedLeft + midPoint - 1)) {
+                lowBound = midPoint;
+            } else {
+                highBound = midPoint - 1;
+            }
+        }
+        return lowBound;
+    }
+
+private:
+    int n_;
+    std::vector<uint64_t> power1_, power2_;
+    std::vector<uint64_t> pref1_, pref2_;
+    std::vector<uint64_t> revPref1_, revPref2_;
+
+    static inline uint64_t addMod(uint64_t a, uint64_t b, uint64_t mod) {
+        uint64_t s = a + b;
+        if (s >= mod) s -= mod;
+        return s;
+    }
+
+    static inline uint64_t subMod(uint64_t a, uint64_t b, uint64_t mod) {
+        return a >= b ? a - b : a + mod - b;
+    }
+
+    static inline uint64_t mulMod(uint64_t a, uint64_t b, uint64_t mod) {
+        unsigned __int128 prod = static_cast<unsigned __int128>(a) * static_cast<unsigned __int128>(b);
+        return static_cast<uint64_t>(prod % mod);
+    }
+};
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int t;
+    if (!(std::cin >> t)) {
+        return 0;
+    }
+    while (t--) {
+        int n;
+        std::cin >> n;
+        std::vector<uint64_t> b(n);
+        for (int i = 0; i < n; ++i) {
+            uint64_t x;
+            std::cin >> x;
+            b[i] = x;
+        }
+
+        DoubleRollingHash hasher;
+        hasher.build(b);
+
+        int l = 0, r = n - 1;
+        std::vector<uint64_t> answer;
+        answer.reserve(n);
+
+        while (l <= r) {
+            int len = r - l + 1;
+            int lcpLength = hasher.lcpSegment(l, r);
+            if (lcpLength == len) {
+                answer.push_back(b[l]);
+                ++l;
+            } else {
+                uint64_t leftValue = b[l + lcpLength];
+                uint64_t rightValue = b[r - lcpLength];
+                if (leftValue <= rightValue) {
+                    answer.push_back(b[l]);
+                    ++l;
+                } else {
+                    answer.push_back(b[r]);
+                    --r;
+                }
+            }
+        }
+
+        for (int i = 0; i < n; ++i) {
+            if (i) std::cout << ' ';
+            std::cout << answer[i];
+        }
+        std::cout << '\n';
+    }
+
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- Hash precomputation (DoubleRollingHash):
+  - `build(values)`: fills `power1_`, `power2_`, forward prefix hashes `pref1_`, `pref2_`, and reversed prefix hashes `revPref1_`, `revPref2_`.
+  - `getForward(l, r)` / `getReverse(l, r)`: return double hashes `{hash1, hash2}` for `[l..r]` in the forward/reversed arrays.
+  - `lcpSegment(l, r)`: binary searches the longest common prefix length between `values[l..r]` and its reverse using `getForward`/`getReverse`. Maps the reverse segment start with `reversedLeft = n_ - 1 - r`.
+
+- Main reconstruction loop:
+  - Read `b`, build hashes via `hasher.build(b)`.
+  - Maintain two pointers `l = 0`, `r = n - 1`, and output buffer `answer`.
+  - Each step:
+    - Compute `lcpLength = hasher.lcpSegment(l, r)`.
+    - If `lcpLength == (r - l + 1)`, the segment is a palindrome → push `b[l]`, `++l`.
+    - Else compare the first differing elements:
+      - `leftValue = b[l + lcpLength]`, `rightValue = b[r - lcpLength]`.
+      - If `leftValue <= rightValue` → push `b[l]`, `++l`; else push `b[r]`, `--r`.
+  - Print `answer` space-separated.
+
+- Complexity:
+  - Precompute hashes: `O(n)`.
+  - Each decision: `O(log n)` (binary search inside `lcpSegment` with `O(1)` hash checks).
+  - Total per test: `O(n log n)`, space `O(n)`.
+
+
+**5. Time and Space Complexity**
+
+- Preprocessing hashes per test case: $O(n)$ time and $O(n)$ space.
+- Each of the $n$ steps computes an LCP via binary search with $O(1)$ hash checks, costing $O(\log n)$ time per step.
+- Total time per test case: $O(n \log n)$. Across all tests with $\sum n \le 2 \cdot 10^5$, this is efficient.
+- Additional space: $O(n)$ for powers and prefix hashes.
+
+
+**6. Conclusion**
+
+By reducing the reconstruction to a sequence of optimal end-choices and accelerating the crucial tie-breaking with double rolling hashes and binary search for LCP, we achieve an $O(n \log n)$ algorithm that reliably produces the lexicographically smallest valid courier log. The approach is both correct and efficient for the given constraints and is practical to implement with standard C++ features.

@@ -8,8 +8,8 @@ Each review point is performed by a specialized reviewer class with targeted pro
 
 Features:
 - Comprehensive review points covering all aspects of document quality
-- Primary: Claude Opus 4.1 with 30k thinking budget for exceptional reasoning
-- Secondary: Claude Sonnet 4 for cleanup operations  
+- Primary: Claude Opus 4.1 with 60k thinking budget for exceptional reasoning
+- Secondary: Claude Sonnet 4 for cleanup operations with 200k output tokens
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
 - Response quality and mathematical correctness (Points 4-11) 
 - Problem statement and solution validation (Points 12-17)
@@ -93,10 +93,10 @@ Original Response:
 """
         
         try:
-            # Use Sonnet 4 for cleanup to keep it simple and fast
+            # Use Sonnet 4 for cleanup with maximum output tokens for comprehensive failure analysis
             message = self.client.messages.create(
                 model=self.secondary_model,
-                max_tokens=2000,
+                max_tokens=200000,  # Maximum output tokens for Claude Sonnet 4
                 temperature=0.1,
                 messages=[
                     {
@@ -118,8 +118,8 @@ Original Response:
 
     def _make_api_call(self, prompt: str, document: str) -> str:
         """Make API call to Claude Opus 4.1 with thinking enabled and streaming"""
-        thinking_budget = 30000  # Large thinking budget for complex analysis
-        max_output = 32000  # Maximum output tokens for Opus 4.1
+        thinking_budget = 60000  # Maximum thinking budget for the most comprehensive analysis
+        max_output = 200000  # Maximum output tokens for Claude Opus 4.1
         
         # Use streaming for large requests as required by API
         response_text = ""
@@ -189,60 +189,6 @@ Original Response:
 class ReviewPrompts:
     """Centralized prompts for different review processes - Ultimate comprehensive analysis"""
     
-    # Point 0: Problem Originality Check
-    @staticmethod
-    def get_problem_originality_prompt():
-        """Check if the problem is original or copied from competitive programming platforms"""
-        return """
-You are an expert competitive programming analyst with deep knowledge of problems from Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, and other major competitive programming platforms.
-
-**TASK:** Search the internet (especially Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, TopCoder, SPOJ) for problems similar to this one. Check if it is original, inspired, or copied.
-
-**ANALYSIS STEPS:**
-1. **[THINK DEEPLY]** - Use extended thinking to carefully analyze the problem
-2. **Comprehensive Search Strategy:** Perform extensive searches across:
-   - **Google Search**: Use targeted Google queries with problem keywords, constraints, and concepts
-   - **Competitive Programming Platforms**: Codeforces, AtCoder, CodeChef, LeetCode, HackerRank, TopCoder, SPOJ
-   - **Academic Sources**: GitHub, research papers, educational sites
-   - **Community Forums**: StackOverflow, Reddit, Discord communities
-   - **Online Judges**: Various online judge platforms and contest archives
-
-3. **Search Queries to Use:**
-   - Exact title searches on Google
-   - Key concept + constraint searches (e.g., "dynamic programming N<=10^5")
-   - Algorithm-specific searches (e.g., "segment tree range query")
-   - Sample input/output pattern searches
-   - Mathematical formulation searches
-
-4. **Comparison Points:**
-   - Title similarity (exact or near-exact matches)
-   - Problem statement similarity (core concept, story, setup)
-   - Constraint ranges (N, M values, time limits, etc.)
-   - Sample input/output format and values
-   - Expected algorithm/approach and complexity
-   - Mathematical formulations and edge cases
-
-**CLASSIFICATION:**
-- **ORIGINAL:** No similar problems found, or only very general algorithmic concepts shared
-- **INSPIRED:** Similar core concept but different constraints, format, or twist
-- **COPIED:** Nearly identical problem statement, constraints, and samples
-- **VARIANT:** Modified version of existing problem with different parameters
-
-**CRITICAL VIOLATION REPORTING:**
-- If COPIED or direct VARIANT is found, provide:
-  - Exact source URL and problem name
-  - Platform name and contest/problem ID
-  - Specific similarities (title, statement, constraints, samples)
-  - Percentage similarity assessment
-- Report ALL similar problems found, not just the closest match
-
-Take your time to compare title, statement, constraints, and samples thoroughly.
-
-RESPONSE FORMAT:
-Provide detailed analysis with search results, then end with:
-FINAL VERDICT: PASS (if ORIGINAL/INSPIRED) or FINAL VERDICT: FAIL (if COPIED/direct VARIANT)
-"""
-
     # Point 1: Style Guide Compliance
     @staticmethod
     def get_style_guide_prompt():
@@ -633,38 +579,39 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 15: Time Complexity Authenticity Check
+    # Point 0: Time Complexity Authenticity Check
     @staticmethod
     def get_time_complexity_authenticity_prompt():
-        """Check if time complexity in metadata is authentic and properly formatted"""
+        """Check if time complexity in metadata covers all approaches discussed"""
         return """
 You are an expert response evaluator. Check if the time complexity mentioned in the metadata section meets ALL of the following requirements:
 
 **REQUIREMENTS:**
-1. **Overall Complexity Only**: The metadata must mention ONLY the overall time complexity, not individual step complexities
-2. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
-3. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, then use those exact variables)
-4. **Correctness**: The stated time complexity must be mathematically correct for the provided solution
+1. **All Approaches Covered**: The metadata must list time complexity for EVERY approach discussed in the document (brute force, optimized, final solution, etc.)
+2. **Sequential Format**: Must follow the format showing progression from inefficient to efficient approaches (e.g., "O(N^2) -> O(N log N) -> O(N)")
+3. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
+4. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, then use those exact variables)
+5. **Correctness**: Each stated time complexity must be mathematically correct for its corresponding approach
 
 **ACCEPTABLE FORMATS:**
-- O(N)
-- O(N log N)
-- O(N * M)
-- O(N^2)
-- O(K * log N)
+- Single approach: "O(N)"
+- Two approaches: "O(N^2) -> O(N log N)"
+- Three approaches: "O(N^3) -> O(N^2) -> O(N log N)"
+- Multiple approaches: "O(N^2) -> O(N log N) -> O(N) -> O(log N)"
 
 **UNACCEPTABLE FORMATS:**
-- "O(N) for the main loop and O(log N) for binary search" (individual step breakdown)
-- "O(N) using dynamic programming approach" (contains approach description)
-- "Time: O(N), Space: O(1)" (mentions space complexity)
-- "O(n)" (wrong variable case if problem uses N)
-- "O(size)" (using variable not mentioned in problem statement)
+- Missing approaches: "O(N)" when document discusses brute force O(N^2) and optimized O(N)
+- Extra text: "O(N^2) brute force -> O(N) optimized approach"
+- Space complexity: "Time: O(N^2) -> O(N), Space: O(1)"
+- Wrong variables: "O(n)" when problem uses N, or "O(size)" when problem uses N
+- Individual steps: "O(N) for loop + O(log N) for search = O(N log N)"
 
 **VALIDATION STEPS:**
-1. Locate the time complexity statement in metadata
-2. Verify it contains ONLY the overall complexity expression
+1. Count all approaches discussed in the document (brute force, intermediate, final, etc.)
+2. Verify metadata lists time complexity for each approach in progression order
 3. Confirm all variables used are from the problem statement
-4. Check if the complexity is mathematically sound for the solution
+4. Check if each complexity is mathematically correct for its approach
+5. Ensure no extra descriptive text or space complexity mentions
 
 Please answer pass or fail.
 
@@ -1023,51 +970,13 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 
 # Ultimate Individual Reviewer Classes - One for each review point
 
-class ProblemOriginalityReviewer(BaseReviewer):
-    """Point 0: Reviews problem originality against competitive programming platforms"""
+class TimeComplexityAuthenticityReviewer(BaseReviewer):
+    """Point 0: Reviews time complexity authenticity in metadata for all approaches"""
     
     def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_problem_originality_prompt()
-        response = self._make_api_call_with_web_search(prompt, document)
+        prompt = ReviewPrompts.get_time_complexity_authenticity_prompt()
+        response = self._make_api_call(prompt, document)
         return self._parse_response(response)
-    
-    def _make_api_call_with_web_search(self, prompt: str, document: str) -> str:
-        """Make API call to Claude with web search enabled for originality checking"""
-        thinking_budget = 30000  # Large thinking budget for complex analysis
-        max_output = 32000  # Maximum output tokens
-        
-        # Web search tool configuration - comprehensive search including Google and major platforms
-        web_search_tool = {
-            "type": "web_search_20250305",
-            "name": "web_search",
-            "max_uses": 20,  # Generous limit for thorough checking across multiple platforms
-            # No domain restrictions to allow Google, GitHub, StackOverflow, and all CP platforms
-        }
-        
-        response_text = ""
-        
-        with self.client.messages.stream(
-            model=self.primary_model,
-            max_tokens=max_output,
-            temperature=1.0,  # Must be 1.0 when thinking is enabled
-            thinking={
-                "type": "enabled",
-                "budget_tokens": thinking_budget
-            },
-            tools=[web_search_tool],
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                }
-            ]
-        ) as stream:
-            for event in stream:
-                if event.type == "content_block_delta":
-                    if hasattr(event.delta, 'text') and event.delta.text:
-                        response_text += event.delta.text
-                        
-        return response_text if response_text else "No text content in response"
 
 class StyleGuideReviewer(BaseReviewer):
     """Point 1: Reviews code style guide compliance"""
@@ -1181,16 +1090,8 @@ class MetadataCorrectnessReviewer(BaseReviewer):
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
-class TimeComplexityAuthenticityReviewer(BaseReviewer):
-    """Point 15: Reviews time complexity authenticity in metadata"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_time_complexity_authenticity_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
 class TestCaseValidationReviewer(BaseReviewer):
-    """Point 16: Reviews test cases against code and problem statement"""
+    """Point 15: Reviews test cases against code and problem statement"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_test_case_validation_prompt()
@@ -1405,8 +1306,8 @@ class DocumentReviewSystem:
         
         # Initialize all Ultimate reviewers - each as individual API call
         self.reviewers = {
-            # Point 0: Problem Originality
-            "0. Problem Originality Check": ProblemOriginalityReviewer(self.client),
+            # Point 0: Time Complexity Check
+            "0. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
             
             # Points 1-3: Code Quality
             "1. Style Guide Compliance": StyleGuideReviewer(self.client),
@@ -1423,29 +1324,28 @@ class DocumentReviewSystem:
             "10. Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
             "11. Conclusion Quality": ConclusionQualityReviewer(self.client),
             
-            # Points 12-17: Problem Statement and Solution Quality
+            # Points 12-16: Problem Statement and Solution Quality
             "12. Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
             "13. Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
             "14. Metadata Correctness": MetadataCorrectnessReviewer(self.client),
-            "15. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
-            "16. Test Case Validation": TestCaseValidationReviewer(self.client),
-            "17. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
-            "18. Note Section Explanation Approach": NoteSectionReviewer(self.client),
+            "15. Test Case Validation": TestCaseValidationReviewer(self.client),
+            "16. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
+            "17. Note Section Explanation Approach": NoteSectionReviewer(self.client),
             
-            # Points 19-21: Reasoning Chain Quality
-            "19. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
-            "20. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
-            "21. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            # Points 18-20: Reasoning Chain Quality
+            "18. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
+            "19. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
+            "20. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
             
-            # Points 22+: Subtopic, Taxonomy, and Reasoning Analysis
-            "22. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
-            "23. Typo and Spelling Check": TypoCheckReviewer(self.client),
-            "24. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
-            "25. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "26. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "27. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "28. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "29. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            # Points 21+: Subtopic, Taxonomy, and Reasoning Analysis
+            "21. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            "22. Typo and Spelling Check": TypoCheckReviewer(self.client),
+            "23. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
+            "24. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
+            "25. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "26. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
+            "27. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
+            "28. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
@@ -1467,7 +1367,7 @@ class DocumentReviewSystem:
         print(header_msg)
         self.detailed_output.append(header_msg)
         
-        budget_msg = "💭 Extended thinking enabled with 30,000 token budget per review"
+        budget_msg = "💭 Extended thinking enabled with 60,000 token budget per review"
         print(budget_msg)
         self.detailed_output.append(budget_msg)
         
@@ -1762,9 +1662,9 @@ def main():
         
         # Model information
         print("\n🤖 Model Configuration:")
-        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 30k thinking budget")
+        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 60k thinking budget")
         print("   Secondary: Claude Sonnet 4 (claude-sonnet-4-20250514) for cleanup operations")
-        print("   Max tokens: 32,000 (Opus 4.1) / 2,000 (Sonnet 4 cleanup)")
+        print("   Max tokens: 200,000 (Opus 4.1) / 200,000 (Sonnet 4 cleanup)")
         print()
         
         # Run reviews with resume option

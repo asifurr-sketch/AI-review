@@ -1,0 +1,618 @@
+## Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Dynamic Programming", "Arrays and Lists", "Control Structures and Loops", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 3, $ O(N^2) \rightarrow O(N^2) \rightarrow O(N + K \cdot 2^K) $
+
+**Number of Chains:** - 7
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Archivist’s Twin Projectors**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **256 MB**
+
+In an old observatory, the Archivist maintains two synchronized projectors that cast patterns onto a ring of $K$ pedestals. Each pedestal either shines (1) or is dark (0). One projector shows an echo of the past, denoted by the binary string $X$, and the other an afterimage of the future, denoted by the binary string $Y$. Each pedestal $i$ carries a significance weight $w_i$.
+
+During the night, $N$ pivot mechanisms are triggered in a fixed order. Each mechanism swaps the contents of two pedestals across both projectors. The Archivist may schedule a continuous maintenance window covering at least $L$ consecutive mechanisms. Just before the window starts, she snapshots the echo projector; right after the window ends, she snapshots the afterimage projector. The night’s resonance value is the total significance of pedestals that shine in both snapshots.
+
+Formally:
+- There are $K$ positions, each either 0 or 1.
+- Two initial bitstrings $X$ and $Y$ of length $K$ are given.
+- There are $N$ swaps; the $j$-th swap exchanges positions $a_j$ and $b_j$ for both $X$ and $Y$ simultaneously when applied.
+- Choose a segment $[l, r]$ with $r - l + 1 \ge L$.
+- Let X_before be $X$ after applying swaps $1$ through $l - 1$.
+- Let Y_after be $Y$ after applying swaps $1$ through $r$.
+- The score of $[l, r]$ is the sum of $w_i$ over all $i$ where X_before at position $i$ is 1 and Y_after at position $i$ is 1.
+- Find the maximum possible score over all valid choices of $[l, r]$.
+
+**Input Format:-**
+- The first line contains three integers $N$, $L$, $K$.
+- The second line contains $K$ integers $w_1, w_2, \ldots, w_K$.
+- The third line contains the binary string $X$ of length $K$.
+- The fourth line contains the binary string $Y$ of length $K$.
+- Each of the next $N$ lines contains two integers $a_j$ and $b_j$ $(1 \le a_j, b_j \le K, a_j \ne b_j)$, the positions to swap at step $j$.
+
+**Output Format:-**
+- Output a single integer: the maximum resonance value.
+
+**Constraints:-**
+- $1 \le L \le N \le 10^6$
+- $2 \le K \le 20$
+- $0 \le w_i \le 10^9$
+- The answer may not fit in 32-bit signed integer. Use 64-bit integers for sums.
+**Examples:-**
+ - **Input:**
+```
+5 2 6
+1 2 3 4 5 6
+100001
+010010
+1 6
+1 5
+6 2
+1 6
+2 5
+```
+
+ - **Output:**
+```
+7
+```
+
+ - **Input:**
+```
+5 3 8
+0 0 0 0 7 11 0 13
+11110000
+00001111
+1 8
+2 7
+3 6
+4 5
+1 5
+```
+
+ - **Output:**
+```
+0
+```
+
+**Note:-**
+In the first example, let X_t and Y_t denote the strings after t swaps. We must pick tX = l − 1 and tY = r with tY − tX ≥ L.
+- A representative optimal choice is [l, r] = [2, 3] (length 2 ≥ L). Then X_before = X_1 = 100001 (ones at pedestals {1, 6}) and Y_after = Y_3 = 100001 (ones at {1, 6}). The intersection is {1, 6}, yielding w1 + w6 = 1 + 6 = 7.
+- Any other valid window aligning the same pair (e.g., [1, 3], [1, 4], …) gives the same score; no window can exceed 7 here since both X and Y always carry exactly two ones.
+
+In the second example, L = 3 forces tY − tX ≥ 3.
+- Track the key states: after 4 swaps, X_4 has ones at {5, 6, 7, 8} while Y_4 has ones at {1, 2, 3, 4}. Thus, whenever X has moved to the high indices, Y has moved to the low ones, and vice versa.
+- For any valid pair (tX, tY) with tY − tX ≥ 3, the overlap of ones occurs only within {1, 2, 3, 4}, where all weights are zero. For example, tX = 0 with tY ∈ {3, 4, 5} gives intersections within {1, 2, 3, 4} only.
+- Hence, every feasible window yields a score of 0.
+
+Additional clarifications:
+- X_before is taken just before the window (after l − 1 swaps), Y_after just after it (after r swaps). The length condition r − l + 1 ≥ L is equivalent to tY − tX ≥ L.
+- Swaps permute positions for both strings; the number of ones in each string is preserved over time. Weights are attached to fixed pedestals (indices), not to moving bits.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarify the objective and constraints.
+
+**[THOUGHT_01_01]**
+
+We have two binary strings $X$ and $Y$ of length $K$. A sequence of $N$ swaps applies to both strings in the same order. We must select a window $[l, r]$ of at least $L$ swaps, snapshot $X$ just before swap $l$ and $Y$ just after swap $r$, and maximize the weighted sum of positions that are 1 in both snapshots. Formally, define $S_i$ as the bitmask of $X$ after swaps 1 through $i$ (with $S_0 = X$) and $T_i$ similarly for $Y$. For a window $[l, r]$, the score is the sum of $w_i$ over bits set in $S_{l-1} \& T_r$.
+
+**[THOUGHT_01_02]**
+
+$S_{l-1}$ represents the state of $X$ right before swap $l$. $T_r$ represents the state of $Y$ right after swap $r$. The intersection mask $M = S_{l-1} \& T_r$ captures all positions that are 1 in both snapshots. The score is the sum of weights over set bits in $M$.
+
+**[THOUGHT_01_03]**
+
+With $K \le 20$, any configuration fits in a 32-bit integer mask, and enumerating all masks is at most $2^{20}$. With $N \le 10^6$, we must avoid any $O(N^2)$ or $O(N \cdot 2^K)$ algorithm. Weights $w_i$ can be up to $10^9$, so accumulated sums must use 64-bit arithmetic.
+
+**[THOUGHT_01_04]**
+
+Each swap exchanges two positions in both $X$ and $Y$. This means $S_i$ and $T_i$ evolve under the same permutation of positions, but starting from different initial masks. Importantly, the pair $(S_i, T_j)$ for arbitrary $i, j$ determines the score via bitwise and.
+
+**[THOUGHT_01_05]**
+
+Choosing $[l, r]$ is equivalent to choosing $i = l - 1$ for $X$ and $j = r$ for $Y$ such that $j - i \ge L$. The objective becomes to maximize the weight of $S_i \& T_j$ over all such pairs.
+
+**[THOUGHT_01_06]**
+
+Indexing is mixed (input swaps use 1-based positions; arrays are easier 0-based). The window length constraint $r - l + 1 \ge L$ becomes $j - i \ge L$. Corner cases like all-zero masks, repeated swaps, or very large weights must be handled carefully. The empty mask is always feasible and yields score 0, so the answer is at least 0.
+
+---
+
+**[CHAIN_02]**
+
+Analyze sample testcases and design comprehensive tests to exercise all behaviors.
+
+**[THOUGHT_02_01]**
+
+**Sample Testcase 1 Analysis**
+
+**Input:** $N = 5$, $L = 2$, $K = 6$, weights $[1, 2, 3, 4, 5, 6]$, $X = 100001$, $Y = 010010$, swaps: $(1,6), (1,5), (6,2), (1,6), (2,5)$.
+
+**Output:** $7$
+
+**Explanation for the Output:** We need to find a window of at least 2 consecutive swaps that maximizes the weighted sum of positions that are 1 in both the "before" snapshot of $X$ and the "after" snapshot of $Y$. By trying different windows like $[2,3]$, we can trace through the swaps manually. For window $[2,3]$, we take $X$ after 1 swap (which gives $X_1 = 100001$ with ones at positions 1 and 6) and $Y$ after 3 swaps (which gives $Y_3 = 100001$ with ones at positions 1 and 6). The intersection has ones at positions 1 and 6, giving us $w_1 + w_6 = 1 + 6 = 7$.
+
+**[THOUGHT_02_02]**
+
+**Sample Testcase 2 Analysis**
+
+**Input:** $N = 5$, $L = 3$, $K = 8$, weights $[0, 0, 0, 0, 7, 11, 0, 13]$, $X = 11110000$, $Y = 00001111$, swaps: $(1,8), (2,7), (3,6), (4,5), (1,5)$.
+
+**Output:** $0$
+
+**Explanation for the Output:** We need a window of at least 3 consecutive swaps. Initially, $X$ has ones in positions 1-4 (with weights 0,0,0,0) and $Y$ has ones in positions 5-8 (with weights 7,11,0,13). The swaps gradually move the ones in $X$ toward the higher-indexed positions and the ones in $Y$ toward the lower-indexed positions. However, due to the constraint $L = 3$, by the time we can take valid windows, the overlapping positions between the $X$ snapshot and $Y$ snapshot only occur at positions with zero weights. Hence, regardless of which valid window we choose, the weighted sum is always 0.
+
+**[THOUGHT_02_03]**
+
+Test minimal sizes for sanity. Use $N = 1$, $L = 1$, $K = 2$. Try small weights and simple swaps. Verify that the algorithm handles a single-window choice and that masking and indexing are correct.
+
+**[THOUGHT_02_04]**
+
+Test all-zero and all-one cases. If $X = 0^K$ or $Y = 0^K$, the answer must be 0 regardless of swaps. If $X = Y = 1^K$, the score should be the sum of all $w_i$ for any valid window, since swapping ones among themselves does not change the masks.
+
+**[THOUGHT_02_05]**
+
+Test disjoint supports. Let $X$ and $Y$ have ones in disjoint positions initially. Depending on swaps, some overlaps may appear. Include a case where swaps never mix the positions of ones so the answer remains 0, verifying correct handling of impossible overlaps.
+
+**[THOUGHT_02_06]**
+
+Test repeated identical swaps. Use swaps like $(a, b)$ repeated many times. Remember that two identical swaps in sequence cancel out. Verify that the simulation accumulates states correctly and that earliest/latest timestamps reflect repeated states.
+
+**[THOUGHT_02_07]**
+
+Test edge window lengths. If $L = N$, only the full window $[1, N]$ is allowed. If $L = 1$, any pair $(i, j)$ with $j \ge i + 1$ is allowed, maximizing flexibility. Ensure the implementation respects the inequality $j - i \ge L$.
+
+**[THOUGHT_02_08]**
+
+Test extreme weights and potential overflow. Set a single pedestal $w_p = 10^9$ and make it the only overlapping 1 after some swaps. Confirm the result uses 64-bit integers. Mix large and small weights to check accumulation.
+
+**[THOUGHT_02_09]**
+
+Test maximal $K$ with manageable $N$. Use $K = 20$ and moderate $N$ to exercise the $2^K$ arrays for timestamps and weight sums. Confirm memory usage is acceptable and runtime is dominated by the $K \cdot 2^K$ transforms.
+
+**[THOUGHT_02_10]**
+
+Test large $N$ with structured swaps. For $N \approx 10^6$, use a repeating pattern of swaps that cycles through several permutations. This stresses the linear simulation and verifies no state-dependent quadratic behavior appears.
+
+---
+
+**[CHAIN_03]**
+
+Implement brute force over windows.
+
+**[THOUGHT_03_01]**
+
+We can iterate all windows $[l, r]$ with $1 \le l \le r \le N$ and $r - l + 1 \ge L$. For each, compute $S_{l-1}$ by simulating swaps 1 through $l - 1$ and compute $T_r$ by simulating swaps 1 through $r$. Take $M = S_{l-1} \& T_r$ and sum the weights of set bits in $M$.
+
+**[THOUGHT_03_02]**
+
+The number of windows is $O(N^2)$. For each window, computing the required states involves simulating swaps, which could be optimized by precomputing all states in $O(N)$ time. However, even with precomputed states, checking all $O(N^2)$ window pairs makes this $O(N^2)$ approach. Time complexity: $O(N^2)$, space complexity: $O(N)$ for storing precomputed states.
+
+**[THOUGHT_03_03]**
+
+With $N = 10^6$, windows are on the order of $10^{12}$, which is impossible. Even if each window took constant time, we cannot process that many. This approach will fail because the quadratic number of windows makes it computationally infeasible for large inputs, regardless of how efficiently we handle individual window computations.
+
+**[THOUGHT_03_04]**
+
+If we cannot enumerate windows directly, we should first precompute all states $S_i$ and $T_i$ once to eliminate repeated state recomputation.
+
+---
+
+**[CHAIN_04]**
+
+Precompute all states but still scan windows.
+
+**[THOUGHT_04_01]**
+
+We can simulate swaps once to record $S_i$ and $T_i$ for $i = 0, 1, \ldots, N$. This eliminates repeated state recomputation and ensures any subsequent queries can be answered in $O(1)$ per $(i, j)$ pair by using precomputed masks.
+
+**[THOUGHT_04_02]**
+
+With states precomputed, we can try iterating all pairs $(i, j)$ with $0 \le i < j \le N$ and $j - i \ge L$. For each, compute $M = S_i \& T_j$ and update the maximum weight. However, this still examines $O(N^2)$ pairs.
+
+**[THOUGHT_04_03]**
+
+Time complexity is $O(N)$ for precomputation plus $O(N^2)$ for pair checking, giving $O(N^2)$ overall. Space complexity is $O(N)$ for storing all states. One might try, for each $i$, to pick the best $j$, or for each $j$, the best $i$. However, the weight of $S_i \& T_j$ is not monotone in $j$ or $i$. For example, consider three states where $S_0 = 111$, $S_1 = 110$, $S_2 = 101$ and $T_3 = 011$, $T_4 = 101$, $T_5 = 110$ with weights $[10, 1, 100]$. Then $weight(S_0 \& T_3) = 11$, $weight(S_0 \& T_4) = 101$, $weight(S_0 \& T_5) = 11$, showing non-monotonicity as $j$ increases. This irregular behavior prevents greedy selection of the best $j$ for each $i$, and two-pointer techniques fail because there's no consistent ordering property to exploit.
+
+**[THOUGHT_04_04]**
+
+The search space remains quadratic, making this approach infeasible for large $N$. Even with precomputation, we cannot escape the fundamental limitation that there are $O(N^2)$ possible $(i,j)$ pairs to examine, each requiring constant time for mask intersection and weight computation.
+
+**[THOUGHT_04_05]**
+
+Since the two-dimensional pairing under a length constraint cannot be resolved by simple optimizations, we need a different viewpoint. Instead of iterating over $(i, j)$, we should iterate over candidate overlap masks $M$ and ask whether there exist $i$ and $j$ that realize $M$ with $j - i \ge L$. This flips the axes and leverages $K \le 20$.
+
+---
+
+**[CHAIN_05]**
+
+Reformulate feasibility per mask and identify an efficient aggregator.
+
+**[THOUGHT_05_01]**
+
+For any mask $M$, it is feasible if there exist indices $i, j$ such that $S_i \supseteq M$, $T_j \supseteq M$, and $j - i \ge L$. If feasible, choosing window $[i + 1, j]$ gives us snapshots $S_i$ and $T_j$ whose intersection $S_i \& T_j$ contains $M$ as a subset, so the score $weight(S_i \& T_j) \ge weight(M)$. Therefore, the optimal score is the maximum weight of any feasible $M$.
+
+**[THOUGHT_05_02]**
+
+To implement this feasibility check, we need to track when each exact mask appears. While simulating, we can record:
+- $earliestXExact[X]$: smallest $i$ with $S_i = X$.
+- $latestYExact[Y]$: largest $j$ with $T_j = Y$.
+These arrays have size $2^K$ and can be filled in $O(N)$ time during the single pass of swaps.
+
+**[THOUGHT_05_03]**
+
+For feasibility we require:
+- For each mask $M$, find the minimum $earliestXExact[X]$ over all supermasks $X \supseteq M$.
+- For each mask $M$, find the maximum $latestYExact[Y]$ over all supermasks $Y \supseteq M$.
+Naively computing these for each $M$ by iterating all supermasks leads to $O(3^K)$ total operations, which is not acceptable for $K = 20$.
+
+**[THOUGHT_05_04]**
+
+The required aggregation over all supermasks is a classic Sum Over Subsets dynamic programming pattern. It permits computing the minimum $earliestXExact$ over supermasks via successive relaxation in $O(K \cdot 2^K)$, and similarly for the maximum $latestYExact$ over supermasks.
+
+---
+
+**[CHAIN_06]**
+
+Apply SOS DP and assemble the final solution.
+
+**[THOUGHT_06_01]**
+
+We initialize $S_0 = X$ and $T_0 = Y$, mark their timestamps, then for each swap $j$ update both masks in $O(1)$ by swapping the two bits. Update $earliestXExact[S_j]$ and $latestYExact[T_j]$. This costs $O(N)$.
+
+**[THOUGHT_06_02]**
+
+To get the minimum $earliestXExact$ over supermasks, we propagate minima from supermasks to submasks: for each bit position and each mask not containing that bit, relax the value from the mask with that bit set. For the maximum $latestYExact$ over supermasks, propagate maxima similarly. After this, for every $M$ we know the earliest $i$ and latest $j$ such that $S_i \supseteq M$ and $T_j \supseteq M$.
+
+**[THOUGHT_06_03]**
+
+In parallel with the supermask propagation, we also need weight sums for each mask. We build the weight sum for each mask as the sum of $w_i$ over set bits. This is done in $O(2^K)$ by peeling off one set bit at a time, for example using the least significant set bit trick.
+
+**[THOUGHT_06_04]**
+
+For each mask $M$ from 0 to $2^K - 1$, we check if the earliest time for $X$ supermasks is finite and the latest time for $Y$ supermasks is valid, and if their difference is at least $L$. If so, update the answer with the weight sum of $M$. The maximum over all $M$ is the desired result.
+
+**[THOUGHT_06_05]**
+
+The approach runs in $O(N + K \cdot 2^K)$ time and $O(2^K)$ memory for the timestamp and weight arrays. With $N \le 10^6$ and $K \le 20$ (so $2^{20} \approx 10^6$), this comfortably fits within time and memory limits.
+
+---
+
+**[CHAIN_07]**
+
+Validate correctness, address edges, and note implementation details.
+
+**[THOUGHT_07_01]**
+
+For any chosen window $[l, r]$, let $M = S_{l-1} \& T_r$. Since $S_{l-1} \supseteq M$ and $T_r \supseteq M$, we have $earliestXExact[M] \le l - 1$ and $latestYExact[M] \ge r$, hence $latestYExact[M] - earliestXExact[M] \ge r - (l - 1) \ge L$. Therefore $M$ passes the feasibility check and its weight is considered. Conversely, if some $M$ passes the check with indices $i$ and $j$, selecting window $[i + 1, j]$ yields an overlap that contains $M$, contributing at least the weight sum of $M$. Taking the maximum over $M$ is thus sound.
+
+**[THOUGHT_07_02]**
+
+We initialize $earliestXExact$ with a large sentinel and $latestYExact$ with $-1$. Always record the initial states at time 0. The empty mask $M = 0$ always has earliest time 0 and latest time $N$ after supermask propagation, so the answer is at least 0. If no nonempty mask satisfies the length constraint, output 0.
+
+**[THOUGHT_07_03]**
+
+Masks fit in 32-bit integers. Weights and the final answer must be 64-bit to avoid overflow. Convert $a_j, b_j$ to 0-based before bit operations. Compute $j - i$ in 32-bit integers safely; it is bounded by $N$.
+
+**[THOUGHT_07_04]**
+
+Swapping two bits in a mask in $O(1)$ avoids temporary arrays and reduces memory traffic. The following snippet illustrates a safe and fast helper:
+
+```cpp
+/**
+ * @brief Swaps two bit positions in a bitmask if they differ.
+ *
+ * @param mask Reference to the bitmask to modify.
+ * @param a Zero-based index of the first bit to swap.
+ * @param b Zero-based index of the second bit to swap.
+ */
+inline void applySwapBitwise(int &mask, int a, int b) {
+    int ba = (mask >> a) & 1;
+    int bb = (mask >> b) & 1;
+    if (ba != bb) {
+        mask ^= (1 << a);
+        mask ^= (1 << b);
+    }
+}
+```
+
+**[THOUGHT_07_05]**
+
+Show the SOS DP relaxation skeleton. Propagate minima for $earliestXExact$ and maxima for $latestYExact$ from supermasks to submasks with the standard pattern:
+
+```cpp
+// Propagate from supermasks to submasks for earliest times (min) and latest times (max).
+for (int bit = 0; bit < K; ++bit) {
+    for (int mask = (1 << K) - 1; mask >= 0; --mask) {
+        if ((mask & (1 << bit)) == 0) {
+            int sup = mask | (1 << bit);
+            earliestXExact[mask] = min(earliestXExact[mask], earliestXExact[sup]);
+            latestYExact[mask] = max(latestYExact[mask], latestYExact[sup]);
+        }
+    }
+}
+```
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given two binary strings $X$ and $Y$ of length $K$, and a sequence of $N$ swaps. Each swap exchanges two positions simultaneously in both $X$ and $Y$. We must select a continuous window $[l, r]$ of at least $L$ swaps, snapshot $X$ just before swap $l$ and $Y$ just after swap $r$, then compute the total weight of positions that are 1 in both snapshots. The goal is to maximize this weight.
+
+Formally, define $S_i$ as the mask of $X$ after applying swaps $1$ through $i$ and $T_i$ similarly for $Y$, with $S_0 = X$ and $T_0 = Y$. For a window $[l, r]$, the score equals the sum of $w_i$ over all indices where both $S_{l-1}$ and $T_r$ have bit 1. Equivalently, the score is the sum of weights over bits set in the bitwise AND of $S_{l-1}$ and $T_r$.
+
+Key observations:
+- With $K \le 20$, each state can be represented as a $K$-bit integer mask, and arrays of size $2^K$ are feasible.
+- With $N \le 10^6$, we must avoid any $O(N^2)$ enumeration of windows or pairs $(i, j)$.
+- If we can determine for a given mask $M$ whether it can appear as a subset of both snapshots with the two times at least $L$ apart, then we can directly maximize over masks by their weight.
+
+
+**2. Optimal Approach**
+
+We shift from scanning windows to scanning masks. For any mask $M$, it is feasible if there exist indices $i, j$ with $S_i ⊇ M$, $T_j ⊇ M$, and $j - i \ge L$. If feasible, there exists a window $[i + 1, j]$ where the overlap contains $M$, thus contributing at least the sum of weights over bits set in $M$. Therefore, the answer is the maximum weight over all feasible masks $M$.
+
+Steps:
+1. Represent each string state as a $K$-bit mask.
+2. Simulate all $N$ swaps once while maintaining two evolving masks $xMask$ and $yMask$. Record:
+   - $earliestXExact[X]$: the smallest $i$ such that $S_i = X$.
+   - $latestYExact[Y]$: the largest $j$ such that $T_j = Y$.
+3. Compute weight sums for all masks via DP on masks: $maskWeightSum[mask]$ is the sum of $w_i$ for set bits in that mask.
+4. Use supermask propagation to aggregate over supermasks in $O(K \cdot 2^K)$:
+   - For each mask $M$, find the minimum $earliestXExact[X]$ over all supermasks $X ⊇ M$.
+   - For each mask $M$, find the maximum $latestYExact[Y]$ over all supermasks $Y ⊇ M$.
+5. For each mask $M$, if $latestYExact[M] - earliestXExact[M] \ge L$, update the answer with $maskWeightSum[M]$. The maximum across all masks is the result.
+
+Correctness sketch:
+- Any chosen window $[l, r]$ induces a mask $M$ equal to the bitwise AND of $S_{l-1}$ and $T_r$. Since $S_{l-1} ⊇ M$ and $T_r ⊇ M$, we have $earliestXExact[M] \le l - 1$ and $latestYExact[M] \ge r$, hence $latestYExact[M] - earliestXExact[M] \ge L$. Thus $M$ is considered and its weight is achievable.
+- Conversely, if a mask $M$ satisfies $latestYExact[M] - earliestXExact[M] \ge L$, selecting $[i + 1, j]$ with $i = earliestXExact[M]$ and $j = latestYExact[M]$ realizes an overlap that contains $M$, achieving at least $maskWeightSum[M]$.
+
+Overall complexity is $O(N + K \cdot 2^K)$ time and $O(2^K)$ space.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+/**
+ * @brief Swap two bit positions in a bitmask if they differ.
+ *
+ * This function toggles bits at positions @p firstIndex and @p secondIndex
+ * if and only if those bits currently hold different values. This is equivalent
+ * to swapping the bits while avoiding unnecessary operations when the bits are equal.
+ *
+ * @param mask        Reference to the bitmask to modify (bits are indexed from 0).
+ * @param firstIndex  Zero-based index of the first bit to swap.
+ * @param secondIndex Zero-based index of the second bit to swap.
+ */
+void applySwapBitwise(int& mask, int firstIndex, int secondIndex) {
+    int bitA = (mask >> firstIndex) & 1;
+    int bitB = (mask >> secondIndex) & 1;
+    if (bitA != bitB) {
+        mask ^= (1 << firstIndex);
+        mask ^= (1 << secondIndex);
+    }
+}
+
+/**
+ * @brief Compute the sum of pedestal weights for every bitmask.
+ *
+ * For a given number of positions (bits) @p numPositions and pedestal weights @p weights,
+ * this function returns an array @c maskWeightSum where @c maskWeightSum[mask] equals the
+ * sum of weights of all set bits in @p mask.
+ *
+ * @param weights      Vector of pedestal weights; @c weights[i] is the weight at position i.
+ * @param numPositions Number of bit positions (K).
+ * @return std::vector<long long> where element @c maskWeightSum[mask] equals the total weight
+ *         of set bits in @p mask.
+ */
+std::vector<long long> computeWeightSums(const std::vector<long long>& weights, int numPositions) {
+    int totalMasks = 1 << numPositions;
+    std::vector<long long> maskWeightSum(totalMasks, 0);
+    std::vector<int> powerIndex(totalMasks, -1);
+
+    for (int i = 0; i < numPositions; ++i) {
+        powerIndex[1 << i] = i;
+    }
+    for (int mask = 1; mask < totalMasks; ++mask) {
+        int lowest = mask & -mask;               // Lowest set bit.
+        int bitIndex = powerIndex[lowest];       // Position of that bit.
+        maskWeightSum[mask] = maskWeightSum[mask ^ lowest] + weights[bitIndex];
+    }
+    return maskWeightSum;
+}
+
+/**
+ * @brief Propagate earliest and latest occurrence times from supermasks to submasks.
+ *
+ * This performs the standard "Sum Over Subsets" style propagation over the hypercube,
+ * but we name it explicitly to clarify intent. For each mask, we minimize @p earliestXExact
+ * over all supermasks and maximize @p latestYExact over all supermasks. This lets us answer
+ * queries for any subset mask using data known for supersets.
+ *
+ * @param numPositions  Number of bit positions (K).
+ * @param earliestXExact For each mask, earliest time it appears in X's sequence;
+ *                       will be minimized over all supermasks.
+ * @param latestYExact   For each mask, latest time it appears in Y's sequence;
+ *                       will be maximized over all supermasks.
+ */
+void propagateFromSupermasks(int numPositions,
+                             std::vector<int>& earliestXExact,
+                             std::vector<int>& latestYExact) {
+    int totalMasks = 1 << numPositions;
+    for (int bit = 0; bit < numPositions; ++bit) {
+        for (int mask = totalMasks - 1; mask >= 0; --mask) {
+            if ((mask & (1 << bit)) == 0) {
+                int supermask = mask | (1 << bit);
+                earliestXExact[mask] = std::min(earliestXExact[mask], earliestXExact[supermask]);
+                latestYExact[mask] = std::max(latestYExact[mask], latestYExact[supermask]);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Program entry point.
+ *
+ * Reads the problem input, simulates the swap sequence for both X and Y, records
+ * the earliest (for X) and latest (for Y) exact appearances of every mask along the
+ * timeline, propagates those times to all submasks, and then selects the maximum
+ * achievable weight sum subject to the minimum window-length constraint.
+ *
+ * Input format:
+ *  - N L K
+ *  - w_1 ... w_K
+ *  - X (binary string of length K)
+ *  - Y (binary string of length K)
+ *  - N lines of swaps: a_j b_j (1-based indices)
+ *
+ * Output:
+ *  - Single integer: the maximum resonance value (64-bit).
+ *
+ * @return int Exit status code (0 on success).
+ *
+ * @note The constant kInfinity below is a sentinel strictly larger than any feasible
+ *       time index (since N ≤ 10^6). It is used to denote "unseen" states when
+ *       computing minima. This is intentional and standard for such DP-style propagations.
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int numSwaps, minWindowLength, numberOfPositions;
+    if (!(std::cin >> numSwaps >> minWindowLength >> numberOfPositions)) {
+        return 0;
+    }
+
+    std::vector<long long> weights(numberOfPositions);
+    for (int i = 0; i < numberOfPositions; ++i) {
+        std::cin >> weights[i];
+    }
+
+    std::string xString, yString;
+    std::cin >> xString >> yString;
+
+    // Convert initial strings to masks; bit i corresponds to position i (0-based).
+    int xMask = 0, yMask = 0;
+    for (int i = 0; i < numberOfPositions; ++i) {
+        if (xString[i] == '1') {
+            xMask |= (1 << i);
+        }
+        if (yString[i] == '1') {
+            yMask |= (1 << i);
+        }
+    }
+
+    int totalMasks = 1 << numberOfPositions;
+
+    // Sentinel larger than any feasible time index (N ≤ 1e6).
+    const int kInfinity = 1000000007;
+
+    // earliestXExact[mask] = earliest time t where X_t == mask
+    // latestYExact[mask]   = latest   time t where Y_t == mask
+    std::vector<int> earliestXExact(totalMasks, kInfinity);
+    std::vector<int> latestYExact(totalMasks, -1);
+
+    // Record initial states at time 0.
+    earliestXExact[xMask] = std::min(earliestXExact[xMask], 0);
+    latestYExact[yMask] = std::max(latestYExact[yMask], 0);
+
+    // Process swaps; update both sequences' states and timestamps.
+    for (int time = 1; time <= numSwaps; ++time) {
+        int aInput, bInput;
+        std::cin >> aInput >> bInput;
+        --aInput;  // Convert to 0-based.
+        --bInput;  // Convert to 0-based.
+        applySwapBitwise(xMask, aInput, bInput);
+        applySwapBitwise(yMask, aInput, bInput);
+        earliestXExact[xMask] = std::min(earliestXExact[xMask], time);
+        latestYExact[yMask] = std::max(latestYExact[yMask], time);
+    }
+
+    // Precompute weight sums for all masks.
+    std::vector<long long> maskWeightSum = computeWeightSums(weights, numberOfPositions);
+
+    // Propagate earliest (min) and latest (max) from supermasks to submasks.
+    propagateFromSupermasks(numberOfPositions, earliestXExact, latestYExact);
+
+    // Select the best feasible mask.
+    long long bestAnswer = 0;
+    for (int mask = 0; mask < totalMasks; ++mask) {
+        int timeBefore = earliestXExact[mask];
+        int timeAfter = latestYExact[mask];
+        if (timeBefore == kInfinity || timeAfter == -1) {
+            continue;
+        }
+        if (timeAfter - timeBefore >= minWindowLength) {
+            bestAnswer = std::max(bestAnswer, maskWeightSum[mask]);
+        }
+    }
+
+    std::cout << bestAnswer << "\n";
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- State representation: Each configuration is a $K$-bit mask where bit $i$ corresponds to position $i$.
+- Swap simulation: For each of the $N$ swaps, we swap the two bits in both $xMask$ and $yMask$ in $O(1)$ time using the $applySwapBitwise$ function. While simulating, we record:
+  - The earliest time a mask appears in $X$'s sequence using $earliestXExact$.
+  - The latest time a mask appears in $Y$'s sequence using $latestYExact$.
+- Weight computation: Using DP on masks, we compute $maskWeightSum[mask]$ as the sum of $w_i$ over set bits in that mask by peeling off the lowest set bit using the $computeWeightSums$ function.
+- Supermask propagation: The $propagateFromSupermasks$ function performs SOS-style DP. For each bit and each mask missing that bit, we relax values from the supermask (the same mask with that bit set) down to the mask. This yields, for every mask $M$, the earliest $i$ such that $S_i ⊇ M$ and the latest $j$ such that $T_j ⊇ M$.
+- Final selection: We iterate all masks $M$. If $timeAfter - timeBefore \ge minWindowLength$, then $M$ is feasible for some window and contributes $maskWeightSum[M]$ as a candidate. The maximum is stored in $bestAnswer$ and printed.
+
+
+**5. Time and Space Complexity**
+
+- Time complexity:
+  - Swap simulation and timestamping: $O(N)$ for processing $numSwaps$ iterations.
+  - Weight sums computation in $computeWeightSums$: $O(2^K)$ for iterating through all $totalMasks$.
+  - Supermask propagation in $propagateFromSupermasks$: $O(K \cdot 2^K)$ for $numberOfPositions$ bits and $totalMasks$ masks.
+  - Final scan over all masks: $O(2^K)$ for checking feasibility of each mask.
+  - Total: $O(N + K \cdot 2^K)$.
+
+- Space complexity:
+  - Arrays $earliestXExact$, $latestYExact$, and $maskWeightSum$ of size $2^K$: $O(2^K)$.
+  - Additional temporary arrays like $powerIndex$: $O(2^K)$.
+  - Total: $O(2^K)$.
+
+
+**6. Conclusion**
+
+By converting snapshots to bit masks and reframing the task as checking mask feasibility under a timing gap, we leverage $K \le 20$ to achieve $O(N + K \cdot 2^K)$ time and $O(2^K)$ space. A single pass simulates swaps and timestamps states; supermask propagation aggregates earliest and latest feasible times across supermasks; scanning all masks under the length constraint yields the maximum resonance value. This solution is efficient and robust within the given constraints.

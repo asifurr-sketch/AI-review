@@ -1,0 +1,554 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Arrays and Lists", "Sorting Algorithms", "Searching Algorithms", "Greedy Algorithms", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 5, $ O(2^T) \rightarrow O(m^2) \rightarrow O(n \log n) \rightarrow O(n \log n) \rightarrow O(n \log n) $
+
+**Number of Chains:** - 8
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Quarantine Corridor: The Stardust Sweeper**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **256 MB**
+
+A maintenance drone patrols an infinite line of docking gates numbered 1, 2, 3, .... Two quarantine buoys are fixed at gates $ P $ and $ Q $, and the drone starts at gate $ S $, where $ P < S < Q $. The buoys are completely off-limits: the drone must never occupy those gates or step beyond them. It can only move within the strictly open corridor $ (P, Q) $.
+
+There are $ n $ stardust caches scattered along the gates. The $ i $-th cache is at gate $ g_i $; multiple caches may occur at the same gate. When the drone arrives at a gate for the first time, it instantly vacuums all caches present there. Moving from gate $ x $ to gate $ x-1 $ or $ x+1 $ costs exactly one thruster pulse. The drone has at most $ T $ thruster pulses to spend in total.
+
+What is the maximum number of stardust caches the drone can vacuum?
+
+**Input Format:-**
+- First line: four integers $ S, P, Q, T $.
+- Second line: integer $ n $.
+- Third line: $ n $ integers $ g_1, g_2, \ldots, g_n $.
+
+**Output Format:-**
+- Output a single integer: the maximum number of caches the drone can vacuum using at most $ T $ thruster pulses without ever stepping onto $ P $ or $ Q $ or going outside $ (P, Q) $.
+
+**Constraints:-**
+- $ 1 \le n \le 200000 $
+- $ 1 \le P < S < Q \le 10^9 $
+- $ 0 \le T \le 10^{18} $
+- $ 1 \le g_i \le 10^9 $
+- The $ g_i $ are not guaranteed to be distinct.
+**Examples:-**
+ - **Input:**
+```
+6 3 12 4
+8
+12 11 10 9 6 5 4 3
+```
+
+ - **Output:**
+```
+3
+```
+
+ - **Input:**
+```
+6 5 9 1
+6
+6 7 5 8 6 4
+```
+
+ - **Output:**
+```
+3
+```
+
+**Note:-**
+In the first example, only gates strictly inside (3, 12) are usable: 4…11. Caches at 3 and 12 are off-limits and never count. Starting at S=6, the drone instantly takes the cache at 6. With T=4, a simple optimal plan is to go left to gate 4 (cost 2), collecting gates 5 and 4 along the way. That yields 3 total caches (4, 5, 6). Reaching the right cluster (9, 10, 11) would take at least 3 pulses just to touch 9, giving fewer caches within the same or greater cost, and covering both sides would exceed T. Hence the answer is 3.
+
+In the second example, the usable corridor is (5, 9) = {6, 7, 8}. Caches at 5 and 4 do not count. There are two caches at gate 6, one at 7, one at 8. The drone starts at 6 and immediately collects both caches there. With T=1, it can move to 7 (cost 1) to collect one more cache; it cannot step onto 5 or reach 8 within the budget. Total = 3.
+
+Additional clarifications:
+- The drone may finish anywhere; it does not need to return to S.
+- Passing through a gate counts as arriving; all caches at that gate are collected the first time it is visited (multiple caches at the same gate are all taken at once).
+- Gates P and Q and anything outside (P, Q) are never visitable or countable.
+- A useful way to think about optimal routes is as visiting all gates in some interval [L, R] with P+1 ≤ L ≤ S ≤ R ≤ Q−1. The minimal pulses needed are (R − L) + min(S − L, R − S); one-sided trips reduce to the distance to the farthest visited gate.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying problem requirements and invariants
+
+**[THOUGHT_01_01]**
+
+Restate the setting precisely: We have an infinite line of gates indexed by positive integers. Two forbidden gates $ P $ and $ Q $ bound an open corridor $ (P, Q) $. The drone begins at $ S $ with $ P < S < Q $. It cannot step onto $ P $ or $ Q $, nor outside the open interval. Movement between adjacent gates costs one thruster pulse, and the drone has a budget of $ T $ pulses.
+
+**[THOUGHT_01_02]**
+
+Define the resource and actions: Every cache is located at some gate $ g_i $. If the drone visits a gate for the first time, it collects all caches at that gate instantly (no extra cost). Movement is the only cost to consider. The objective is to maximize the number of collected caches within the pulse budget.
+
+**[THOUGHT_01_03]**
+
+Constrain the relevant domain: Any $ g_i \le P $ or $ g_i \ge Q $ is irrelevant because the drone cannot step onto or beyond $ P $ or $ Q $. Thus, only $ g_i \in (P, Q) $ contribute to a feasible plan.
+
+**[THOUGHT_01_04]**
+
+Establish a key optimality structure: Because collection at a gate is free upon first visit, if the drone ever reaches an interval $[L, R]$ with $ P < L \le R < Q $, the optimal plan over that coverage is to collect all caches at every gate in $[L, R]$. Hence, without loss of generality, an optimal visited set can be taken as a contiguous interval $[L, R]$ contained in $ (P, Q) $.
+
+**[THOUGHT_01_05]**
+
+Quantify minimal cost to cover an interval: The minimal pulses needed to visit all of $[L, R]$, starting at $ S $ and ending anywhere, is
+$ (R - L) + \min(|S - L|, |R - S|) $.
+Intuition: Move first to the nearer endpoint of $[L, R]$, then sweep once to the other endpoint. There is no need to return.
+
+**[THOUGHT_01_06]**
+
+Reduce the optimization goal: After filtering, sort distinct gate positions $ X[0 \ldots m-1] $ inside $ (P, Q) $, and let $ W[t] $ be the number of caches at $ X[t] $. The problem reduces to choosing indices $ i \le j $ such that the interval $[X[i], X[j]]$ fits within budget using the above cost, while maximizing the sum $ \sum_{t=i}^{j} W[t] $.
+
+---
+
+**[CHAIN_02]**
+
+Analyzing sample test cases and designing other tests
+
+**[THOUGHT_02_01]**
+
+**Input:** $ S = 6, P = 3, Q = 12, T = 4 $ with $ n = 8 $ caches at positions $ [12, 11, 10, 9, 6, 5, 4, 3] $.
+
+**Output:** $ 3 $.
+
+**Explanation:** The drone starts at gate 6 and can only move within the corridor $ (3, 12) $, so gates 4 through 11 are accessible. Caches at gates 3 and 12 are off-limits. With $ T = 4 $ pulses, the drone can collect the cache at its starting position (gate 6) and then move left to collect caches at gates 5 and 4, using exactly 2 pulses for movement. This gives a total of 3 caches collected, which is the maximum possible within the pulse budget.
+
+**[THOUGHT_02_02]**
+
+**Input:** $ S = 6, P = 5, Q = 9, T = 1 $ with $ n = 6 $ caches at positions $ [6, 7, 5, 8, 6, 4] $.
+
+**Output:** $ 3 $.
+
+**Explanation:** The drone starts at gate 6 within the corridor $ (5, 9) $, so only gates 6, 7, and 8 are accessible. Caches at gates 5 and 4 are off-limits. There are 2 caches at gate 6, 1 at gate 7, and 1 at gate 8. With only $ T = 1 $ pulse, the drone can collect the 2 caches at its starting position (gate 6) and then move to gate 7 (costing 1 pulse) to collect 1 more cache. It cannot reach gate 8 within the budget. This gives a total of 3 caches collected.
+
+**[THOUGHT_02_03]**
+
+No caches after filtering: Inputs where all $ g_i \le P $ or $ g_i \ge Q $ or $ n = 0 $. Expected output is $ 0 $. Confirms corridor filtering is correct.
+
+**[THOUGHT_02_04]**
+
+Zero movement budget: $ T = 0 $. The only collectable caches are those at $ S $ (possibly multiple). Ensures handling of the degenerate interval $[S, S]$ and duplicates.
+
+**[THOUGHT_02_05]**
+
+Single reachable gate: Corridor $ (P, Q) $ contains exactly one gate (e.g., $ Q = P + 2 $ and $ S = P + 1 $). Check both with and without caches at $ S $. Validates boundary and off-limits constraints.
+
+**[THOUGHT_02_06]**
+
+All caches at the same gate: Many $ g_i $ equal to the same position inside $ (P, Q) $. Ensures compression and counting duplicates work and that cost computation for $ L = R $ is correct.
+
+**[THOUGHT_02_07]**
+
+Symmetric caches around $ S $: Equal weights to the left and right; verify the algorithm chooses the best-balanced interval under the budget.
+
+**[THOUGHT_02_08]**
+
+Highly asymmetric distribution: One side has a dense cluster far away, the other side has sparse nearby caches. Validates the correct use of the cost formula and that the algorithm can prefer a near sparse set over a far dense set if budget is tight.
+
+**[THOUGHT_02_09]**
+
+Extreme coordinates and large budget: $ P, Q, S, g_i $ near $ 10^9 $, $ T $ near $ 10^{18} $. Assures 64-bit arithmetic correctness and absence of overflow in the cost computation.
+
+**[THOUGHT_02_10]**
+
+Tight budget boundary: Construct cases where expanding an interval by one more distinct position just exceeds $ T $. Ensures the window limiting logic is precise and monotone.
+
+**[THOUGHT_02_11]**
+
+Start near a boundary: $ S $ very close to $ P $ or $ Q $. Verifies that the cost remains accurate and that forbidden gates are never implicitly included.
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force path enumeration
+
+**[THOUGHT_03_01]**
+
+Attempt definition: Model the drone as performing up to $ T $ steps, each step choosing left or right if legal. Maintain a visited set to avoid double-counting caches. Aggregate the best total over all sequences of up to $ T $ moves.
+
+**[THOUGHT_03_02]**
+
+State space size: Each step has up to 2 choices (left or right) barring boundaries. The number of paths is $ O(2^T) $. With $ T $ as large as $ 10^{18} $, this approach is intractable by astronomical margins.
+
+**[THOUGHT_03_03]**
+
+State dimension explosion: Even if we tried DP on states $ (position, stepsUsed, visitedSet) $, the visited set ranges over arbitrarily many gates within reach, making the state space exponential. Using a bitmask is impossible because the number of distinct gates can be up to $ 2 \cdot 10^5 $.
+
+**[THOUGHT_03_04]**
+
+Early pruning is insufficient: Heuristics like greedy expansion towards nearest cache or pruning dominated paths do not reduce worst-case complexity; adversarial placements cause exponential branching to remain.
+
+**[THOUGHT_03_05]**
+
+Conclusion and failure reason: Brute force path enumeration is fundamentally misaligned with the problem’s structure and constraints due to exponential explosion in $ T $ and the combinatorial number of possible visitation orders. We must move to a structure-exploiting approach.
+
+---
+
+**[CHAIN_04]**
+
+Enumerating all candidate intervals
+
+**[THOUGHT_04_01]**
+
+Structural leverage: Use the insight that an optimal visitation set can be taken as a contiguous interval $[L, R]$. After filtering to $ (P, Q) $, sort the positions and compress duplicates into arrays $ X $ (distinct gates) and $ W $ (cache counts).
+
+**[THOUGHT_04_02]**
+
+Naive interval enumeration: Check every pair $ i \le j $ and compute the total caches via prefix sums of $ W $, while verifying the budget constraint using the cost formula $ (R - L) + \min(|S - L|, |R - S|) $.
+
+**[THOUGHT_04_03]**
+
+Complexity assessment: There are $ O(m^2) $ intervals (with $ m \le n \le 2 \cdot 10^5 $). Even with $ O(1) $ per interval using prefix sums and direct cost computation, the total time balloons to $ O(10^{10}) $, which is too slow for typical time limits.
+
+
+**[THOUGHT_04_04]**
+
+Memory is fine but time isn’t: Although storage for $ X, W $, and prefix sums is linear, the time complexity dominates and makes this approach infeasible.
+
+**[THOUGHT_04_05]**
+
+Conclusion and failure reason: Full interval enumeration squanders the monotonic structure of feasible windows with respect to the budget. We need a method that avoids rechecking overlapping intervals repeatedly.
+
+---
+
+**[CHAIN_05]**
+
+Restricting to single-direction sweeps
+
+**[THOUGHT_05_01]**
+
+Heuristic idea: Consider only intervals anchored at $ S $ that extend in one direction: either left-only $[L, S]$ or right-only $[S, R]$. For left-only, the cost reduces to $ (S - L) $; for right-only, it reduces to $ (R - S) $. This simplifies selection to two 1D problems.
+
+**[THOUGHT_05_02]**
+
+Implementation sketch: After compression, sort the distinct gate positions in ascending order. Find the split index $ k $ where $ X[k] \ge S $ using binary search. For left-only sweeps, iterate $ i = k-1, k-2, \ldots $ while $ S - X[i] \le T $ (distance from $ S $ to farthest left gate) and accumulate weights. For right-only sweeps, iterate $ j = k, k+1, \ldots $ while $ X[j] - S \le T $ (distance from $ S $ to farthest right gate) and accumulate weights. Choose the better of the two sums.
+
+**[THOUGHT_05_03]**
+
+Complexity evaluation: Input processing and filtering cost $ O(n) $. Sorting the filtered positions costs $ O(n \log n) $. Compression into distinct gates costs $ O(n) $. Finding the split index costs $ O(\log m) $. The two linear scans (left and right) cost $ O(m) $ where $ m \le n $ is the number of distinct gates. Total time complexity is $ O(n \log n) $ dominated by sorting. Space complexity is $ O(n) $ for storing the original filtered positions and compressed arrays.
+
+**[THOUGHT_05_04]**
+
+Counterexample exposing flaw: Suppose $ S = 10 $, caches concentrated at $ 9 $ and $ 11 $ with weights 3 and 3, and $ T = 2 $. The interval $[9, 11]$ costs $ (11 - 9) + \min(|10 - 9|, |11 - 10|) = 2 + 1 = 3 $, which exceeds $ T = 2 $. Adjust $ T = 3 $ to see the gap: the optimal collects 6 by sweeping both sides, while left-only or right-only collects only 3. Thus, one-sided sweeps can miss the true optimum.
+
+**[THOUGHT_05_05]**
+
+Why this fails in general: The budget-efficient route often goes first to the nearer endpoint and sweeps through $ S $ to the far endpoint, capturing both sides. Ignoring intervals that straddle $ S $ discards potentially optimal solutions.
+
+**[THOUGHT_05_06]**
+
+Conclusion and failure reason: One-sided sweeps are an oversimplification. They neglect the critical case where the optimal interval includes gates on both sides of $ S $, which the true optimal cost formula explicitly allows.
+
+---
+
+**[CHAIN_06]**
+
+Applying binary search per left endpoint to achieve subquadratic time
+
+**[THOUGHT_06_01]**
+
+Refined plan: Still use $ X $ and $ W $. For each left index $ i $, find the maximum right index $ j $ such that the interval $[X[i], X[j]]$ is within budget. The sum $ \sum_{t=i}^{j} W[t] $ is retrieved with prefix sums.
+
+**[THOUGHT_06_02]**
+
+Monotonicity enabling search: For fixed $ i $, the function $ j \mapsto (X[j] - X[i]) + \min(|S - X[i]|, |X[j] - S|) $ is non-decreasing in $ j $ because both the span term and the approach term are non-decreasing as $ X[j] $ increases. Hence the feasible set of $ j $ is a prefix, enabling binary search.
+
+**[THOUGHT_06_03]**
+
+Complexity evaluation: Input processing and filtering cost $ O(n) $. Sorting the filtered positions costs $ O(n \log n) $. Compression into distinct gates costs $ O(n) $. Each $ i $ performs an $ O(\log m) $ binary search, yielding total $ O(m \log m) $ for the binary search phase. Total time complexity is $ O(n \log n) $ dominated by sorting. Space is $ O(n) $ for storing the original filtered positions and compressed arrays.
+
+**[THOUGHT_06_04]**
+
+This already might pass typical constraints. However, we can do better by exploiting two-pointer monotonic advancement to reduce the $ \log m $ factor and simplify implementation.
+
+**[THOUGHT_06_05]**
+
+Conclusion: Binary search per left endpoint is a solid subquadratic improvement using the interval-cost monotonicity and prefix sums, and it motivates an even faster sliding window.
+
+---
+
+**[CHAIN_07]**
+
+Implementing a monotone two-pointer window to achieve linear scanning
+
+**[THOUGHT_07_01]**
+
+Core idea: Maintain a window $[i, j]$ over $ X $ representing $[L, R] = [X[i], X[j]]$. For each $ i $, advance $ j $ as far as possible while the interval cost remains $ \le T $. Keep a running sum of $ W $ in the window.
+
+**[THOUGHT_07_02]**
+
+Why $ j $ is non-decreasing with $ i $: For fixed $ j $, when the left endpoint increases from $ X[i] $ to $ X[i+1] $, the span term $ (X[j] - X[i]) $ strictly decreases by $ \Delta = X[i+1] - X[i] $. For the approach term, observe two cases: If the interval $[X[i], X[j]]$ lies entirely to the right of $ S $, then $ \min(|S - X[i]|, |X[j] - S|) = |S - X[i]| $ and the cost simplifies to $ X[j] - S $, which is independent of $ X[i] $ and thus unchanged when $ i $ increments. Otherwise, when $ X[i] \le S $, increasing $ X[i] $ either decreases $ |S - X[i]| $ or leaves the minimum determined by the fixed term $ |X[j] - S| $; in both cases, the approach term does not increase. Consequently, the total cost is non-increasing as $ i $ increments. Hence any $ j $ feasible for $ i $ remains feasible for $ i + 1 $, enabling $ j $ to advance monotonically.
+
+**[THOUGHT_07_03]**
+
+Window maintenance details: Initialize $ j = i - 1 $ with running sum $ 0 $ (empty). While $ j + 1 < m $ and the interval $[X[i], X[j + 1]]$ fits the budget, increment $ j $ and add $ W[j] $. Record the best sum. When sliding $ i $ forward, if $ j \ge i $, subtract $ W[i] $ from the running sum to maintain the window sum.
+
+**[THOUGHT_07_04]**
+
+Cost computation stability: Use 64-bit integers for all positions and costs. Compute the interval cost as
+$ (X[j] - X[i]) + \min(|S - X[i]|, |X[j] - S|) $.
+The differences fit in 64-bit signed range because each position is at most $ 10^9 $, while $ T $ can be $ 10^{18} $.
+
+**[THOUGHT_07_05]**
+
+Complexity: Input processing and filtering cost $ O(n) $. Sorting the filtered positions costs $ O(n \log n) $. Compression into distinct gates costs $ O(n) $. The two-pointer scan costs $ O(m) $ where $ m \le n $ is the number of distinct gates. Total time complexity is $ O(n \log n) $ dominated by sorting. Space complexity is $ O(n) $ for storing the original filtered positions and compressed arrays.
+
+**[THOUGHT_07_06]**
+
+Edge handling: If all $ g_i $ are filtered out, return 0 immediately. When $ i = j $, the cost reduces to $ |S - X[i]| $, consistent with visiting a single gate at $ X[i] $. Duplicate gates are handled by summing counts into $ W $ during compression.
+
+---
+
+**[CHAIN_08]**
+
+Verifying corner cases, correctness arguments, and implementation polish
+
+**[THOUGHT_08_01]**
+
+Contiguity correctness sketch: For any visited set $ U \subset (P, Q) $ with minimum $ L $ and maximum $ R $, any route that visits all of $ U $ must traverse from $ L $ to $ R $ (or vice versa), necessarily passing through every gate in $[L, R]$. Since collection is free upon first visit, visiting $[L, R]$ collects at least as many caches as visiting only $ U $. Thus, it suffices to optimize over intervals.
+
+**[THOUGHT_08_02]**
+
+Cost optimality sketch: On a line with no return requirement, the minimal way to cover an interval is to approach the nearer endpoint and then sweep once to the other. Any detour or back-and-forth adds unnecessary distance. Therefore, the minimal cost is exactly
+$ (R - L) + \min(|S - L|, |R - S|) $.
+
+**[THOUGHT_08_03]**
+
+64-bit arithmetic and overflow safety: Positions and differences fit in 32-bit, but $ T $ can be $ 10^{18} $. Use 64-bit for sums and costs. Avoid intermediate overflow by computing differences before additions and using absolute values on 64-bit operands.
+
+**[THOUGHT_08_04]**
+
+Filtering and compression nuances: Strictly enforce $ P < g_i < Q $. After sorting, compress equal $ g_i $ into a single $ X $ entry with weight $ W $ equal to the frequency. This ensures $ m \le n $ and reduces the two-pointer to run on distinct gates only.
+
+**[THOUGHT_08_05]**
+
+Budget edge behaviors: If $ T $ is very small, many windows will be empty or singletons; the algorithm gracefully handles $ j < i $ initialization and single-step expansions. If $ T $ is very large, the window expands to include the entire $ X $-range within the corridor, producing the total count.
+
+**[THOUGHT_08_06]**
+
+Test-plan cross-check: zero budget recovers only caches at $ S $ if present; start near boundary does not step onto $ P $ or $ Q $; symmetric and asymmetric distributions are handled by the cost's minimum term selecting the nearer approach; duplicates at a gate aggregate correctly via $ W $.
+
+**[THOUGHT_08_07]**
+
+Overall complexity summary: Input processing and filtering cost $ O(n) $. Sorting the filtered positions costs $ O(n \log n) $. Compression into distinct gates costs $ O(n) $. The two-pointer scan costs $ O(m) $ where $ m \le n $. Total time complexity is $ O(n \log n) $ dominated by sorting. Space complexity is $ O(n) $ for storing the original filtered positions and compressed arrays. This comfortably satisfies the constraints up to $ 2 \cdot 10^5 $ inputs.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given an infinite line of gates indexed by positive integers. Two quarantine buoys at gates $ P $ and $ Q $ are off-limits, and the drone starts at gate $ S $ with $ P < S < Q $. The drone can move only within the strictly open corridor $ (P, Q) $, paying one thruster pulse per unit move to adjacent gates. There are $ n $ stardust caches at gates $ g_i $, with possibly multiple caches at the same gate. On the first visit to a gate, the drone collects all caches there at no additional cost. The drone has at most $ T $ thruster pulses and must maximize the number of collected caches.
+
+Key observations:
+- Caches at gates $ g_i \le P $ or $ g_i \ge Q $ are unreachable; only those with $ g_i \in (P, Q) $ are relevant.
+- Since collection is free upon first visit and only movement costs pulses, the optimal visited set can be assumed to be all gates in some contiguous interval $[L, R] \subset (P, Q)$.
+- The minimal pulses to visit all gates in $[L, R]$ starting at $ S $ (ending anywhere) is
+$ (R - L) + \min(|S - L|, |R - S|) $.
+  This corresponds to moving first to the nearer endpoint, then sweeping once to the other endpoint.
+
+The goal is to select $[L, R]$ that maximizes the total caches inside it while the minimal movement cost is at most $ T $.
+
+**2. Optimal Approach**
+
+Steps:
+1) Filter and preprocess:
+- Keep only positions strictly inside $ (P, Q) $.
+- Sort these positions and compress duplicates into distinct gates `distinctGates` with counts `cachesPerGate` of caches at each gate.
+
+2) Interval cost:
+- For any interval $[distinctGates[i], distinctGates[j]]$, the minimal cost to cover it from $ S $ is
+$ (distinctGates[j] - distinctGates[i]) + \min(|S - distinctGates[i]|, |distinctGates[j] - S|) $.
+
+3) Two-pointer sliding window:
+- Maintain a window $[leftIndex, rightIndex]$ over indices of `distinctGates` with a running sum `windowCacheSum` of `cachesPerGate` in the window.
+- For each left index `leftIndex`, expand the right index `rightIndex` as far as possible while the interval cost remains $ \le T $.
+- Record the maximum sum over all feasible windows. Thanks to monotonicity, `rightIndex` never needs to move backward as `leftIndex` increases, enabling a linear scan after sorting.
+
+4) Edge handling and numeric safety:
+- If no caches remain after filtering, answer is $ 0 $.
+- Use 64-bit integers for positions, counts, and costs since $ T $ can be up to $ 10^{18} $.
+
+This yields $ O(n \log n) $ time due to sorting and $ O(m) $ for the two-pointer scan, where $ m \le n $ is the number of distinct reachable gates.
+
+**3. Code**
+```cpp
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+
+/**
+ * @brief Compute the minimal thruster pulses to visit every gate in [leftGate, rightGate],
+ *        starting from startGate. The drone may finish anywhere within the interval.
+ *
+ * The cost formula matches the problem's optimal strategy for sweeping a contiguous interval:
+ *   cost = (rightGate - leftGate) + min(|startGate - leftGate|, |rightGate - startGate|)
+ *
+ * @param leftGate  Left endpoint of the visited interval (inclusive).
+ * @param rightGate Right endpoint of the visited interval (inclusive).
+ * @param startGate Starting gate S.
+ * @return Minimal number of thruster pulses needed to cover the interval.
+ */
+static inline long long computeCoverCost(long long leftGate, long long rightGate, long long startGate) {
+    const long long span = rightGate - leftGate;
+    const long long approachLeft  = std::llabs(startGate - leftGate);
+    const long long approachRight = std::llabs(rightGate - startGate);
+    return span + std::min(approachLeft, approachRight);
+}
+
+/**
+ * @brief Program entry point. Reads input, filters gates strictly inside (P, Q),
+ *        compresses duplicates into (distinctGate, cacheCount) buckets, and
+ *        applies a two-pointer window to maximize caches within budget T.
+ *
+ * Input:
+ *   S P Q T
+ *   n
+ *   g_1 g_2 ... g_n
+ *
+ * Output:
+ *   Maximum number of caches that can be vacuumed without stepping onto P or Q
+ *   and without exceeding T thruster pulses.
+ *
+ * @return 0 on successful execution.
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    long long startGate, leftBound, rightBound, thrusterBudget;
+    if (!(std::cin >> startGate >> leftBound >> rightBound >> thrusterBudget)) {
+        return 0;
+    }
+
+    int numberOfCaches;
+    std::cin >> numberOfCaches;
+
+    // Collect only gates strictly inside (P, Q). Caches on P or Q are off-limits.
+    std::vector<long long> cacheGatePositions;
+    cacheGatePositions.reserve(numberOfCaches);
+    for (int i = 0; i < numberOfCaches; ++i) {
+        long long gate;
+        std::cin >> gate;
+        if (gate > leftBound && gate < rightBound) {
+            cacheGatePositions.push_back(gate);
+        }
+    }
+
+    // If there are no caches in the usable corridor, the answer is 0.
+    if (cacheGatePositions.empty()) {
+        std::cout << 0 << '\n';
+        return 0;
+    }
+
+    std::sort(cacheGatePositions.begin(), cacheGatePositions.end());
+
+    // Compress duplicates: for each distinct gate, count how many caches are there.
+    std::vector<long long> distinctGates;
+    std::vector<long long> cachesPerGate;
+    distinctGates.reserve(cacheGatePositions.size());
+    cachesPerGate.reserve(cacheGatePositions.size());
+
+    for (std::size_t i = 0; i < cacheGatePositions.size(); ) {
+        std::size_t j = i + 1;
+        while (j < cacheGatePositions.size() && cacheGatePositions[j] == cacheGatePositions[i]) {
+            ++j;
+        }
+        distinctGates.push_back(cacheGatePositions[i]);
+        cachesPerGate.push_back(static_cast<long long>(j - i));
+        i = j;
+    }
+
+    const int totalDistinctGates = static_cast<int>(distinctGates.size());
+
+    long long maxCachesCollected = 0;
+    long long windowCacheSum = 0;
+    int rightIndex = -1;
+
+    // Two-pointer (sliding window) over distinct gates:
+    // Expand rightIndex while the interval [leftIndex, rightIndex] is coverable within T;
+    // track the sum of caches in the current window.
+    for (int leftIndex = 0; leftIndex < totalDistinctGates; ++leftIndex) {
+        if (rightIndex < leftIndex - 1) {
+            rightIndex = leftIndex - 1;
+            windowCacheSum = 0;
+        }
+        while (rightIndex + 1 < totalDistinctGates &&
+               computeCoverCost(distinctGates[leftIndex],
+                                distinctGates[rightIndex + 1],
+                                startGate) <= thrusterBudget) {
+            ++rightIndex;
+            windowCacheSum += cachesPerGate[rightIndex];
+        }
+        if (windowCacheSum > maxCachesCollected) {
+            maxCachesCollected = windowCacheSum;
+        }
+        if (rightIndex >= leftIndex) {
+            windowCacheSum -= cachesPerGate[leftIndex];
+        }
+    }
+
+    std::cout << maxCachesCollected << '\n';
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- Filtering:
+  - Read `startGate`, `leftBound`, `rightBound`, `thrusterBudget` and `numberOfCaches`.
+  - Retain only positions in `cacheGatePositions` with `leftBound < gate < rightBound`. If none remain, print 0.
+
+- Sorting and compression:
+  - Sort the retained positions in `cacheGatePositions`.
+  - Build arrays `distinctGates` and `cachesPerGate` where each distinct gate appears once with the number of caches at that gate.
+
+- Cost function:
+  - `computeCoverCost` computes $ (rightGate - leftGate) + \min(|startGate - leftGate|, |rightGate - startGate|) $, the minimal pulses needed to cover an interval starting from `startGate`.
+
+- Two-pointer scan:
+  - For each `leftIndex` over `distinctGates`, greedily expand `rightIndex` while the interval $[distinctGates[leftIndex], distinctGates[rightIndex+1]]$ fits within the pulse budget.
+  - Maintain `windowCacheSum` as the total caches within the current window; update `maxCachesCollected` with the maximum `windowCacheSum` observed.
+  - When sliding the left boundary forward, remove the count at `distinctGates[leftIndex]` from `windowCacheSum` if it is included.
+
+- The algorithm respects corridor boundaries by filtering and never tries to step onto $ P $ or $ Q $.
+
+**5. Time and Space Complexity**
+
+- **Input processing and filtering**: $ O(n) $ to read and filter cache positions.
+- **Sorting**: $ O(n \log n) $ to sort the filtered cache positions.
+- **Compression**: $ O(n) $ to compress duplicates into `distinctGates` and `cachesPerGate`.
+- **Two-pointer sliding window**: $ O(m) $ where $ m $ is the number of distinct gates (at most $ n $).
+- **Total time complexity**: $ O(n \log n) $ dominated by sorting.
+- **Space complexity**: $ O(n) $ for `cacheGatePositions`, `distinctGates`, and `cachesPerGate` arrays.
+
+**6. Conclusion**
+
+By reducing the plan to visiting a single contiguous interval and using the optimal interval coverage cost on a line, we convert the problem into maximizing the sum over a feasible sliding window on compressed, sorted gate positions. The two-pointer method exploits monotonicity to run in linear time after sorting, handles duplicates naturally, and is robust for large inputs with 64-bit arithmetic.

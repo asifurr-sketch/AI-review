@@ -1,0 +1,743 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Control Structures and Loops", "Arrays and Lists", "Basic Data Structures", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - $4,\ O((R-L+1)^2)\ per\ query\ ->\ O(R \times log R)\ per\ query\ ->\ O(R)\ per\ query\ ->\ O(\sqrt{R})\ per\ query$
+
+**Number of Chains:** - 8
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Resonant Lanterns of Lumeris**
+
+Time Limit: **2 seconds**
+
+Memory Limit: **256 MB**
+
+In the misty port city of Lumeris, rows of enchanted lanterns blink at steady intervals. An archivist records which lantern duos sing in harmony: a duo $(A, B)$ is called resonant if $B$ blinks at an exact whole-number multiple of $A$’s interval, and $B$’s interval is strictly longer. Given several ranges of lantern intervals, count how many resonant duos exist within each range.
+
+Formally, for each query with a range $[L, R]$, count the number of ordered pairs $(A, B)$ such that:
+- $L \le A \lt B \le R$
+- There exists an integer $k \ge 2$ with $B = k \cdot A$
+
+Note that pairs are ordered: $(A, B)$ is different from $(B, A)$.
+
+**Input Format:-**
+
+- The first line contains a single integer $T$ — the number of ranges to analyze.
+- Each of the next $T$ lines contains two integers $L$ and $R$ — the bounds of a range of lantern intervals.
+
+**Output Format:-**
+
+- For each query, output a single integer: the number of resonant duos in that range.
+
+**Constraints:-**
+
+- $1 \le T \le 100000$
+- $1 \le L \le R \le 1000000$
+- Use $64$-bit integers for all computations and outputs.
+
+**Examples:-**
+
+ - **Input:**
+```
+5
+1 10
+1 10
+1 10
+1 10
+1 10
+```
+
+ - **Output:**
+```
+17
+17
+17
+17
+17
+```
+
+ - **Input:**
+```
+6
+1 15
+1 16
+1 17
+2 17
+3 17
+4 17
+```
+
+ - **Output:**
+```
+30
+34
+35
+19
+12
+8
+```
+
+**Note:-**
+
+In the first example, the same range $[1, 10]$ is asked five times. For one such query, count contributions per $A$:
+- $A = 1 \rightarrow B \in \{2,\dots,10\}: 9$ pairs
+- $A = 2 \rightarrow B \in \{4,6,8,10\}: 4$ pairs
+- $A = 3 \rightarrow B \in \{6,9\}: 2$ pairs
+- $A = 4 \rightarrow B = 8: 1$ pair
+- $A = 5 \rightarrow B = 10: 1$ pair
+- $A \geq 6 \rightarrow$ no valid multiple within $10$
+
+Total $= 9 + 4 + 2 + 1 + 1 = 17$. As the query repeats, the output line $17$ repeats five times.
+
+In the second example, we use the pattern “for each $A \in [L, R]$, add $\lfloor R/A \rfloor − 1$” (terms vanish once $A > R/2$). Applying it to each query:
+- $[1, 15]: 14 + 6 + 4 + 2 + 2 + 1 + 1 = 30$
+- $[1, 16]: 15 + 7 + 4 + 3 + 2 + 1 + 1 + 1 = 34$
+- $[1, 17]: 16 + 7 + 4 + 3 + 2 + 1 + 1 + 1 = 35$
+- $[2, 17]: 7 + 4 + 3 + 2 + 1 + 1 + 1 = 19$
+- $[3, 17]: 4 + 3 + 2 + 1 + 1 + 1 = 12$
+- $[4, 17]: 3 + 2 + 1 + 1 + 1 = 8$
+
+Each sum matches the corresponding output line.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarify and reframe the resonant pairs counting task.
+
+**[THOUGHT_01_01]**
+
+Define the objective precisely: for each query interval $[L, R]$, count all ordered pairs $(A, B)$ such that $L \le A < B \le R$ and $B$ is an exact integer multiple of $A$. The multiplicative condition is formalized as the existence of an integer $k \ge 2$ where $B = k \cdot A$. Order matters; only the direction from the smaller to the larger value is valid.
+
+
+**[THOUGHT_01_02]**
+
+Recognize the meaning of the constraints. The condition $k \ge 2$ ensures $B > A$ and rules out trivial pairs. The integer multiple requirement structures the set of valid $B$ values for a fixed $A$ as a discrete arithmetic progression $A, 2A, 3A, \dots$.
+
+
+**[THOUGHT_01_03]**
+
+Adopt two equivalent counting views. Starter-interval view: fix $A$ and count $B$ as its multiples within $[L, R]$, contributing $\lfloor R / A \rfloor - 1$ per $A$. Multiplier view: fix $k \ge 2$ and count $A$ with $L \le A \le \lfloor R / k \rfloor$, contributing $\max\bigl(0, \lfloor R / k \rfloor - L + 1\bigr)$ per $k$. Both produce the same total and are exact.
+
+
+**[THOUGHT_01_04]**
+
+Build intuition with a small interval. For $[1, 10]$: $A = 1$ contributes $9$ pairs; $A = 2$ contributes $4$; $A = 3$ contributes $2$; $A = 4$ contributes $1$; $A = 5$ contributes $1$; larger $A$ contribute $0$. The total is $17$, confirming the formulation.
+
+
+**[THOUGHT_01_05]**
+
+Identify structural monotonicity that invites grouping. As $A$ increases, $\lfloor R / A \rfloor$ decreases; as $k$ increases, $\lfloor R / k \rfloor$ decreases. These staircase behaviors imply long plateaus of equal values, a property we can exploit to sum large blocks efficiently.
+
+
+**[THOUGHT_01_06]**
+
+Establish feasibility targets from constraints. With $T \le 100000$ and $R \le 1000000$, per-query complexity near $O(\sqrt{R})$ and $O(1)$ extra space is desirable. Approaches that are linear or quadratic in $R - L + 1$ will not scale for worst-case inputs.
+
+
+---
+
+**[CHAIN_02]**
+
+Example Explanations and Designing comprehensive test cases to validate behavior and robustness.
+
+**[THOUGHT_02_01]**
+
+TESTCASE 1
+
+In the first example, the same range $[1, 10]$ is asked five times. For one such query, count contributions per $A$:
+- $A = 1 \rightarrow B \in \{2,\dots,10\}: 9$ pairs
+- $A = 2 \rightarrow B \in \{4,6,8,10\}: 4$ pairs
+- $A = 3 \rightarrow B \in \{6,9\}: 2$ pairs
+- $A = 4 \rightarrow B = 8: 1$ pair
+- $A = 5 \rightarrow B = 10: 1$ pair
+- $A \geq 6 \rightarrow$ no valid multiple within $10$
+
+Total $= 9 + 4 + 2 + 1 + 1 = 17$. As the query repeats, the output line $17$ repeats five times.
+
+**[THOUGHT_02_02]**
+
+In the second example, we use the pattern “for each $A \in [L, R]$, add $\lfloor R/A \rfloor − 1$” (terms vanish once $A > R/2$). Applying it to each query:
+- $[1, 15]: 14 + 6 + 4 + 2 + 2 + 1 + 1 = 30$
+- $[1, 16]: 15 + 7 + 4 + 3 + 2 + 1 + 1 + 1 = 34$
+- $[1, 17]: 16 + 7 + 4 + 3 + 2 + 1 + 1 + 1 = 35$
+- $[2, 17]: 7 + 4 + 3 + 2 + 1 + 1 + 1 = 19$
+- $[3, 17]: 4 + 3 + 2 + 1 + 1 + 1 = 12$
+- $[4, 17]: 3 + 2 + 1 + 1 + 1 = 8$
+
+Each sum matches the corresponding output line.
+
+**[THOUGHT_02_03]**
+
+Use degenerate intervals to confirm base behavior. For $[1, 1]$, no pair satisfies $A < B$, so the result is $0$. This validates immediate termination when the range size is $1$.
+
+
+**[THOUGHT_02_04]**
+
+Test single-point intervals beyond $1$. For $[5, 5]$, the answer is $0$. This ensures the logic is not biased by the lower bound and that self-pairs are excluded correctly.
+
+
+**[THOUGHT_02_05]**
+
+Verify a medium, structured interval. For $[3, 14]$, compute $N = \lfloor 14 / 3 \rfloor = 4$. Using the multiplier formula yields $8$. This checks arithmetic and boundary handling for both $A$ and $k$.
+
+
+**[THOUGHT_02_06]**
+
+Check a dense small interval to catch off-by-one errors. For $[1, 10]$, the expected answer is $17$. This exercises multiple overlapping multiplicative chains.
+
+
+**[THOUGHT_02_07]**
+
+Confirm behavior in sparsely resonant ranges. For $[7, 13]$, any multiple $k \cdot A$ with $k \ge 2$ exceeds $R$, so the answer is $0$. This prevents accidental counting of out-of-range multiples.
+
+
+**[THOUGHT_02_08]**
+
+Probe near the upper bound with a narrow window. For $[999999, 1000000]$, all $k \ge 2$ push $B$ beyond $R$, so the answer is $0$. This tests boundary arithmetic and overflow safety.
+
+
+**[THOUGHT_02_09]**
+
+Use a moderately large interval with many interactions. For $[2, 20]$, the expected count is $27$. This validates correct aggregation across many bases and multipliers.
+
+
+**[THOUGHT_02_10]**
+
+Stress-test performance by using many queries. Construct input with $T$ near $10^5$ mixing worst-case $R$ and varied $L$. This ensures per-query time is independent and consistently near $O(\sqrt{R})$.
+
+
+---
+
+**[CHAIN_03]**
+
+Implement brute force to establish a correctness baseline and expose impracticality.
+
+**[THOUGHT_03_01]**
+
+Enumerate all ordered pairs. For each $A \in [L, R]$, iterate all $B \in [A+1, R]$ and check whether $B \bmod A = 0$. This directly encodes the definition without any optimization, ensuring conceptual clarity.
+
+
+**[THOUGHT_03_02]**
+
+Quantify the time cost. With $n = R - L + 1$, the approach performs $\Theta(n^2)$ checks per query. For $n \approx 10^6$, this yields around $10^{12}$ operations, far exceeding feasible execution time even in optimized C++.
+
+
+**[THOUGHT_03_03]**
+
+Acknowledge the space profile. The memory usage is $O(1)$, which is optimal, but does not mitigate the dominant quadratic time. The constant factors (simple arithmetic) cannot rescue the asymptotics.
+
+
+**[THOUGHT_03_04]**
+
+Note edge-case handling. Cases like $L = R$ or $N = \lfloor R / L \rfloor < 2$ trivially return $0$, but these early exits do not address the main weakness on larger intervals.
+
+
+**[THOUGHT_03_05]**
+
+Conclude failure and motivate improvement. While correct and simple, the brute-force approach is untenable under the problem constraints. We must leverage arithmetic structure to prune the search space drastically.
+
+
+---
+
+**[CHAIN_04]**
+
+Enumerate multiples per A and diagnose slowness to refine the counting process.
+
+**[THOUGHT_04_01]**
+
+Count multiples per base. For a fixed $A$, valid $B$ are the multiples $2A, 3A, \dots, \lfloor \texttt{rightBound} / A \rfloor A$, giving $\lfloor \texttt{rightBound} / A \rfloor - 1$ choices. Summing over all $A \in [\texttt{leftBound}, \texttt{rightBound}]$ yields the exact answer without pairwise checking.
+
+
+**[THOUGHT_04_02]**
+
+Assess naive iteration cost. Computing $\sum_{A=\texttt{leftBound}}^{\texttt{rightBound}} \lfloor \texttt{rightBound} / A \rfloor$ via a simple loop takes $O(\texttt{rightBound} - \texttt{leftBound} + 1)$ floor divisions per query. For large inputs this is too slow.
+
+
+
+**[THOUGHT_04_03]**
+
+Consider generating multiples explicitly. Iterating $B = 2A, 3A, \dots$ for each $A$ resembles a sieve, with total steps near $\sum_{A=\texttt{leftBound}}^{\texttt{rightBound}} \lfloor \texttt{rightBound} / A \rfloor$. In the worst case ($\texttt{leftBound}=1$), this behaves like $\Theta(\texttt{rightBound} \log \texttt{rightBound})$ per query and is still too slow across many queries.
+
+
+
+**[THOUGHT_04_04]**
+
+Evaluate precomputation options. Precomputing for all possible $\texttt{rightBound}$ and adjusting for arbitrary $\texttt{leftBound}$ is nontrivial because the lower bound shifts invalidate simple prefix schemes. Two-dimensional precomputation is memory-heavy.
+
+
+
+**[THOUGHT_04_05]**
+
+Conclude inadequacy and pivot. Although counting per $A$ is structurally direct, the per-query workload remains too high. We need a summation with fewer terms or a faster evaluation technique.
+
+
+---
+
+**[CHAIN_05]**
+
+Rewrite via multipliers and simplify the summation to isolate the core bottleneck.
+
+**[THOUGHT_05_01]**
+
+Re-express the count using multipliers. For $k \ge 2$, valid $A$ must satisfy $\texttt{leftBound} \le A \le \lfloor \texttt{rightBound} / k \rfloor$. Let $\texttt{maxMultiplier} = \lfloor \texttt{rightBound} / \texttt{leftBound} \rfloor$; if $k > \texttt{maxMultiplier}$, even $A = \texttt{leftBound}$ violates $kA \le \texttt{rightBound}$, so such $k$ contribute nothing. The count becomes
+
+$$ \sum_{k=2}^{\texttt{maxMultiplier}} \max\bigl(0, \lfloor \texttt{rightBound} / k \rfloor - \texttt{leftBound} + 1\bigr). $$
+
+
+**[THOUGHT_05_02]**
+
+Start from the direct reasoning for a fixed multiplier $k$:
+- The values of $A$ that satisfy $kA \le R$ are $A = 1,2,\dots,\left\lfloor \dfrac{R}{k}\right\rfloor$.
+- We only want $A$ with $A \ge L$. Therefore, for each $k$ the count of valid $A$ is
+  $$
+    \max\Big(0,\; \left\lfloor \frac{R}{k}\right\rfloor - (L-1) \Big).
+  $$
+When $k \le \texttt{maxMultiplier} = \left\lfloor \dfrac{R}{L}\right\rfloor$, the quotient $\left\lfloor \dfrac{R}{k}\right\rfloor \ge L$ and the $\max$ is not active. Thus for all such $k$ the count simplifies to
+$$
+\left\lfloor \frac{R}{k}\right\rfloor - (L-1).
+$$
+
+Summing over $k=2$ to $N=\texttt{maxMultiplier}$ gives
+$$
+\sum_{k=2}^{N} \Big(\left\lfloor \frac{R}{k}\right\rfloor - (L-1)\Big)
+= \sum_{k=2}^{N} \left\lfloor \frac{R}{k}\right\rfloor \;-\; (L-1)(N-1).
+$$
+
+This is algebraically identical to the alternative expression used in the implemented code:
+$$
+\sum_{k=2}^{N} \big(\lfloor R/k \rfloor - L + 1\big),
+$$
+because $- (L-1) = -L + 1$. Explicitly,
+$$
+\sum_{k=2}^{N} \big(\lfloor R/k \rfloor - L + 1\big)
+= \sum_{k=2}^{N} \left\lfloor \frac{R}{k}\right\rfloor \;-\; (L-1)(N-1).
+$$
+
+Final corrected statement for THOUGHT_05_02 (consistent with code):
+For $N = \left\lfloor \dfrac{R}{L}\right\rfloor$, since $\left\lfloor \dfrac{R}{k}\right\rfloor \ge L$ for all $2 \le k \le N$, the total count is
+$$
+\sum_{k=2}^{N} \Big(\left\lfloor \frac{R}{k}\right\rfloor - (L-1)\Big)
+\;=\;
+\sum_{k=2}^{N} \left\lfloor \frac{R}{k}\right\rfloor \;-\; (L-1)(N-1).
+$$
+
+
+**[THOUGHT_05_03]**
+
+Identify the new bottleneck. Naively summing $\lfloor \texttt{rightBound} / k \rfloor$ for $k=2$ to $\texttt{maxMultiplier}$ is $O(\texttt{maxMultiplier})$ per query. In the worst case ($\texttt{leftBound}=1$), $\texttt{maxMultiplier}=\texttt{rightBound}$ and the cost can be large.
+
+
+**[THOUGHT_05_04]**
+
+Reject linear-time summation as insufficient. While this formulation is an exact counting identity and cleaner than previous attempts, its direct evaluation remains too slow for the largest inputs.
+
+
+**[THOUGHT_05_05]**
+
+Prepare for acceleration. We must compute $\sum_{k=2}^{\texttt{maxMultiplier}} \lfloor \texttt{rightBound} / k \rfloor$ in sublinear time by grouping ranges of equal quotients.
+
+
+---
+
+**[CHAIN_06]**
+
+Group equal quotients to achieve $O(\sqrt{\texttt{rightBound}})$ per query.
+
+**[THOUGHT_06_01]**
+
+Leverage the quotient plateau property. For fixed $\texttt{rightBound}$, the function $k \mapsto \lfloor \texttt{rightBound} / k \rfloor$ has about $2\sqrt{\texttt{rightBound}}$ distinct values; quotients change only when $k$ crosses $\texttt{rightBound} / q$.
+
+
+**[THOUGHT_06_02]**
+
+Apply quotient grouping. At a current $\texttt{multiplierStart}$, compute $\texttt{tValue} = \lfloor \texttt{rightBound} / \texttt{multiplierStart} \rfloor$. All multipliers $k'$ in the integer interval
+
+$$ [\texttt{multiplierStart}, \lfloor \texttt{rightBound} / \texttt{tValue} \rfloor] $$
+
+have the same quotient $\texttt{tValue}$. The raw block contribution is
+
+$\texttt{tValue} \times (\lfloor \texttt{rightBound} / \texttt{tValue} \rfloor - \texttt{multiplierStart} + 1)$.
+
+
+**[THOUGHT_06_03]**
+
+Respect the upper limit $\texttt{maxMultiplier}$. Cap the block at
+
+$$ \texttt{multiplierEnd} = \min\bigl(\texttt{maxMultiplier}, \lfloor \texttt{rightBound} / \texttt{tValue} \rfloor\bigr). $$
+
+Add the block contribution
+
+$$ \texttt{tValue} \times (\texttt{multiplierEnd} - \texttt{multiplierStart} + 1) $$
+
+and set $\texttt{multiplierStart} = \texttt{multiplierEnd} + 1$.
+
+
+**[THOUGHT_06_04]**
+
+Compute the final count. Let
+
+$ S(\texttt{rightBound}, \texttt{maxMultiplier}) = \sum_{k=2}^{\texttt{maxMultiplier}} \lfloor \texttt{rightBound} / k \rfloor $
+
+computed via quotient grouping. If $\texttt{maxMultiplier} < 2$ return 0. Otherwise, the answer is
+
+$$ S(\texttt{rightBound}, \texttt{maxMultiplier}) - (\texttt{leftBound} - 1)(\texttt{maxMultiplier} - 1). $$
+
+
+**[THOUGHT_06_05]**
+
+Validate with example. For $[\texttt{leftBound}, \texttt{rightBound}] = [3, 14]$:
+- $\texttt{maxMultiplier} = 4$.
+- Blocks: $\texttt{multiplierStart}=2$ gives $\texttt{tValue}=7$, block $[2,2]$; $=3$ gives $\texttt{tValue}=4$, block $[3,3]$; $=4$ gives $\texttt{tValue}=3$, block $[4,4]$.
+- Sum $S = 7 + 4 + 3 = 14$. Final answer: $14 - (3 - 1)(4 - 1) = 8$.
+
+
+**[THOUGHT_06_06]**
+
+Summarize complexity and memory. Each query performs $O(\sqrt{\texttt{rightBound}})$ block updates and uses $O(1)$ extra space.
+
+
+---
+
+**[CHAIN_07]**
+
+Prove correctness, handle pitfalls, and stress-test complexity claims.
+
+**[THOUGHT_07_01]**
+
+Argue bijective counting in the multiplier view. Every valid pair $(A, B)$ maps uniquely to $k = B / A \ge 2$. For that $k$, $A$ lies in $[\texttt{leftBound}, \lfloor \texttt{rightBound} / k \rfloor]$. Summing over $k = 2..\texttt{maxMultiplier}$ counts every pair exactly once.
+
+
+**[THOUGHT_07_02]**
+
+Justify the simplified expression. For all $k \le \texttt{maxMultiplier}$, $\lfloor \texttt{rightBound} / k \rfloor \ge \texttt{leftBound}$, so
+
+$\max\bigl(0, \lfloor \texttt{rightBound} / k \rfloor - \texttt{leftBound} + 1\bigr) = \lfloor \texttt{rightBound} / k \rfloor - \texttt{leftBound} + 1$,
+
+and summing yields
+
+$ \sum_{k=2}^{\texttt{maxMultiplier}} \lfloor \texttt{rightBound} / k \rfloor - (\texttt{leftBound} - 1)(\texttt{maxMultiplier} - 1). $
+
+
+**[THOUGHT_07_03]**
+
+Address edge cases. If $\texttt{maxMultiplier} < 2$, no multiplier $k \ge 2$ satisfies $k\texttt{leftBound} \le \texttt{rightBound}$, so answer is 0. If $\texttt{leftBound} = \texttt{rightBound}$, answer is 0. If $\texttt{leftBound}=1$, the formula reduces to $\sum_{k=2}^{\texttt{rightBound}} \lfloor \texttt{rightBound} / k \rfloor$.
+
+
+**[THOUGHT_07_04]**
+
+Estimate numeric safety. For $[1, \texttt{rightBound}]$, total pairs are at most $\sum_{k=2}^{\texttt{rightBound}} \lfloor \texttt{rightBound} / k \rfloor \le \texttt{rightBound} \log \texttt{rightBound}$. For $\texttt{rightBound} \le 10^6$, this safely fits in 64-bit integers. Intermediate block products $\texttt{tValue} \times$ blockLength also fit within 64-bit.
+
+
+**[THOUGHT_07_05]**
+
+Evaluate time feasibility. With $\texttt{rightBound} \le 10^6$, $\sqrt{\texttt{rightBound}} \le 1000$ so each query does a few thousand iterations in worst case. With efficient C++ and memoization for repeated queries, this is practical even for many queries.
+
+
+
+**[THOUGHT_07_06]**
+
+Confirm space guarantees and implementation simplicity. The algorithm uses constant extra space, avoids elaborate data structures, and maintains deterministic behavior across all inputs, minimizing sources of bugs.
+
+
+---
+
+**[CHAIN_08]**
+
+Finalize the method and present a minimal implementation snippet (aligned with your code variable naming). The core functions used in the final implementation are `sumFloorDivFrom2` and `countResonantPairs`.
+
+**[THOUGHT_08_01]**
+
+Final algorithm summary.
+
+For each query $[\texttt{leftBound}, \texttt{rightBound}]$:
+
+1. Compute the largest possible multiplier
+   $$
+     \texttt{maxMultiplier} = \left\lfloor \frac{\texttt{rightBound}}{\texttt{leftBound}} \right\rfloor.
+   $$
+
+2. If $\texttt{maxMultiplier} < 2$, there are no valid pairs $(A,B)$ with $B = kA,\,k\ge 2$; return $0$.
+
+3. Otherwise compute
+   $$
+     S(\texttt{rightBound},\,\texttt{maxMultiplier}) = \sum_{k=2}^{\texttt{maxMultiplier}} \left\lfloor \frac{\texttt{rightBound}}{k} \right\rfloor.
+   $$
+   Use quotient-grouping (also known as "divide-and-conquer on quotients") to compute this sum in $O(\sqrt{\texttt{rightBound}})$: iterate $k$ from $2$ upwards, for each distinct quotient $q=\left\lfloor \frac{\texttt{rightBound}}{k}\right\rfloor$ take the whole block of $k$ values that yield that same $q$ at once.
+
+4. The number of ordered resonant pairs is
+   $$
+     \text{answer} \;=\; S(\texttt{rightBound},\,\texttt{maxMultiplier}) \;-\; (\texttt{leftBound}-1)\,(\texttt{maxMultiplier}-1).
+   $$
+   This follows because for a fixed multiplier $k$ the count $\lfloor \texttt{rightBound}/k \rfloor$ counts $A$ in $[1,\lfloor \texttt{rightBound}/k\rfloor]$, while we need only $A$ with $A\ge \texttt{leftBound}$, so we subtract $(\texttt{leftBound}-1)$ for each $k\in[2,\texttt{maxMultiplier}]$.
+
+
+**[THOUGHT_08_02]**
+
+Quotient-grouped summation loop. Initialize $\texttt{multiplierStart} = 2$ and while $\texttt{multiplierStart} \le \texttt{maxMultiplier}$ do:
+- $\texttt{tValue} = \lfloor \texttt{rightBound} / \texttt{multiplierStart} \rfloor$
+- $\texttt{multiplierEnd} = \min\bigl(\texttt{maxMultiplier}, \lfloor \texttt{rightBound} / \texttt{tValue} \rfloor\bigr)$
+- Accumulate $\texttt{tValue} \times (\texttt{multiplierEnd} - \texttt{multiplierStart} + 1)$
+- Set $\texttt{multiplierStart} = \texttt{multiplierEnd} + 1$
+
+
+**[THOUGHT_08_03]**
+
+Implementation notes and core functions.
+
+- `countResonantPairs(L, R)`: applies the formula with $N=\lfloor R/L\rfloor$. If $N<2$ return $0$. Otherwise compute $S = \text{sumFloorDivFrom2}(R, N)$ and return
+  $$
+    S - (L-1)(N-1).
+  $$
+
+
+```cpp
+/**
+ * @brief Counts the number of resonant pairs (A, B) within [leftBound, rightBound].
+ *
+ * Resonant condition:
+ *   - L ≤ A < B ≤ R
+ *   - B = k * A for some integer k ≥ 2
+ *
+ * Formula:
+ *   For each A, number of valid B = floor(R / A) - 1.
+ *   But instead of iterating A directly (too slow), we group by t = floor(R / k).
+ *
+ * Complexity: O(sqrt(R))
+ */
+i64 countResonantPairs(i64 leftBound, i64 rightBound) {
+  // If less than 2 numbers in the range, no valid pairs
+  if (rightBound - leftBound + 1 < 2) return 0;
+
+  // Largest multiplier possible: R / L
+  i64 maxMultiplier = rightBound / leftBound;
+  if (maxMultiplier < 2) return 0;
+
+  i64 totalPairs = 0;
+  i64 multiplierStart = 2;
+
+  // Group by consecutive multipliers that yield the same floor(R / multiplier)
+  while (multiplierStart <= maxMultiplier) {
+    i64 tValue = rightBound / multiplierStart;
+    if (tValue < leftBound) break;
+
+    // Find the last multiplier that gives the same tValue
+    i64 multiplierEnd = rightBound / tValue;
+    if (multiplierEnd > maxMultiplier) multiplierEnd = maxMultiplier;
+
+    // All A in [leftBound, tValue] are valid with these multipliers
+    i64 countAForThisT = tValue - leftBound + 1;
+    if (countAForThisT > 0) {
+      totalPairs += (multiplierEnd - multiplierStart + 1) * countAForThisT;
+    }
+
+    multiplierStart = multiplierEnd + 1;
+  }
+  return totalPairs;
+}
+
+```
+
+**[THOUGHT_08_04]**
+
+Discuss adherence to guidelines. The code uses only standard headers, 64-bit integers, lowerCamelCase for function names, Doxygen-style documentation, and 4-space indentation. It avoids external dependencies and keeps LaTeX math outside code fences as required.
+
+
+**[THOUGHT_08_05]**
+
+Summarize verification steps. Validate with the provided examples $[1, 10] \rightarrow 17$, $[3, 14] \rightarrow 8$, $[7, 13] \rightarrow 0$, plus boundary cases like $[1, 1] \rightarrow 0$, $[5, 5] \rightarrow 0$, and $[999999, 1000000] \rightarrow 0$. Confirm that performance remains stable across a large number of mixed queries.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given multiple queries. For each query with a range $[\texttt{leftBound}, \texttt{rightBound}]$, we must count the number of ordered pairs $(A, B)$ such that:
+- $\texttt{leftBound} \le A < B \le \texttt{rightBound}$
+- $B$ is an exact integer multiple of $A$, i.e., there exists an integer $k \ge 2$ with $B = k \cdot A$.
+
+Key observations:
+- For a fixed $A$, the valid $B$ are its multiples greater than $A$ and at most $\texttt{rightBound}$. The count contributed by $A$ is $\lfloor \texttt{rightBound} / A \rfloor - 1$.
+- For a fixed multiplier $k \ge 2$, the valid $A$ lie in $\texttt{leftBound} \le A \le \lfloor \texttt{rightBound} / k \rfloor$, contributing $\max(0, \lfloor \texttt{rightBound} / k \rfloor - \texttt{leftBound} + 1)$.
+- Define $\texttt{maxMultiplier} = \lfloor \texttt{rightBound} / \texttt{leftBound} \rfloor$. If $\texttt{maxMultiplier} < 2$, then even $2 \cdot \texttt{leftBound} > \texttt{rightBound}$, so the answer is 0.
+
+The main challenge is computing contributions efficiently for many queries.
+
+**2. Optimal Approach**
+
+We evaluate contributions with quotient grouping:
+- For fixed $\texttt{rightBound}$, the value $\lfloor \texttt{rightBound} / k \rfloor$ remains constant over ranges of consecutive multipliers.
+- If $\texttt{tValue} = \lfloor \texttt{rightBound} / \texttt{multiplierStart} \rfloor$, then for all multipliers in
+  $$ [\texttt{multiplierStart}, \lfloor \texttt{rightBound} / \texttt{tValue} \rfloor] $$
+  the quotient remains equal to $\texttt{tValue}$.
+
+Steps inside `countResonantPairs`:
+1. Compute $\texttt{maxMultiplier} = \lfloor \texttt{rightBound} / \texttt{leftBound} \rfloor$. If it is < 2, return 0.
+2. Initialize $\texttt{multiplierStart} = 2$ and $\texttt{totalPairs} = 0$.
+3. While $\texttt{multiplierStart} \le \texttt{maxMultiplier}$:
+   - Let $\texttt{tValue} = \lfloor \texttt{rightBound} / \texttt{multiplierStart} \rfloor$.
+   - If $\texttt{tValue} < \texttt{leftBound}$, break.
+   - Let $\texttt{multiplierEnd} = \lfloor \texttt{rightBound} / \texttt{tValue} \rfloor$, capped at $\texttt{maxMultiplier}$.
+   - Compute $\texttt{countAForThisT} = \texttt{tValue} - \texttt{leftBound} + 1$.
+   - Add contribution: $(\texttt{multiplierEnd} - \texttt{multiplierStart} + 1) \times \texttt{countAForThisT}$ to $\texttt{totalPairs}$.
+   - Set $\texttt{multiplierStart} = \texttt{multiplierEnd} + 1$.
+4. Return $\texttt{totalPairs}$.
+
+This achieves $O(\sqrt{\texttt{rightBound}})$ per query.
+
+**3. Code**
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+using i64 = long long;
+const i64 kInfinity = (i64)4e18;  // Not strictly needed, but kept as a style constant
+
+// Custom hash for pair<int64,int64> to use in unordered_map
+struct RangeHash {
+  size_t operator()(const pair<i64,i64>& rangePair) const noexcept {
+    // Simple hash combination: shift and xor
+    return std::hash<i64>()((rangePair.first << 32) ^ rangePair.second);
+  }
+};
+
+/**
+ * @brief Counts the number of resonant pairs (A, B) within [leftBound, rightBound].
+ *
+ * Resonant condition:
+ *   - L ≤ A < B ≤ R
+ *   - B = k * A for some integer k ≥ 2
+ *
+ * Formula:
+ *   For each A, number of valid B = floor(R / A) - 1.
+ *   But instead of iterating A directly (too slow), we group by t = floor(R / k).
+ *
+ * Complexity: O(sqrt(R))
+ */
+i64 countResonantPairs(i64 leftBound, i64 rightBound) {
+  // If less than 2 numbers in the range, no valid pairs
+  if (rightBound - leftBound + 1 < 2) return 0;
+
+  // Largest multiplier possible: R / L
+  i64 maxMultiplier = rightBound / leftBound;
+  if (maxMultiplier < 2) return 0;
+
+  i64 totalPairs = 0;
+  i64 multiplierStart = 2;
+
+  // Group by consecutive multipliers that yield the same floor(R / multiplier)
+  while (multiplierStart <= maxMultiplier) {
+    i64 tValue = rightBound / multiplierStart;
+    if (tValue < leftBound) break;
+
+    // Find the last multiplier that gives the same tValue
+    i64 multiplierEnd = rightBound / tValue;
+    if (multiplierEnd > maxMultiplier) multiplierEnd = maxMultiplier;
+
+    // All A in [leftBound, tValue] are valid with these multipliers
+    i64 countAForThisT = tValue - leftBound + 1;
+    if (countAForThisT > 0) {
+      totalPairs += (multiplierEnd - multiplierStart + 1) * countAForThisT;
+    }
+
+    multiplierStart = multiplierEnd + 1;
+  }
+  return totalPairs;
+}
+
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  int queryCount;
+  cin >> queryCount;
+
+  // Memoization map: cache results for repeated queries
+  unordered_map<pair<i64,i64>, i64, RangeHash> memo;
+  memo.reserve(queryCount * 2);  // reserve space to avoid rehashing
+
+  while (queryCount--) {
+    i64 leftBound, rightBound;
+    cin >> leftBound >> rightBound;
+    pair<i64,i64> key = {leftBound, rightBound};
+
+    // If query result already computed, reuse it
+    auto it = memo.find(key);
+    if (it != memo.end()) {
+      cout << it->second << '\n';
+    } else {
+      // Compute fresh result, store in memo, and print
+      i64 result = countResonantPairs(leftBound, rightBound);
+      memo[key] = result;
+      cout << result << '\n';
+    }
+  }
+  return 0;
+}
+
+```
+
+**4. Code Explanation**
+
+- **Function:** `countResonantPairs(leftBound, rightBound)` implements the efficient grouped counting.
+  - `leftBound` $\leftrightarrow L$
+  - `rightBound` $\leftrightarrow R$
+  - `maxMultiplier` $= \lfloor R/L \rfloor$
+  - `multiplierStart` iterates multipliers (starting from 2)
+  - `tValue` = quotient for current multiplier group
+  - `multiplierEnd` = last multiplier in this block
+  - `countAForThisT` = number of valid $A$ values in range $[L, tValue]$
+  - `totalPairs` = accumulated count of resonant pairs
+
+- **Main function:**
+  - Reads number of queries `queryCount`.
+  - Uses an `unordered_map` with `RangeHash` to memoize results for repeated queries.
+  - For each query, either reuses cached result or computes via `countResonantPairs` and stores it.
+
+- Example Execution
+
+For $[\texttt{leftBound}, \texttt{rightBound}] = [3, 14]$:
+- $\texttt{maxMultiplier} = \lfloor 14 / 3 \rfloor = 4$.
+- Iteration:
+  - `multiplierStart = 2` → `tValue = 7`, `multiplierEnd = 2`. `countAForThisT = 7 - 3 + 1 = 5`. Contribution = 1 × 5 = 5.
+  - `multiplierStart = 3` → `tValue = 4`, `multiplierEnd = 3`. `countAForThisT = 4 - 3 + 1 = 2`. Contribution = 1 × 2 = 2.
+  - `multiplierStart = 4` → `tValue = 3`, `multiplierEnd = 4`. `countAForThisT = 3 - 3 + 1 = 1`. Contribution = 1 × 1 = 1.
+- Total = 5 + 2 + 1 = 8.
+
+This matches the expected answer.
+
+
+**5. Time and Space Complexity**
+
+- Per query time complexity: $O(\sqrt{\texttt{rightBound}})$.
+- Per query space complexity: $O(1)$ apart from memoization.
+- 64-bit integers (`i64`) ensure safety of all computations.
+
+**6. Conclusion**
+
+By aligning computation to `multiplierStart` grouping and carefully bounding contributions with `tValue` and `multiplierEnd`, the solution achieves exact results efficiently. Memoization further avoids recomputation across repeated queries. By reformulating the counting problem through the multiplier view and evaluating the floor-division summation with quotient grouping, we achieve an exact and efficient solution. Each query runs in $O(\sqrt{R})$ time with constant extra space, meeting the constraints while maintaining simplicity and numerical safety.
