@@ -9,8 +9,8 @@ Each review point is performed by a specialized reviewer class with targeted pro
 Features:
 - Comprehensive review points covering all aspects of document quality
 - GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
-- Primary: Claude Opus 4.1 with 60k thinking budget for exceptional reasoning
-- Secondary: Claude Sonnet 4 for cleanup operations with 200k output tokens
+- Primary: Claude Opus 4.1 with 20k thinking budget for exceptional reasoning
+- Secondary: Claude Sonnet 4 for cleanup operations with 64k output tokens
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
 - Response quality and mathematical correctness (Points 4-11) 
 - Problem statement and solution validation (Points 12-17)
@@ -117,7 +117,7 @@ Original Response:
             
             with self.client.messages.stream(
                 model=self.secondary_model,
-                max_tokens=200000,  # Maximum output tokens for Claude Sonnet 4
+                max_tokens=64000,  # Maximum output tokens for Claude Sonnet 4
                 temperature=0.1,
                 messages=[
                     {
@@ -136,19 +136,12 @@ Original Response:
             
             cleaned_response = cleaned_response.strip()
             
-            # Remove ChatGPT-style formatting and markdown
+            # Remove **bold** and *italic* formatting while preserving all structure
             import re
             # Remove **bold** formatting
             cleaned_response = re.sub(r'\*\*(.*?)\*\*', r'\1', cleaned_response)
             # Remove *italic* formatting  
             cleaned_response = re.sub(r'\*(.*?)\*', r'\1', cleaned_response)
-            # Remove markdown headers (# ## ###)
-            cleaned_response = re.sub(r'^#{1,6}\s+', '', cleaned_response, flags=re.MULTILINE)
-            # Remove markdown code formatting `code`
-            cleaned_response = re.sub(r'`([^`]+)`', r'\1', cleaned_response)
-            # Clean up any double spaces or extra newlines
-            cleaned_response = re.sub(r'\s+', ' ', cleaned_response)
-            cleaned_response = re.sub(r'\n\s*\n', '\n\n', cleaned_response)
             
             # Add a small delay to respect API rate limits for the cleanup call
             import time
@@ -600,6 +593,18 @@ REQUIRED FORMAT SPECIFICATIONS:
 4. All fields must be present in this exact order
 5. The subtopic must be a valid JSON array format with proper quotes
 
+CRITICAL VALIDATION FOR "Number of Approaches":
+- Must contain both the count and the time complexity progression
+- Acceptable formats:
+  * "4, (O(n²+qn²) → O(qn²) → O(qn) → O(q))" 
+  * "3, ($O(2^n)$ → $O(n \\log n)$ → $O((n + s) \\log n)$)"
+  * "4, (O(n^4) → O(n^3) → O(n^2) → O(n log n))"
+- The number must match the count of approaches in the complexity progression
+- Can use either "->" or "→" arrows consistently
+- Can use LaTeX formatting with $ symbols or plain text
+- Must show progression from inefficient to efficient approaches
+- Variables must match those used in the problem statement
+
 CRITICAL VALIDATION FOR "Number of Chains":
 - Count all reasoning chains in the document with format **[CHAIN_01]**, **[CHAIN_02]**, etc.
 - The stated number must exactly match the actual count of CHAIN_XX sections in the document
@@ -611,9 +616,10 @@ WHAT TO CHECK:
 1. Metadata section exists with "# Metadata" header
 2. All required fields are present in correct order
 3. Each field follows the exact format: **FieldName:** - value
-4. Number of Chains matches actual CHAIN_XX sections count
-5. Subtopic is a properly formatted JSON array
-6. Values are appropriate for the content
+4. Number of Approaches contains both count and valid time complexity progression
+5. Number of Chains matches actual CHAIN_XX sections count
+6. Subtopic is a properly formatted JSON array
+7. Values are appropriate for the content
 
 Please answer pass or fail.
 
@@ -681,30 +687,49 @@ You are an expert response evaluator. Check if the time complexity mentioned in 
 
 **REQUIREMENTS:**
 1. **All Approaches Covered**: The metadata must list time complexity for EVERY approach discussed in the document (brute force, optimized, final solution, etc.)
-2. **Sequential Format**: Must follow the format showing progression from inefficient to efficient approaches (e.g., "O(N^2) -> O(N log N) -> O(N)")
-3. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
-4. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, then use those exact variables)
-5. **Correctness**: Each stated time complexity must be mathematically correct for its corresponding approach
+2. **Sequential Format**: Must follow the format showing progression from inefficient to efficient approaches using either "->" or "→" arrows
+3. **Count Consistency**: The number of complexity expressions must match the count specified in "Number of Approaches" field
+4. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
+5. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, Q, then use those exact variables)
+6. **Correctness**: Each stated time complexity must be mathematically correct for its corresponding approach
+7. **Complex Expressions**: Support complex mathematical expressions with multiple terms (e.g., "O(n²+qn²)", "O(n*m + k*log(n))")
 
 **ACCEPTABLE FORMATS:**
 - Single approach: "O(N)"
-- Two approaches: "O(N^2) -> O(N log N)"
-- Three approaches: "O(N^3) -> O(N^2) -> O(N log N)"
+- Two approaches: "O(N^2) -> O(N log N)" or "O(N²) → O(N log N)"
+- Three approaches: "O(N^3) -> O(N^2) -> O(N log N)" or "O(N³) → O(N²) → O(N log N)"
 - Multiple approaches: "O(N^2) -> O(N log N) -> O(N) -> O(log N)"
+- Complex expressions: "O(n²+qn²) → O(qn²) → O(qn) → O(q)"
+- Mixed variables: "O(n*m + k) → O(n*m) → O(n+m)"
+- Logarithmic terms: "O(n²log(n)) → O(n log n) → O(n)"
+
+**ACCEPTABLE COMPLEXITY NOTATIONS:**
+- Superscripts: N², n², m³, etc.
+- Caret notation: N^2, n^2, m^3, etc.
+- Multiplication: n*m, q*n, k*log(n), etc.
+- Addition: n²+qn², n*m+k, etc.
+- Logarithms: log(n), log(m), logN, etc.
+- Mixed: n²+m*log(k), qn²+n*m, etc.
 
 **UNACCEPTABLE FORMATS:**
 - Missing approaches: "O(N)" when document discusses brute force O(N^2) and optimized O(N)
 - Extra text: "O(N^2) brute force -> O(N) optimized approach"
 - Space complexity: "Time: O(N^2) -> O(N), Space: O(1)"
-- Wrong variables: "O(n)" when problem uses N, or "O(size)" when problem uses N
+- Wrong variables: "O(n)" when problem uses N, or "O(size)" when problem uses variables n, q
 - Individual steps: "O(N) for loop + O(log N) for search = O(N log N)"
+- Inconsistent arrow types: mixing "->" and "→" in same sequence
+- Wrong case: "O(n)" when problem statement uses uppercase "N"
 
 **VALIDATION STEPS:**
 1. Count all approaches discussed in the document (brute force, intermediate, final, etc.)
-2. Verify metadata lists time complexity for each approach in progression order
-3. Confirm all variables used are from the problem statement
-4. Check if each complexity is mathematically correct for its approach
-5. Ensure no extra descriptive text or space complexity mentions
+2. Check the "Number of Approaches" field to get the expected count and complexity progression
+3. Verify metadata lists time complexity for each approach in progression order
+4. Confirm the count of complexity expressions matches the stated number of approaches
+5. Confirm all variables used exactly match those in the problem statement (including case)
+6. Check if each complexity is mathematically correct for its corresponding approach
+7. Ensure no extra descriptive text or space complexity mentions
+8. Validate complex mathematical expressions are properly formatted
+9. Ensure consistent arrow notation throughout the sequence
 
 Please answer pass or fail.
 
@@ -1521,12 +1546,41 @@ class GitHubReviewValidator:
             if "standard.cpp" in content:
                 standard_section_start = content.find("### Model: `standard.cpp`")
                 if standard_section_start != -1:
-                    # Find the next section or end of content
-                    next_section = content.find("---", standard_section_start)
-                    if next_section == -1:
-                        standard_section = content[standard_section_start:]
+                    # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
+                    next_section_positions = []
+                    
+                    # Look for next model section
+                    next_model = content.find("### Model:", standard_section_start + 1)
+                    if next_model != -1:
+                        next_section_positions.append(next_model)
+                    
+                    # Look for overall comparison section
+                    next_overall = content.find("## Overall", standard_section_start + 1)
+                    if next_overall != -1:
+                        next_section_positions.append(next_overall)
+                        
+                    # Look for separator - but only standalone separators (not table borders)
+                    # Look for \n---\n pattern to avoid table borders like |---|---|
+                    search_start = standard_section_start + 1
+                    while True:
+                        next_separator = content.find("\n---\n", search_start)
+                        if next_separator == -1:
+                            break
+                        # Make sure this isn't part of a table
+                        line_start = content.rfind('\n', 0, next_separator)
+                        line_before = content[line_start+1:next_separator].strip()
+                        if not line_before.startswith('|') and not line_before.endswith('|'):
+                            next_section_positions.append(next_separator)
+                            break
+                        search_start = next_separator + 1
+                    
+                    # If no markers found, use end of content
+                    if not next_section_positions:
+                        next_section = len(content)
                     else:
-                        standard_section = content[standard_section_start:next_section]
+                        next_section = min(next_section_positions)
+                    
+                    standard_section = content[standard_section_start:next_section]
                     
                     if "✅ PASS" not in standard_section:
                         return False, "standard.cpp model should show PASS status (✅ PASS)"
@@ -1541,14 +1595,29 @@ class GitHubReviewValidator:
                     else:
                         bf_section = content[bf_section_start:next_model]
                     
+                    # Check that solution_bf.cpp should NOT pass (should fail at least once)
+                    if "✅ PASS" in bf_section:
+                        return False, "solution_bf.cpp should not show PASS status (✅ PASS) - it must fail at least once"
+                    
                     # Check for WA or CE errors (should not have these)
+                    bf_has_failures = False
                     if "|" in bf_section:  # Look for table rows
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
                             if 'solution_bf.cpp' in line:
                                 parts = [p.strip() for p in line.split('|')]
                                 if len(parts) >= 8:  # Ensure we have enough columns
+                                    status_column = parts[1]  # Status column  
                                     errors_column = parts[7]  # Last column with errors
+                                    
+                                    # Check that it doesn't pass 100%
+                                    if "PASS" in status_column or "✅" in status_column:
+                                        return False, "solution_bf.cpp should not pass all test cases - it must fail at least once"
+                                    
+                                    # Check for failures (should have some)
+                                    if "FAIL" in status_column or "❌" in status_column or "TLE" in status_column or "RTE" in status_column:
+                                        bf_has_failures = True
+                                    
                                     # Parse errors format: WA/TLE/RTE/CE
                                     if '/' in errors_column:
                                         error_counts = errors_column.split('/')
@@ -1559,6 +1628,10 @@ class GitHubReviewValidator:
                                                 return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
                                             if ce_count != '0':
                                                 return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
+                    
+                    # Ensure solution_bf.cpp actually has some failures
+                    if not bf_has_failures:
+                        return False, "solution_bf.cpp must fail at least once with TLE or RTE (not pass 100%)"
             
             return True, "overall.md format validation passed"
             
@@ -1591,6 +1664,20 @@ class GitHubReviewValidator:
             result_lines.append(line)
             if line.strip() == "**[CHAIN_01]**":
                 break
+        
+        return '\n'.join(result_lines)
+    
+    def _extract_content_from_chain01(self, document: str) -> str:
+        """Extract content from **[CHAIN_01]** line to the end"""
+        lines = document.split('\n')
+        result_lines = []
+        found_chain01 = False
+        
+        for line in lines:
+            if line.strip() == "**[CHAIN_01]**":
+                found_chain01 = True
+            if found_chain01:
+                result_lines.append(line)
         
         return '\n'.join(result_lines)
     
@@ -1660,12 +1747,15 @@ class GitHubReviewValidator:
                     violations.append(f"Disallowed diff: '{content}'")
         
         if violations:
-            return False, f"Content diff violations found: {'; '.join(violations[:5])}"  # Limit to first 5 violations
+            # Create a detailed diff output showing the full context
+            full_diff = '\n'.join(diff_lines)
+            violation_summary = '; '.join(violations[:5])  # Limit to first 5 violations
+            return False, f"Content diff violations found: {violation_summary}\n\nFull diff output:\n{full_diff}"
         
         return True, "All differences are in allowed categories"
     
     def _validate_solution_md_consistency(self, repo_dir: str, document: str) -> Tuple[bool, str]:
-        """Validate that solution.md matches document content until CHAIN_01"""
+        """Validate that solution.md matches document content from CHAIN_01 onward"""
         solution_md_path = os.path.join(repo_dir, 'solution.md')
         
         if not os.path.exists(solution_md_path):
@@ -1676,12 +1766,12 @@ class GitHubReviewValidator:
             with open(solution_md_path, 'r', encoding='utf-8') as f:
                 solution_content = f.read()
             
-            # Extract document content until CHAIN_01
-            doc_content = self._extract_content_until_chain01(document)
+            # Extract document content from CHAIN_01 onward
+            doc_content = self._extract_content_from_chain01(document)
             
-            # Compare with allowed differences: newlines, spaces, "---"
+            # Compare with allowed differences: newlines, spaces, "---", "**[COT]**"
             is_valid, message = self._compare_content_with_diff_rules(
-                doc_content, solution_content, ["newlines", "spaces", "---"]
+                doc_content, solution_content, ["newlines", "spaces", "---", "**[COT]**"]
             )
             
             if not is_valid:
@@ -1824,6 +1914,157 @@ class GitHubReviewValidator:
                 except Exception:
                     pass  # Ignore cleanup errors
 
+    def validate_github_requirements_detailed(self, document: str) -> list:
+        """Detailed validation method that returns separate results for each GitHub task"""
+        results = []
+        temp_dir = None
+        
+        try:
+            # Task 1: GitHub URL Extraction
+            github_url = self._extract_github_url(document)
+            if not github_url:
+                results.append(("GitHub URL Extraction", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+                )))
+                return results
+            else:
+                results.append(("GitHub URL Extraction", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - GitHub URL found: {github_url}"
+                )))
+            
+            # Task 2: GitHub URL Parsing
+            owner, repo = self._parse_github_url(github_url)
+            if not owner or not repo:
+                results.append(("GitHub URL Parsing", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+                )))
+                # Critical failure, cannot continue without valid URL
+                return results
+            else:
+                results.append(("GitHub URL Parsing", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - URL parsed: owner={owner}, repo={repo}"
+                )))
+            
+            # Task 3: Repository Cloning
+            temp_dir = tempfile.mkdtemp(prefix="github_review_")
+            clone_success = self._clone_repository(github_url, temp_dir)
+            if not clone_success:
+                results.append(("Repository Cloning", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Failed to clone repository: {github_url}. Repository may not exist or be inaccessible."
+                )))
+                # Critical failure, cannot continue without repository
+                return results
+            else:
+                results.append(("Repository Cloning", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - Repository cloned successfully"
+                )))
+            
+            # Task 4: Overall.md File Detection
+            overall_files = self._find_overall_md_files(temp_dir)
+            if len(overall_files) == 0:
+                results.append(("Overall.md File Detection", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"No overall.md file found in repository {github_url}"
+                )))
+                # Continue with remaining tasks even if overall.md is missing
+                overall_md_path = None
+            elif len(overall_files) > 1:
+                relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
+                results.append(("Overall.md File Detection", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Multiple overall.md files found in repository {github_url}. Found {len(overall_files)} files: {', '.join(relative_paths)}. Expected exactly one."
+                )))
+                overall_md_path = None
+            else:
+                relative_path = os.path.relpath(overall_files[0], temp_dir)
+                results.append(("Overall.md File Detection", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - Found overall.md at: {relative_path}"
+                )))
+                overall_md_path = overall_files[0]
+            
+            # Task 5: Hunyuan CPP Files Check
+            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(temp_dir)
+            if not hunyuan_exists:
+                results.append(("Hunyuan CPP Files Check", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Repository validation failed: {hunyuan_msg}"
+                )))
+            else:
+                results.append(("Hunyuan CPP Files Check", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - {hunyuan_msg}"
+                )))
+            
+            # Task 6: Overall.md Format Validation
+            if overall_md_path:
+                format_valid, format_msg = self._validate_overall_md_format(overall_md_path)
+                if not format_valid:
+                    results.append(("Overall.md Format Validation", ReviewResponse(
+                        result=ReviewResult.FAIL,
+                        reasoning=f"overall.md format validation failed: {format_msg}"
+                    )))
+                else:
+                    results.append(("Overall.md Format Validation", ReviewResponse(
+                        result=ReviewResult.PASS,
+                        reasoning=f"✅ PASS - {format_msg}"
+                    )))
+            else:
+                results.append(("Overall.md Format Validation", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning="Cannot validate overall.md format: file not found or multiple files detected"
+                )))
+            
+            # Task 7: Solution.md Content Consistency
+            solution_valid, solution_msg = self._validate_solution_md_consistency(temp_dir, document)
+            if not solution_valid:
+                results.append(("Solution.md Content Consistency", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"solution.md validation failed: {solution_msg}"
+                )))
+            else:
+                results.append(("Solution.md Content Consistency", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - {solution_msg}"
+                )))
+            
+            # Task 8: Problem Statement.md Content Consistency
+            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(temp_dir, document)
+            if not problem_valid:
+                results.append(("Problem Statement.md Content Consistency", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"problem_statement.md validation failed: {problem_msg}"
+                )))
+            else:
+                results.append(("Problem Statement.md Content Consistency", ReviewResponse(
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - {problem_msg}"
+                )))
+                
+            return results
+        
+        except Exception as e:
+            if not results:  # If no tasks completed yet
+                results.append(("GitHub Validation Error", ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Error during GitHub validation: {str(e)}"
+                )))
+            return results
+        
+        finally:
+            # Clean up temporary directory
+            if temp_dir and os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir)
+                except Exception:
+                    pass  # Ignore cleanup errors
+
 
 class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
@@ -1937,23 +2178,29 @@ class DocumentReviewSystem:
         github_reviews = [(name, reviewer) for name, reviewer in reviewer_items if reviewer is None]
         ai_reviews = [(name, reviewer) for name, reviewer in reviewer_items if reviewer is not None]
         
-        # Handle GitHub-only mode
+        # Handle GitHub-only mode with detailed tasks
         if github_only:
-            for review_name, _ in github_reviews:
-                running_msg = f"\n🔄 Running: {review_name}"
+            start_time = time.time()
+            github_tasks = self.github_validator.validate_github_requirements_detailed(document)
+            end_time = time.time()
+            
+            duration_seconds = end_time - start_time
+            duration_minutes = duration_seconds / 60.0
+            
+            for task_name, result in github_tasks:
+                running_msg = f"\n🔄 Running GitHub Task: {task_name}"
                 print(running_msg)
                 self.detailed_output.append(running_msg)
                 
-                start_time = time.time()
-                result = self.github_validator.validate_github_requirements(document)
-                
-                end_time = time.time()
-                duration_minutes = (end_time - start_time) / 60.0
-                time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                # Show both seconds and minutes for better accuracy perception
+                if duration_seconds < 60:
+                    time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
+                else:
+                    time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
                 print(time_msg)
                 self.detailed_output.append(time_msg)
                 
-                results[review_name] = result
+                results[task_name] = result
                 
                 result_msg = f"Result: {result.result.value}"
                 print(result_msg)
@@ -1993,7 +2240,7 @@ class DocumentReviewSystem:
         # Run AI reviews
         for i in range(start_index, len(ai_reviews) + 1):
             review_name, reviewer = ai_reviews[i-1]
-            running_msg = f"\n🔄 Running: {review_name}"
+            running_msg = f"\n🔄 Running {i}. {review_name}"
             print(running_msg)
             self.detailed_output.append(running_msg)
             
@@ -2084,7 +2331,11 @@ class DocumentReviewSystem:
                     duration_seconds = end_time - start_time
                     duration_minutes = duration_seconds / 60.0
                     
-                    time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                    # Show both seconds and minutes for better accuracy perception
+                    if duration_seconds < 60:
+                        time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
+                    else:
+                        time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
                     print(time_msg)
                     self.detailed_output.append(time_msg)
                     
@@ -2134,7 +2385,7 @@ class DocumentReviewSystem:
         # Run GitHub validation at the end (unless skipped)
         if not skip_github:
             for review_name, _ in github_reviews:
-                running_msg = f"\n🔄 Running: {review_name}"
+                running_msg = f"\n🔄 Running GitHub Check: {review_name}"
                 print(running_msg)
                 self.detailed_output.append(running_msg)
                 
@@ -2142,8 +2393,14 @@ class DocumentReviewSystem:
                 result = self.github_validator.validate_github_requirements(document)
                 
                 end_time = time.time()
-                duration_minutes = (end_time - start_time) / 60.0
-                time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                duration_seconds = end_time - start_time
+                duration_minutes = duration_seconds / 60.0
+                
+                # Show both seconds and minutes for better accuracy perception
+                if duration_seconds < 60:
+                    time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
+                else:
+                    time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
                 print(time_msg)
                 self.detailed_output.append(time_msg)
                 
@@ -2237,9 +2494,14 @@ class DocumentReviewSystem:
         report.append("=" * 70)
         
         # Results - show all details since we now have the complete log above
+        ai_counter = 1
         for review_name, result in results.items():
             report.append("")
-            report.append(f"📝 {review_name.upper()}")
+            if "GitHub Requirements Validation" in review_name:
+                report.append(f"📝 GITHUB CHECK: {review_name.upper()}")
+            else:
+                report.append(f"📝 {ai_counter}. {review_name.upper()}")
+                ai_counter += 1
             report.append("-" * 50)
             
             if result.reasoning == "SKIPPED - Resumed from later point":
@@ -2337,7 +2599,7 @@ def main():
         print("\n🤖 Model Configuration:")
         print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 20k thinking budget")
         print("   Secondary: Claude Sonnet 4 (claude-sonnet-4-20250514) for cleanup operations")
-        print("   Max tokens: 32,000 (Opus 4.1) / 200,000 (Sonnet 4 cleanup)")
+        print("   Max tokens: 32,000 (Opus 4.1) / 64,000 (Sonnet 4 cleanup)")
         print()
         
         # Run reviews with specified options
