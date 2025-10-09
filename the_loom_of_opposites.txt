@@ -1,0 +1,920 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Mathematical Construction", "Index Mapping", "Algorithm Complexity and Big O Notation", "Arrays and Lists", "Control Structures and Loops"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, ($O(n^2 + qn^2)$ → $O(qn^2)$ → $O(qn)$ → $O(q)$)
+
+**Number of Chains:** - 9
+
+**GitHub URL:** https://github.com/NOI-gen/the_loom_of_opposites_2
+
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Loom of Opposites**
+
+Time Limit: **2 seconds**
+
+Memory Limit: **10 MB**
+
+A master weaver crafts a square tapestry of size $n \times n$ by walking row by row. On the first row the weaver moves left to right, on the next row right to left, and so on in a zigzag march. As each square is visited, the weaver assigns values alternating between the weakest and strongest intensities: $1, n^2, 2, n^2 - 1, 3, n^2 - 2, \dots$, always pairing extremes as the walk continues. The loudness of a seam between two neighboring squares is the absolute difference of their values.
+
+You are given rectangular peepholes into the tapestry. For each rectangle, determine the maximum loudness of any seam (edge between side-adjacent cells) that lies completely inside it. If the rectangle is a single cell, the loudness is $0$.
+
+Formally:
+- There is a unique $n \times n$ grid constructed by:
+  - Visiting cells in a zigzag: row $1$ left to right, row $2$ right to left, row $3$ left to right, etc.
+  - Assigning values along this walk: $1, n^2, 2, n^2 - 1, 3, n^2 - 2, \dots$.
+- For a query rectangle $[r_1..r_2] \times [c_1..c_2]$ (1-based, inclusive), report the maximum absolute difference between values of any pair of side-adjacent cells fully inside the rectangle. For a $1 \times 1$ rectangle, the answer is $0$.
+
+**Input Format:-**
+
+- The first line contains an integer $t$ — the number of test cases.
+- For each test case:
+  - The first line contains two integers $n$ and $q$.
+  - Each of the next $q$ lines contains four integers $r_1$ $c_1$ $r_2$ $c_2$ describing a rectangle (1-based, inclusive).
+
+**Output Format:-**
+
+For each query, print a single integer — the maximum loudness of any seam fully inside the given rectangle.
+
+**Constraints:-**
+
+- $1 \le t \le 5$
+- $1 \le n \le 10^9$
+- $1 \le q \le 2 \cdot 10^5$ across all test cases combined
+- $1 \le r_1 \le r_2 \le n$
+- $1 \le c_1 \le c_2 \le n$
+- All answers fit in a $64$-bit signed integer
+
+**Examples:-**
+ - **Input:**
+```
+1
+6 15
+1 1 6 6
+1 1 1 1
+1 1 1 2
+2 5 2 6
+1 1 6 1
+1 6 5 6
+2 3 4 5
+3 2 5 2
+5 2 5 3
+5 1 6 6
+1 5 1 6
+4 1 4 2
+1 3 6 4
+4 4 4 4
+1 1 2 2
+```
+
+ - **Output:**
+```
+35
+0
+35
+29
+30
+30
+28
+18
+10
+11
+31
+13
+33
+0
+35
+```
+
+ - **Input:**
+```
+2
+3 4
+1 1 3 3
+1 2 3 2
+2 1 2 3
+1 2 1 3
+4 5
+4 1 4 4
+3 1 4 4
+2 3 3 3
+2 2 3 3
+2 1 2 2
+```
+
+ - **Output:**
+```
+8
+6
+5
+7
+3
+7
+8
+10
+9
+```
+
+
+**Note:-**
+In the first example, let $n=6$ so $n^2=36$. For a rectangle $[r_1..r_2]\times[c_1..c_2]$, set width $w=c_2-c_1+1$ and height $h=r_2-r_1+1$.
+- If $w=1$: the answer is $0$ if $h=1$, otherwise $n(n-r_1)=6(6-r_1)$.
+- If $w\ge 2$: compute
+  - $i=(r_1-1)n+c_1$ if $r_1$ is odd,
+  - $i=(r_1-1)n+(n-c_2+1)$ if $r_1$ is even,
+  and the answer is $n^2-i=36-i$.
+
+Representative calculations:
+- Whole grid $[1..6]\times[1..6]$: $w\ge 2$, $r_1=1$ odd, $i=1$ $\Rightarrow$ $36-1=35$.
+- Single cell $[1..1]\times[1..1]$: $w=h=1$ $\Rightarrow$ $0$.
+- Top row $[1..1]\times[1..2]$: $w\ge 2$, $r_1=1$ odd, $i=1$ $\Rightarrow$ $35$.
+- Even row right edge $[2..2]\times[5..6]$: $w\ge 2$, $r_1=2$ even, $i=6+(6-6+1)=7$ $\Rightarrow$ $29$.
+- Single column $[1..6]\times[1..1]$: $w=1$, $h>1$ $\Rightarrow$ $6(6-1)=30$.
+- Row 5 segment $[5..5]\times[2..3]$: $w\ge 2$, $r_1=5$ odd, $i=4\cdot 6+2=26$ $\Rightarrow$ $10$.
+
+In the second example, the input contains two test cases; use the same rule.
+
+- Test case 1: $n=3$, $n^2=9$.
+  - $[1..3]\times[1..3]$: $w\ge 2$, $r_1=1$ odd, $i=1$ $\Rightarrow$ $9-1=8$.
+  - $[1..3]\times[2..2]$: $w=1$, $h>1$ $\Rightarrow$ $3(3-1)=6$.
+  - $[2..2]\times[1..3]$: $w\ge 2$, $r_1=2$ even, $i=3+(3-3+1)=4$ $\Rightarrow$ $5$.
+  - $[1..1]\times[2..3]$: $w\ge 2$, $r_1=1$ odd, $i=2$ $\Rightarrow$ $7$.
+
+- Test case 2: $n=4$, $n^2=16$.
+  - $[4..4]\times[1..4]$: $w\ge 2$, $r_1=4$ even, $i=12+(4-4+1)=13$ $\Rightarrow$ $3$.
+  - $[3..4]\times[1..4]$: $w\ge 2$, $r_1=3$ odd, $i=8+1=9$ $\Rightarrow$ $7$.
+  - $[2..3]\times[3..3]$: $w=1$, $h>1$ $\Rightarrow$ $4(4-2)=8$.
+  - $[2..3]\times[2..3]$: $w\ge 2$, $r_1=2$ even, $i=4+(4-3+1)=6$ $\Rightarrow$ $10$.
+  - $[2..2]\times[1..2]$: $w\ge 2$, $r_1=2$ even, $i=4+(4-2+1)=7$ $\Rightarrow$ $9$.
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the problem precisely
+
+**[THOUGHT_01_01]**
+
+We are given an $n \times n$ grid that is filled by walking in a zigzag manner: row 1 left to right, row 2 right to left, row 3 left to right, and so on. Along this walk, the assigned values alternate between the smallest remaining and the largest remaining values: $1, n^2, 2, n^2 - 1, 3, n^2 - 2, \dots$. This alternation ensures that consecutive values along the walk have large absolute differences early and smaller ones later.
+
+
+**[THOUGHT_01_02]**
+
+A *seam* is the edge between side-adjacent cells (sharing a side). The *loudness* of a seam is the absolute difference between the values in those two adjacent cells. For any rectangular subgrid specified by $[r_1..r_2] \times [c_1..c_2]$ (1-based indices, inclusive), we must compute the maximum loudness among all seams fully inside that rectangle. If the rectangle has no edges (i.e., it is $1 \times 1$), the answer is $0$.
+
+
+
+**[THOUGHT_01_03]**
+
+Let $N = n^2$. Index the traversal steps by $t = 1, 2, \dots, N$. The value written at step $t$ is:
+- If $t$ is odd: $V(t) = \dfrac{t+1}{2}$.
+- If $t$ is even: $V(t) = N - \dfrac{t}{2} + 1$.
+
+Consecutive steps along the walk therefore follow the alternation $1, N, 2, N-1, 3, N-2, \dots$ in the zigzag order of cells.
+
+
+
+**[THOUGHT_01_04]**
+
+Using $0$-based indices $(r, c) \in \{0,\dots,n-1\}^2$, the visit index of a cell along the zigzag is
+$$
+P(r,c)=
+\begin{cases}
+r \cdot n + (c+1), & \text{if } r \text{ is even},\\[4pt]
+r \cdot n + (n - c), & \text{if } r \text{ is odd}.
+\end{cases}
+$$
+This mapping is strictly monotone along the row’s traversal direction.
+
+
+**[THOUGHT_01_05]**
+
+We can map a cell $(r, c)$ to its traversal step index $P(r, c)$ using 0-based indices $r, c \in [0, n-1]$:
+- If $r$ is even (left to right on that row): $P(r, c) = r \cdot n + (c + 1)$.
+- If $r$ is odd (right to left on that row): $P(r, c) = r \cdot n + (n - c)$.
+This mapping is strictly monotone in the direction of traversal within each row.
+
+
+**[THOUGHT_01_06]**
+
+Our goal is to characterize the structure induced by $P(r,c)$ and the strictly decreasing consecutive-difference sequence so that the loudest seam within any rectangle can be expressed via a constant number of closed-form candidates. Subsequent chains will analyze and validate candidate strategies without assuming any specific algorithmic outcome here.
+
+
+
+---
+
+**[CHAIN_02]**
+
+Curating thorough test cases for validation
+
+**[THOUGHT_02_01]**
+
+Single-cell grid
+
+- Take $n=1$. The only possible rectangle is $[1..1] \times [1..1]$.
+- There are no seams inside a $1 \times 1$ rectangle.
+- **Expected output:** $0$.
+
+
+
+**[THOUGHT_02_02]**
+
+Single-row rectangles
+
+Below, values are derived directly from the zigzag fill definition (row $1$ left→right, row $2$ right→left, etc.) with the alternating sequence $1, N, 2, N-1, \dots$.
+
+- Example A: $n=4$, rectangle $[1..1] \times [1..4]$ (top row).
+  - Row $1$ values: $[1, 16, 2, 15]$ for $N=16$.
+  - Internal horizontal seams and loudness: $\lvert 16-1\rvert=15$, $\lvert 2-16\rvert=14$, $\lvert 15-2\rvert=13$.
+  - **Expected output:** $15$.
+
+- Example B: $n=4$, rectangle $[2..2] \times [2..4]$ (row $2$).
+  - Row $2$ values (left→right): $[13, 4, 14, 3]$.
+  - In the subsegment $[2..4]$: values $[4, 14, 3]$ with seams $\lvert 14-4\rvert=10$, $\lvert 3-14\rvert=11$.
+  - **Expected output:** $11$.
+
+- Example C: $n=4$, rectangle $[3..3] \times [1..2]$ (row $3$).
+  - Row $3$ values: $[5, 12, 6, 11]$.
+  - In the subsegment $[1..2]$: seam $\lvert 12-5\rvert=7$.
+  - **Expected output:** $7$.
+
+
+
+**[THOUGHT_02_03]**
+
+Single-column rectangles
+
+Using the $n=4$ grid from above:
+- Row $1$: $[1,16,2,15]$
+- Row $2$: $[13,4,14,3]$
+- Row $3$: $[5,12,6,11]$
+- Row $4$: $[9,8,10,7]$
+
+- Example A: $[1..4] \times [1..1]$ (first column).
+  - Column $1$ top→bottom: $[1, 13, 5, 9]$.
+  - Vertical seams: $\lvert 13-1\rvert=12$, $\lvert 5-13\rvert=8$, $\lvert 9-5\rvert=4$.
+  - **Expected output:** $12$.
+
+- Example B: $[2..4] \times [3..3]$ (third column).
+  - Column $3$ for rows $2..4$: $[14, 6, 10]$.
+  - Vertical seams: $\lvert 6-14\rvert=8$, $\lvert 10-6\rvert=4$.
+  - **Expected output:** $8$.
+
+- Example C: $[3..3] \times [2..2]$ ($1 \times 1$ on a single column).
+  - No seam inside a $1 \times 1$ rectangle.
+  - **Expected output:** $0$.
+
+
+
+**[THOUGHT_02_04]**
+
+Full-grid rectangles
+
+- Case 1: $n=3$, rectangle $[1..3] \times [1..3]$.
+  - Zigzag values:
+    - Row $1$: $[1, 9, 2]$
+    - Row $2$: $[7, 3, 8]$
+    - Row $3$: $[4, 6, 5]$
+  - Largest seam appears on row $1$: $\lvert 9-1\rvert=8$.
+  - **Expected output:** $8$ (which equals $N-1$ for $N=9$).
+
+- Case 2: $n=4$, rectangle $[1..4] \times [1..4]$.
+  - As above, the top row has $\lvert 16-1\rvert=15$.
+  - **Expected output:** $15$ (which equals $N-1$ for $N=16$).
+
+
+
+**[THOUGHT_02_05]**
+
+Mixed rectangles with different parities and positions
+
+Using the $n=4$ grid from earlier:
+
+- Example A: $[2..3] \times [2..4]$.
+  - Rows and subsegments:
+    - Row $2$ in $[2..4]$: $[4, 14, 3]$ with seams $10$ and $11$ (max $11$).
+    - Row $3$ in $[2..4]$: $[12, 6, 11]$ with seams $6$ and $5$ (max $6$).
+  - Vertical seams between rows $2$ and $3$ for columns $2..4$:
+    - Col $2$: $\lvert 4-12\rvert=8$
+    - Col $3$: $\lvert 14-6\rvert=8$
+    - Col $4$: $\lvert 3-11\rvert=8$
+    - Vertical max $=8$.
+  - **Expected output:** $\max(11,6,8)=11$.
+
+- Example B: $[3..4] \times [1..2]$.
+  - Row $3$ in $[1..2]$: $[5, 12]$ with seam $7$.
+  - Row $4$ in $[1..2]$: $[9, 8]$ with seam $1$.
+  - Vertical seams between rows $3$ and $4$ at columns $1,2$:
+    - Col $1$: $\lvert 5-9\rvert=4$
+    - Col $2$: $\lvert 12-8\rvert=4$
+    - Vertical max $=4$.
+  - **Expected output:** $\max(7,1,4)=7$.
+
+
+
+**[THOUGHT_02_06]**
+
+Large-parameter stress with concrete numeric outputs
+
+Let $n=10^9$ and $N=n^2=10^{18}$.
+
+- Example A: $[1..1] \times [1..2]$ (top row, two adjacent cells).
+  - The first two visited values along the walk are $1$ and $N$.
+  - Loudness: $\lvert N-1\rvert = N-1 = 10^{18}-1$.
+  - **Expected output:** $10^{18}-1$.
+
+- Example B: $[1..2] \times [1..1]$ (first column, two top rows).
+  - Values in the first column on rows $1$ and $2$ differ by $n(n-1)$ under the filling pattern.
+  - Loudness: $10^9 \cdot (10^9 - 1) = 10^{18} - 10^9$.
+  - **Expected output:** $10^{18} - 10^9$.
+
+- Example C: $\big[5 \cdot 10^8 .. 5 \cdot 10^8 + 1\big] \times [1..1]$ (two consecutive rows midway down, same column).
+  - Loudness equals $n \cdot \big(n - r_1\big)$ with $r_1=5 \cdot 10^8$.
+  - Value: $10^9 \cdot (10^9 - 5 \cdot 10^8) = 5 \cdot 10^{17}$.
+  - **Expected output:** $5 \cdot 10^{17}$.
+
+- Example D: $[7..7] \times [7..7]$ (any single cell).
+  - No internal edges exist in a $1 \times 1$ rectangle.
+  - **Expected output:** $0$.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+Explicitly construct the $n \times n$ grid, simulate the zigzag walk, and assign values. For each query rectangle, iterate over all internal horizontal and vertical edges, compute absolute differences, and track the maximum. This follows the definition directly and is conceptually simple.
+
+
+
+**[THOUGHT_03_02]**
+
+Time complexity:
+- Grid construction: $O(n^2)$ writes.
+- Per query: scanning $O(\text{area}) = O((r_2 - r_1 + 1) \cdot (c_2 - c_1 + 1))$ cells and edges.
+- Total worst case: $O(n^2 + q \cdot n^2)$.
+Space complexity:
+- $O(n^2)$ to store the grid.
+Clearly infeasible for $n$ up to $10^9$.
+
+
+**[THOUGHT_03_03]**
+
+Memory of order $O(n^2)$ is impossible to provision; time to scan even a small fraction of such a grid is prohibitive; arithmetic must account for $N = n^2 \le 10^{18}$, which fits in signed $64$-bit but still requires care to avoid intermediate overflow.
+
+
+
+**[THOUGHT_03_04]**
+
+Counterexample: $n = 10^6$ is already too large to store. Even a single full-grid query requires about $10^{12}$ operations to scan edges, which is beyond any time limit.
+
+
+**[THOUGHT_03_05]**
+
+Given the observed $O(n^2)$ space and $O(n^2)$-per-query time, this approach cannot satisfy the constraints when $n$ is large. Therefore, constructing the grid or scanning edges exhaustively must be avoided.
+
+
+
+---
+
+**[CHAIN_04]**
+
+Scanning rectangles with on-the-fly value mapping
+
+**[THOUGHT_04_01]**
+
+A refinement is to avoid storing the grid. For any cell $(r,c)$, compute its visit index $P(r,c)$ in $O(1)$ from the zigzag formula, then compute its assigned value $V(P(r,c))$ in $O(1)$. For each edge inside a query rectangle, compute the endpoint values on the fly and take their absolute difference.
+
+
+
+**[THOUGHT_04_02]**
+
+The per-edge cost is $O(1)$, but a rectangle with height $h$ and width $w$ contains $O(hw)$ edges, so the worst case remains $O(n^2)$ per query when $h,w=\Theta(n)$, which is still too slow for $n \le 10^9$.
+
+
+
+**[THOUGHT_04_03]**
+
+Naive pruning attempts do not guarantee correctness or bounds: checking only boundary edges may miss an interior maximum; random sampling is probabilistic; early stopping lacks an ordering that certifies optimality during a scan.
+
+
+
+**[THOUGHT_04_04]**
+
+The current view treats edges independently, overlooking that along the walk the consecutive differences equal $N - t$, a strictly decreasing sequence. Exploiting this structure suggests the need for a shortcut that identifies the maximal seam without enumerating edges.
+
+
+
+**[THOUGHT_04_05]**
+
+Even with on-the-fly mapping, the per-query worst case remains $O(hw)$, which is unacceptable at scale. Consequently, a structural approach is required to reduce candidate seams to a constant number per query.
+
+
+
+---
+
+**[CHAIN_05]**
+
+Scanning candidate edges per row using monotonicity
+
+**[THOUGHT_05_01]**
+
+Within a fixed row, the traversal is monotone in the movement direction, which suggests that horizontal-edge loudness in that row may be monotone in the column index. For rectangles $[r_1..r_2]\times[c_1..c_2]$ with width at least $2$, the maximum horizontal seam in a row is likely located near a vertical boundary of the rectangle rather than in the interior.
+
+
+
+**[THOUGHT_05_02]**
+
+A row-wise selection strategy follows from monotonicity: in an even row (0-based), examine the edge at column $c=c_1$; in an odd row, examine the edge at column $c=c_2-1$. Scanning these candidates across all rows in $[r_1..r_2]$ yields a per-row maximum to compare.
+
+
+
+**[THOUGHT_05_03]**
+
+For vertical seams, the loudness may exhibit a simpler pattern across a row, potentially independent of the column. Without proving such independence, scanning all columns for the topmost vertical edges incurs $O(\text{width})$ work per row.
+
+
+
+**[THOUGHT_05_04]**
+
+The row-wise strategy reduces work but still induces $O(\text{height})$ cost for horizontal candidates and potentially $O(\text{width})$ for vertical checks per query. In worst-case dimensions $\Theta(n)$, and with up to $2\cdot 10^5$ queries, this remains too slow.
+
+
+
+**[THOUGHT_05_05]**
+
+To avoid scanning, exact closed forms for horizontal and vertical seam loudness are needed so the optimal row and column can be chosen directly. The mapping $P(r,c)$ and the strictly decreasing sequence $N - t$ provide the ingredients for such formulas.
+
+
+
+---
+
+**[CHAIN_06]**
+
+Deriving closed-form loudness formulas
+
+**[THOUGHT_06_01]**
+
+Along the walk, the absolute difference between step $t$ and $t+1$ is
+$$
+\lvert V(t+1) - V(t) \rvert = N - t,
+$$
+which strictly decreases from $N-1$ down to $1$. Thus the loudness of a seam that is crossed between two consecutive steps is determined solely by the lower index $t$ when that seam is first traversed.
+
+
+**[THOUGHT_06_02]**
+
+Traversal index mapping (for $0$-based $(r,c)$):
+$$
+P(r,c) =
+\begin{cases}
+r \cdot n + (c+1), & \text{if } r \text{ is even},\\
+r \cdot n + (n - c), & \text{if } r \text{ is odd}.
+\end{cases}
+$$
+For a horizontal seam between $(r,c)$ and $(r,c+1)$, the walk crosses that seam when it reaches the first endpoint in the row’s direction, i.e., at $t = \min\!\big(P(r,c), P(r,c+1)\big)$.
+
+
+**[THOUGHT_06_03]**
+
+For horizontal seams, if $r$ is even then $P$ increases with $c$, the crossing occurs at $t = r \cdot n + (c+1)$, and
+$$
+H(r,c) \;=\; N - \big(r \cdot n + c + 1\big),
+$$
+which strictly decreases as $c$ increases. If $r$ is odd, $P$ decreases with $c$, the crossing occurs at $t = r \cdot n + \big(n - (c+1)\big)$, and
+$$
+H(r,c) \;=\; N - r \cdot n - n + c + 1,
+$$
+which strictly increases as $c$ increases.
+
+**[THOUGHT_06_04]**
+
+For vertical seams between $(r,c)$ and $(r+1,c)$, substituting $P(r,c)$ and $P(r+1,c)$ into the alternating assignment yields an expression independent of $c$:
+$$
+V(r) \;=\; n \cdot \big(n - 1 - r\big).
+$$
+Thus the vertical loudness depends only on the top row index $r$ and decreases with increasing $r$.
+
+
+
+**[THOUGHT_06_05]**
+
+Inside a rectangle $[R_1..R_2] \times [C_1..C_2]$ (in $0$-based indices):
+
+- **Horizontal seams** exist only if $C_1 < C_2$. For each parity present in $[R_1..R_2]$:
+
+  - **Even rows:** the best candidate occurs at $c = C_1$ and the smallest even $r$ in $[R_1..R_2]$:
+
+    $$
+    \text{cand}_{\text{even}} = N - \big(r \cdot n + C_1 + 1\big).
+    $$
+
+  - **Odd rows:** the best candidate occurs at $c = C_2 - 1$ and the smallest odd $r$ in $[R_1..R_2]$:
+
+    $$
+    \text{cand}_{\text{odd}} = N - r \cdot n - n + C_2.
+    $$
+
+- **Vertical seams** exist only if $R_1 < R_2$; the best vertical seam is at the topmost pair:
+
+  $$
+  \text{cand}_{\text{vert}} \;=\; n \cdot \big(n - 1 - R_1\big).
+  $$
+
+These closed forms reduce the per-rectangle candidates to a constant-size set determined by boundary positions and parity.
+
+**[THOUGHT_06_06]**
+
+Because the horizontal and vertical expressions depend only on boundary positions and row parity, every rectangle contributes a constant-size set of candidates: at most one vertical candidate from the topmost row pair (when height $>1$) and up to two horizontal candidates from the top row depending on parity (when width $>1$). Therefore, the number of candidates per rectangle is $O(1)$, enabling an $O(1)$ computation per query.
+
+
+
+---
+
+**[CHAIN_07]**
+
+Per-query computation details
+
+**[THOUGHT_07_01]**
+
+For a $1$-based query $(r_1,c_1,r_2,c_2)$, convert to $0$-based as $(R_1,C_1,R_2,C_2)$, set $N=n^2$, and initialize the running maximum to $0$.
+
+
+**[THOUGHT_07_02]**
+
+When $R_1 < R_2$, a vertical candidate exists at the topmost row pair with value
+$$
+\text{cand}_{\text{vert}} \;=\; n \cdot (n - 1 - R_1).
+$$
+Update the running maximum accordingly.
+
+
+**[THOUGHT_07_03]**
+
+When $C_1 < C_2$, horizontal candidates exist on the top row. Let $r_e$ be the smallest even row in $[R_1..R_2]$ (use only if $r_e \le R_2$); then
+$$
+\text{cand}_{\text{even}} \;=\; N - \big(r_e \cdot n + C_1 + 1\big).
+$$
+Let $r_o$ be the smallest odd row in $[R_1..R_2]$ (use only if $r_o \le R_2$); then
+$$
+\text{cand}_{\text{odd}} \;=\; N - r_o \cdot n - n + C_2.
+$$
+Update the running maximum with any available candidates.
+
+**[THOUGHT_07_04]**
+
+Combine the available candidates; for a $1 \times 1$ rectangle ($R_1{=}R_2$ and $C_1{=}C_2$), no candidate exists and the result is $0$.
+
+
+
+**[THOUGHT_07_05]**
+
+Cost analysis after the procedure: each query performs $O(1)$ arithmetic and parity checks, giving $O(q)$ per test case and $O(1)$ memory.
+
+
+**[THOUGHT_07_06]**
+
+This constant-candidate design eliminates grid construction and scanning, avoids per-row or per-column iteration, and relies directly on the traversal index and the strictly decreasing sequence $N - t$ for correctness.
+
+
+---
+
+**[CHAIN_08]**
+
+Validating correctness and handling edge cases
+
+**[THOUGHT_08_01]**
+
+A rectangle with $r_1 = r_2$ and $c_1 = c_2$ is $1 \times 1$ and contains no internal edges. Since there is no seam to evaluate, the answer is $0$.
+
+
+
+**[THOUGHT_08_02]**
+
+Single-row rectangle ($r_1 = r_2$, $c_1 < c_2$): Only horizontal edges exist. Our method selects:
+- For even $r$: $c = c_1$.
+- For odd $r$: $c = c_2 - 1$.
+This matches the derived monotonicity. No vertical candidate is considered.
+
+
+**[THOUGHT_08_03]**
+
+Single-column rectangle ($c_1 = c_2$, $r_1 < r_2$): Only vertical edges exist. Our method picks $\text{cand\_vert}$ at the topmost row $R_1$, consistent with $V(r)$ decreasing in $r$.
+
+
+**[THOUGHT_08_04]**
+
+For the full grid $[1..n]\times[1..n]$, the vertical candidate from the topmost row pair equals $n(n-1)$. On the top row with $(R_1{=}0, C_1{=}0, C_2{=}n-1)$, the even-row horizontal candidate equals $N - 1$. Comparing these shows that the maximum equals $N - 1$.
+
+
+
+**[THOUGHT_08_05]**
+
+Arithmetic must stay within signed $64$-bit: $N=n^2 \le 10^{18}$ and $n(n-1)\le 10^{18}$. Intermediate products such as $r \cdot n$ should also use $64$-bit types. Using C++ "long long" throughout is appropriate.
+
+
+
+**[THOUGHT_08_06]**
+
+Indexing and parity handling require care. Convert inputs to $0$-based before parity checks. Apply width and height conditions ($C_1 < C_2$, $R_1 < R_2$) before computing horizontal or vertical candidates. When selecting $r_e$ or $r_o$, ensure the chosen row lies within $[R_1..R_2]$.
+
+
+
+---
+
+**[CHAIN_09]**
+
+Finalizing implementation details and a focused code snippet
+
+**[THOUGHT_09_01]**
+
+Handle input by reading $t$ test cases; for each, read $n$ as $64$-bit and $q$ as $32$-bit. For each query, read $r_1, c_1, r_2, c_2$ as $64$-bit, convert to $0$-based, and apply the constant-time formulas.
+
+
+
+**[THOUGHT_09_02]**
+
+Encapsulate the per-query logic in a function that consumes $1$-based indices and returns a $64$-bit result, isolating indexing and parity details to reduce off-by-one risk and ease unit testing.
+
+
+
+**[THOUGHT_09_03]**
+
+Maintain consistent style: use four spaces per indentation level, prefer "long long" for $64$-bit integers, keep comments concise and meaningful, and consider Doxygen-style doc comments for the helper routine.
+
+
+
+**[THOUGHT_09_04]**
+
+Adopt a focused test plan: include $n{=}1$ repeated $1 \times 1$ queries; single-row rectangles for both parities and various widths; single-column rectangles of varied heights; full-grid queries for small $n$ (e.g., $n \in \{2,3,4\}$) checked against manual grids; and randomized rectangles on small $n$ cross-validated by a brute-force oracle.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We have an $n \times n$ grid filled by walking in a zigzag manner: row $1$ left to right, row $2$ right to left, row $3$ left to right, and so on. Along this traversal, values are assigned by alternately taking the smallest and largest remaining numbers: $1, n^2, 2, n^2 - 1, 3, n^2 - 2, \dots$. A “seam” is an edge between two side-adjacent cells, and its “loudness” is the absolute difference of the values in those two cells.
+
+For each query rectangle $[r_1..r_2] \times [c_1..c_2]$ (1-based, inclusive), we must find the maximum loudness of any seam fully contained inside it. If the rectangle is $1 \times 1$, the answer is $0$ since there are no edges. With $n$ up to $10^9$ and up to $2 \cdot 10^5$ queries across test cases, we need a constant-time, formula-based answer per query without constructing the grid.
+
+Key observations:
+- Let $N = n^2$. If we index the traversal steps by $t = 1, 2, \dots, N$, then:
+  - If $t$ is odd: $V(t) = \dfrac{t+1}{2}$.
+  - If $t$ is even: $V(t) = N - \dfrac{t}{2} + 1$.
+- The loudness between steps $t$ and $t+1$ is exactly $N - t$, forming a strictly decreasing sequence $N - 1, N - 2, \dots, 1$.
+- For analysis it is convenient to note that, using $0$-based indices $(r,c)$ with $r,c \in [0,n-1]$, the traversal index is:
+  $$[
+  P(r,c) =
+  \begin{cases}
+  r\,n + (c+1), & r \text{ even},\\[4pt]
+  r\,n + (n-c), & r \text{ odd}.
+  \end{cases}
+  ]$$
+  (The implementation itself works directly with 1-based indices.)
+
+These observations allow closed-form expressions for seam loudness and direct identification of the maximum inside any rectangle.
+
+
+**2. Optimal Approach**
+
+Let $N=n^2$ and consider a query $[r_1..r_2]\times[c_1..c_2]$.
+
+- **If the width is $1$** (i.e., $c_1=c_2$):
+  - If also $r_1=r_2$ (a $1 \times 1$ rectangle), return $0$.
+  - Otherwise, only vertical seams exist. For adjacent rows $r$ and $r+1$, the loudness is $n\,(n-r)$, independent of the column. The maximum vertical seam inside the rectangle is at the top pair of rows, so return
+
+    $$[
+    n\,(n-r_1).
+    ]$$
+
+- **If the width is $\ge 2$** (i.e., $c_1<c_2$):
+  - The loudest seam inside the rectangle lies on the **top row** of the rectangle and is the earliest seam along the global walk that is fully inside the top-row segment. Let
+
+    $$[
+    i=
+    \begin{cases}
+    (r_1-1)\,n + c_1, & r_1 \text{ odd},\\[4pt]
+    (r_1-1)\,n + \big(n - c_2 + 1\big), & r_1 \text{ even},
+    \end{cases}
+    \qquad\text{then}\qquad
+    \text{answer} = N - i.
+    ]$$
+  - This horizontal value strictly dominates any vertical seam when the width is at least $2$.
+
+This rule yields $O(1)$ time per query and $O(1)$ extra space.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+/*
+ * Block Comment: Problem-specific facts used below
+ *
+ * 1) Vertical seams:
+ *    For any column and adjacent rows r and r+1, the loudness is n*(n - r), independent of column.
+ *    Therefore, inside a rectangle [rowTop..rowBottom] x [colLeft..colRight] with height >= 2,
+ *    the maximum vertical seam is at the top edge: n*(n - rowTop).
+ *
+ * 2) Horizontal seams (width >= 2):
+ *    The maximum horizontal seam inside the rectangle occurs on the top row.
+ *    Let i be the visit index of the *earliest* seam fully inside the top row segment:
+ *      - If rowTop is odd:  i = (rowTop - 1) * n + colLeft
+ *      - If rowTop is even: i = (rowTop - 1) * n + (n - colRight + 1)
+ *    The loudest such seam is n^2 - i.
+ *
+ * 3) When width >= 2, the top-row horizontal seam strictly dominates vertical seams,
+ *    but taking max(horizontal, vertical) is simple and safe.
+ */
+
+/**
+ * @brief Computes the maximum loudness of any seam fully inside a rectangle.
+ *
+ * The n x n grid is filled by a zigzag walk with alternating extremes: 1, n^2, 2, n^2-1, ...
+ * This function applies the closed-form rules (explained above) to answer in O(1).
+ *
+ * @param n Grid dimension (1 <= n <= 1e9).
+ * @param rowTop Top row (1-based).
+ * @param colLeft Left column (1-based).
+ * @param rowBottom Bottom row (1-based).
+ * @param colRight Right column (1-based).
+ * @return The maximum loudness as a 64-bit signed integer.
+ */
+long long computeMaxSeamLoudness(long long n,
+                                 long long rowTop, long long colLeft,
+                                 long long rowBottom, long long colRight) {
+    // Use 128-bit for n*n to be extra safe against intermediate overflow.
+    // Note: For n <= 1e9, n*n <= 1e18 fits in signed 64-bit, but this avoids any UB fear.
+    const long long totalCells = static_cast<long long>((__int128)n * n);
+
+    const long long height = rowBottom - rowTop + 1;
+    const long long width  = colRight  - colLeft  + 1;
+
+    // Single cell: no seam inside the rectangle.
+    if (height == 1 && width == 1) {
+        return 0;
+    }
+
+    // Vertical candidate: exists if height >= 2, always equals n*(n - rowTop).
+    long long bestVertical = 0;
+    if (height >= 2) {
+        bestVertical = n * (n - rowTop);
+    }
+
+    // If width == 1, only vertical seams can exist.
+    if (width == 1) {
+        return bestVertical;
+    }
+
+    // Horizontal candidate: from the earliest seam in the top row segment.
+    long long earliestIndex;
+    if (rowTop % 2 == 1) {
+        // Top row traverses left -> right.
+        earliestIndex = (rowTop - 1) * n + colLeft;
+    } else {
+        // Top row traverses right -> left.
+        earliestIndex = (rowTop - 1) * n + (n - colRight + 1);
+    }
+    const long long bestHorizontal = totalCells - earliestIndex;
+
+    // For width >= 2, horizontal dominates, but take max for clarity/safety.
+    return max(bestHorizontal, bestVertical);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int testCaseCount;
+    cin >> testCaseCount;
+
+    while (testCaseCount--) {
+        long long n;
+        int queryCount;
+        cin >> n >> queryCount;
+
+        while (queryCount--) {
+            long long rowTop, colLeft, rowBottom, colRight;
+            cin >> rowTop >> colLeft >> rowBottom >> colRight;
+
+            long long answer = computeMaxSeamLoudness(
+                n, rowTop, colLeft, rowBottom, colRight
+            );
+            cout << answer << '\n';
+        }
+    }
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- The code computes $N=n^2$ as `totalCells` using a 128-bit intermediate to avoid undefined behavior in the multiplication, then stores the result in 64-bit.
+- The function accepts **1-based** inputs $(\texttt{rowTop},\texttt{colLeft},\texttt{rowBottom},\texttt{colRight})$ and does **not** convert to 0-based.
+- If the rectangle is $1\times1$, it returns $0$.
+- If the width is $1$ and the height is at least $2$, it computes and returns the vertical candidate $n\,(n-\texttt{rowTop})$.
+- If the width is at least $2$, it computes the earliest top-row seam index
+
+  $$[
+  i=
+  \begin{cases}
+  (r_1-1)\,n + c_1, & r_1 \text{ odd},\\[4pt]
+  (r_1-1)\,n + \big(n - c_2 + 1\big), & r_1 \text{ even},
+  \end{cases}
+  ]$$
+  and returns $N-i$. (The code also computes the vertical candidate and takes $\max$, which is harmless because $N-i$ always dominates when the width is $\ge 2$.)
+
+*Example (1-based, matching the code):* For $n=3$ and $[r_1..r_2]\times[c_1..c_2]=[1..3]\times[1..3]$, the width is $\ge 2$ and $r_1=1$ is odd, so $i=(1-1)\cdot 3 + 1=1$, $N=9$, and the answer is $N-i=8$.
+
+
+**5. Time and Space Complexity**
+
+- Time per query: $O(1)$.
+- Time per test case: $O(q)$.
+- Extra space: $O(1)$.
+
+All arithmetic fits in signed 64-bit since $n^2 \le 10^{18}$.
+
+**6. Conclusion**
+
+By leveraging the zigzag traversal and the strictly decreasing consecutive step differences, we obtain simple closed forms for vertical and horizontal seam loudness. Evaluating just the top-row earliest seam (when the width is at least $2$) or the topmost vertical seam (when the width is $1$) gives the maximum in constant time, without constructing the grid.
+
+**7. Walkthrough (using the optimal approach on Example 1)**
+
+Given $n=6$ and $N=n^2=36$. For each rectangle $[r_1..r_2]\times[c_1..c_2]$, let $w=c_2-c_1+1$ and $h=r_2-r_1+1$.
+
+1) $[1..6]\times[1..6]$: $w=6\ge2$, $r_1=1$ odd  
+   $i=(r_1-1)n+c_1=(1-1)\cdot6+1=1\;\Rightarrow\;$ answer $=N-i=36-1=35$.
+
+2) $[1..1]\times[1..1]$: $w=1$, $h=1$  
+   answer $=0$.
+
+3) $[1..1]\times[1..2]$: $w=2\ge2$, $r_1=1$ odd  
+   $i=(1-1)\cdot6+1=1\;\Rightarrow\;$ answer $=36-1=35$.
+
+4) $[2..2]\times[5..6]$: $w=2\ge2$, $r_1=2$ even  
+   $i=(r_1-1)n+(n-c_2+1)=1\cdot6+(6-6+1)=7\;\Rightarrow\;$ answer $=36-7=29$.
+
+5) $[1..6]\times[1..1]$: $w=1$, $h=6$  
+   answer $=n(n-r_1)=6(6-1)=30$.
+
+6) $[1..5]\times[6..6]$: $w=1$, $h=5$  
+   answer $=6(6-1)=30$.
+
+7) $[2..4]\times[3..5]$: $w=3\ge2$, $r_1=2$ even  
+   $i=(1)\cdot6+(6-5+1)=8\;\Rightarrow\;$ answer $=36-8=28$.
+
+8) $[3..5]\times[2..2]$: $w=1$, $h=3$  
+   answer $=6(6-3)=18$.
+
+9) $[5..5]\times[2..3]$: $w=2\ge2$, $r_1=5$ odd  
+   $i=(5-1)\cdot6+2=26\;\Rightarrow\;$ answer $=36-26=10$.
+
+10) $[5..6]\times[1..6]$: $w=6\ge2$, $r_1=5$ odd  
+    $i=(5-1)\cdot6+1=25\;\Rightarrow\;$ answer $=36-25=11$.
+
+11) $[1..1]\times[5..6]$: $w=2\ge2$, $r_1=1$ odd  
+    $i=(1-1)\cdot6+5=5\;\Rightarrow\;$ answer $=36-5=31$.
+
+12) $[4..4]\times[1..2]$: $w=2\ge2$, $r_1=4$ even  
+    $i=(4-1)\cdot6+(6-2+1)=23\;\Rightarrow\;$ answer $=36-23=13$.
+
+13) $[1..6]\times[3..4]$: $w=2\ge2$, $r_1=1$ odd  
+    $i=(1-1)\cdot6+3=3\;\Rightarrow\;$ answer $=36-3=33$.
+
+14) $[4..4]\times[4..4]$: $w=1$, $h=1$  
+    answer $=0$.
+
+15) $[1..2]\times[1..2]$: $w=2\ge2$, $r_1=1$ odd  
+    $i=(1-1)\cdot6+1=1\;\Rightarrow\;$ answer $=36-1=35$.

@@ -1,0 +1,791 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Graph Algorithms", "Graphs and Networks", "Basic Data Structures", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, "$O(2^{m(m-1)})$", "$O(m^6)$", "$O(m^2)$", "$O(m^2)$"
+
+**Number of Chains:** - 8
+
+**GitHub URL:** https://github.com/NOI-gen/city_access_threshold_2
+
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**City Access Threshold**
+
+Time Limit: **2 seconds**
+
+Memory Limit: **10 MB**
+
+In the megacity of Aeralon there are $m$ sensor gates. Each courier has a nonnegative integer reading at every gate. A universal chip ID (a fixed strict total order of couriers) is used to break all ties consistently at every gate and in the final global ranking.
+
+For a courier $u$ with readings $x_{u,1}, x_{u,2}, \dots, x_{u,m}$, the city computes its global clearance as
+$S(u) = \sum_{j=1}^{m} w_j \cdot x_{u,j}$.
+
+Due to data corruption, the only surviving facts are:
+- For each gate $r$ ($1$-based), the $K$-th largest reading at gate $r$ equals $A_r$ (ties at a gate are broken by the same global chip ID).
+- For each pair $r \ne s$, every courier who is among the top-$K$ at gate $r$ has reading at least $L_{r,s}$ at gate $s$.
+
+It is guaranteed that:
+- $L_{r,r} = 0$ for all $r$ and is irrelevant.
+- For $r \ne s$, $L_{r,s} \le A_s$.
+- There exists at least one complete dataset of couriers (with some number of couriers) consistent with all the above and with the universal tie-breaking rule.
+
+Among all such consistent worlds, find the smallest possible value of the global $K$-th clearance, that is, the value of $S(u)$ for the courier ranked $K$-th by nonincreasing $S(u)$ with ties broken by the same chip ID.
+
+**Input Format:-**
+
+- The first line contains an integer $t$ — the number of test cases.
+For each test case:
+- A line with two integers $m$ and $K$.
+- A line with $m$ integers $w_1, w_2, \dots, w_m$ — the nonnegative weights used in the global clearance.
+- A line with $m$ integers $A_1, A_2, \dots, A_m$ — the $K$-th readings at each gate.
+- Then $m$ lines follow, each with $m$ integers forming the matrix $L$. The $j$-th integer on the $i$-th line is $L_{i,j}$. For all $i$, $L_{i,i} = 0$ (ignored); for $i \ne j$, $L_{i,j}$ is the guaranteed minimum at gate $j$ among the top-$K$ of gate $i$.
+
+All input values are integers.
+
+**Output Format:-**
+
+- For each test case, output a single integer: the smallest possible global $K$-th clearance.
+
+**Constraints:-**
+
+- $1 \le t \le 200$
+- $1 \le m \le 50$
+- $1 \le K \le 10^9$
+- $0 \le w_j \le 10^6$
+- $0 \le A_r \le 10^9$
+- $0 \le L_{r,s} \le 10^9$, with $L_{r,r} = 0$ and $L_{r,s} \le A_s$ for $r \ne s$
+- At least one consistent scenario exists.
+
+**Examples:-**
+ - **Input:**
+```
+1
+2 1
+3 4
+2 5
+0 3
+1 0
+```
+
+ - **Output:**
+```
+23
+```
+
+ - **Input:**
+```
+1
+2 3
+3 4
+2 5
+0 3
+1 0
+```
+
+ - **Output:**
+```
+23
+```
+
+**Note:-**
+In the first example, compute for each gate $r$ the minimal score of a courier who is top-$K$ at gate $r$:
+$$
+s_r = w_r \cdot A_r + \sum_{j \ne r} w_j \cdot L_{r,j}.
+$$
+Here, $w = [3,4]$, $A = [2,5]$, and
+$L_{1,2} = 3$, $L_{2,1} = 1$.
+- For gate 1: $s_1 = 3\cdot 2 + 4\cdot 3 = 6 + 12 = 18$.
+- For gate 2: $s_2 = 4\cdot 5 + 3\cdot 1 = 20 + 3 = 23$.
+The smallest possible global $K$-th clearance is $\max(s_1, s_2) = 23$.
+
+In the second example, the data are identical except $K = 3$. The formula above does not depend on $K$, so the same calculation gives $\max(s_1, s_2) = 23$.
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the problem setting and the optimization goal
+
+**[THOUGHT_01_01]**
+
+We are given $m$ sensor gates. Each courier has a nonnegative integer reading at every gate. A fixed universal chip ID defines a strict total order over couriers and is used to break ties across all gates and in the final global ranking uniformly. The global clearance of a courier $u$ is $S(u) = \sum_{j=1}^{m} w_j \cdot x_{u,j}$, where $x_{u,j}$ is the reading of courier $u$ at gate $j$, and $w_j$ are given nonnegative weights.
+
+
+**[THOUGHT_01_02]**
+
+From corrupted records, for each gate $r$, we only know that the $K$-th largest reading at gate $r$ equals $A_r$, with ties at the gate resolved by the same chip ID. Additionally, for each pair $r \ne s$, every courier who is among the top-$K$ at gate $r$ must have reading at least $L_{r,s}$ at gate $s$. It is guaranteed that $L_{r,r} = 0$ and for $r \ne s$, $L_{r,s} \le A_s$.
+
+
+**[THOUGHT_01_03]**
+
+We do not know the actual set of couriers or their readings; we only know constraints that any consistent world must satisfy. The question asks: among all consistent worlds with these properties and with tie-breaking by the same chip ID, what is the smallest possible value of the global $K$-th clearance, i.e., the $K$-th largest value of $S(u)$ under that global order?
+
+
+**[THOUGHT_01_04]**
+
+Key subtleties arise from the tie-breaking rule being universal across all gates and the global ranking. The top-$K$ set at each gate is not arbitrary; chip ID ensures that whenever equalities at thresholds occur across gates, the specific couriers included in top-$K$ at those gates must be chosen consistently.
+
+
+**[THOUGHT_01_05]**
+
+Practical constraints include $t \le 200$ test cases and $m \le 50$, suggesting that an $O(m^2)$ or $O(m^3)$ method per test case is desirable. The value of $K$ can be as large as $10^9$, so any algorithm that scales with $K$ (e.g., enumerating couriers) is infeasible. The solution must reason symbolically about groups and constraints rather than enumerating individual couriers.
+
+
+**[THOUGHT_01_06]**
+
+The existence guarantee implies there is at least one feasible configuration. The inequality $L_{r,s} \le A_s$ ensures no gate requires more than its top-$K$ threshold from outsiders in a way that would contradict the given $A_s$. The goal is to derive a tight formula for the minimal possible global $K$-th value that respects all constraints and the chip ID tie-breaking.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing a comprehensive suite of test cases
+
+**[THOUGHT_02_01]**  
+
+**Single-gate baseline**
+
+- Parameters: $m=1,\ K=5$; weights $w=[7]$; $A=[11]$; $L=\begin{bmatrix}0\end{bmatrix}$.
+- Analysis: Any top-$K$ courier at the only gate must have $x_{1}\ge A_1=11$. The global clearance is $S(u)=w_1 x_{1}\ge 7\cdot 11$.
+- **Expected minimal global $K$-th clearance:** $7\cdot 11=77$.
+
+
+**[THOUGHT_02_02]**  
+
+**No equality at thresholds**
+
+- Parameters: $m=3,\ K=2$; $w=[2,3,5]$; $A=[4,7,6]$;  
+  $$
+  L=\begin{bmatrix}
+  0&5&2\\
+  3&0&4\\
+  1&6&0
+  \end{bmatrix}\quad(\text{all off-diagonals }<A).
+  $$
+- Gate-wise constraints for any top-$K$ courier:
+  - Gate $1$: $x_{1}\!\ge 4,\ x_{2}\!\ge 5,\ x_{3}\!\ge 2\ \Rightarrow\ S\ge 2\cdot 4+3\cdot 5+5\cdot 2=33$.
+  - Gate $2$: $x_{2}\!\ge 7,\ x_{1}\!\ge 3,\ x_{3}\!\ge 4\ \Rightarrow\ S\ge 3\cdot 7+2\cdot 3+5\cdot 4=47$.
+  - Gate $3$: $x_{3}\!\ge 6,\ x_{1}\!\ge 1,\ x_{2}\!\ge 6\ \Rightarrow\ S\ge 5\cdot 6+2\cdot 1+3\cdot 6=50$.
+- **Expected minimal global $K$-th clearance:** $\max\{33,47,50\}=50$.
+
+
+**[THOUGHT_02_03]**  
+
+**Two-gate mutual equality**
+
+- Parameters: $m=2,\ K=3$; $w=[3,4]$; $A=[5,8]$;  
+  $$
+  L=\begin{bmatrix}
+  0&8\\
+  5&0
+  \end{bmatrix}\ \ (\text{so }L_{1,2}=A_2,\ L_{2,1}=A_1).
+  $$
+- Any relevant courier must satisfy $x_{1}\!\ge 5$ and $x_{2}\!\ge 8$, so $S\ge 3\cdot 5+4\cdot 8=47$.
+- **Expected minimal global $K$-th clearance:** $47$.
+
+
+**[THOUGHT_02_04]**  
+
+**Mixed structure (a tied pair and two independent gates)**
+
+- Parameters: $m=4,\ K=2$; $w=[2,5,3,4]$; $A=[6,2,7,5]$;  
+  $$
+  L=\begin{bmatrix}
+  0&2&1&4\\
+  6&0&2&1\\
+  3&1&0&0\\
+  4&1&6&0
+  \end{bmatrix}\quad(\text{note }L_{1,2}=A_2,\ L_{2,1}=A_1).
+  $$
+- Gate-wise necessities:
+  - Gate $1$: $S\ge 2\cdot 6+5\cdot 2+3\cdot 1+4\cdot 4=41$.
+  - Gate $2$: $S\ge 5\cdot 2+2\cdot 6+3\cdot 2+4\cdot 1=32$.
+  - Gate $3$: $S\ge 3\cdot 7+2\cdot 3+5\cdot 1+4\cdot 0=32$.
+  - Gate $4$: $S\ge 4\cdot 5+2\cdot 4+5\cdot 1+3\cdot 6=51$.
+- **Expected minimal global $K$-th clearance:** $\max\{41,32,32,51\}=51$.
+
+
+**[THOUGHT_02_05]**  
+
+**Zero-weight gate still constrains others**
+
+- Parameters: $m=3,\ K=2$; $w=[0,7,2]$; $A=[9,3,4]$;  
+  $$
+  L=\begin{bmatrix}
+  0&3&4\\
+  5&0&1\\
+  0&2&0
+  \end{bmatrix}.
+  $$
+- Gate-wise necessities:
+  - Gate $1$: $S\ge 0\cdot 9+7\cdot 3+2\cdot 4=29$.
+  - Gate $2$: $S\ge 7\cdot 3+0\cdot 5+2\cdot 1=23$.
+  - Gate $3$: $S\ge 2\cdot 4+0\cdot 0+7\cdot 2=22$.
+- **Expected minimal global $K$-th clearance:** $\max\{29,23,22\}=29$.
+
+
+**[THOUGHT_02_06]**  
+
+**Large-$K$ invariance**
+
+- Instance A: $m=2,\ K=1$; $w=[3,4]$; $A=[5,8]$; $L=\begin{bmatrix}0&8\\5&0\end{bmatrix}$.  
+  **Expected answer:** $47$.
+- Instance B (only $K$ changes): $m=2,\ K=10^9$ with the same $w,A,L$.  
+  **Expected answer remains:** $47$.
+
+**[THOUGHT_02_07]**  
+
+**Sparse vs. dense constraints**
+
+- **Sparse:** $m=3,\ K=2$; $w=[2,2,2]$; $A=[5,5,5]$; $L_{r,s}=0$ $(r\ne s)$.  
+  For any gate $r$, a relevant courier needs $x_r\!\ge 5$ and others $\ge 0$, so $S\ge 2\cdot 5=10$.  
+  **Expected minimal clearance:** $10$.
+- **Dense (all ties):** same $w,A$, but $L_{r,s}=A_s=5$ for all $r\ne s$.  
+  Any relevant courier needs $x_1,x_2,x_3\ge 5$, so $S\ge 2\cdot 5+2\cdot 5+2\cdot 5=30$.  
+  **Expected minimal clearance:** $30$.
+
+
+**[THOUGHT_02_08]**  
+
+**Larger values (numeric safety / scaling)**
+
+- Parameters: $m=6,\ K=10^9$;  
+  $w=[1{,}000{,}000,\ 999{,}999,\ 888{,}888,\ 777{,}777,\ 666{,}666,\ 555{,}555]$,  
+  $A=[900{,}000{,}000,\ 800{,}000{,}000,\ 700{,}000{,}000,\ 600{,}000{,}000,\ 500{,}000{,}000,\ 400{,}000{,}000]$,  
+  off-diagonal $L_{r,s}=1$ for $r\ne s$ ($L_{r,r}=0$).
+- Example (gate $1$):
+  $$
+  S\ge 1{,}000{,}000\cdot 900{,}000{,}000\;+\;(999{,}999+888{,}888+777{,}777+666{,}666+555{,}555)\cdot 1
+  = 900{,}000{,}003{,}888{,}885.
+  $$
+- Checking other gates yields smaller totals in this instance.  
+- **Expected minimal global $K$-th clearance:** $900{,}000{,}003{,}888{,}885$.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force to enumerate feasible worlds
+
+**[THOUGHT_03_01]**  
+
+A naive construction enumerates couriers and assigns readings to satisfy all constraints, then computes the minimal possible $K$-th global sum. However, the space of datasets is unbounded (readings up to $10^9$, unbounded number of couriers).
+
+
+**[THOUGHT_03_02]**  
+
+Even restricting to “top-$K$ candidates” per gate, consistent tie-breaking across gates entangles membership choices combinatorially.
+
+
+**[THOUGHT_03_03]**  
+
+Since $K$ can be as large as $10^9$, any method scaling with $K$ is infeasible. Representation by “types” still requires reasoning about counts and global order.
+
+
+**[THOUGHT_03_04]**  
+
+Conclusion: brute force is **exponential in $m$** and infeasible w.r.t. $K$. It cannot serve as a practical or reliable solver for the stated limits.
+
+
+---
+
+**[CHAIN_04]**
+
+Modeling with linear programming and understanding its limitations
+
+**[THOUGHT_04_01]**  
+
+Consider an LP with variables for counts of courier “profiles” of readings, enforcing that for each gate $r$, at least $K$ couriers have $x_r\ge A_r$, and that for top-$K$ at $r$, readings at other gates satisfy $L_{r,s}$.
+
+
+**[THOUGHT_04_02]**  
+
+Encoding the global $K$-th order statistic of $S(u)$ under a universal tie-breaker is non-convex and not naturally linear. Membership in per-gate top-$K$ sets and the global order are mutually dependent.
+
+
+**[THOUGHT_04_03]**  
+
+If we relax tie-breaker consistency and treat gates independently, we recover only the per-gate lower bound $\max_{r}\!\left(w_rA_r+\sum_{s\ne r}w_sL_{r,s}\right)$, which can be strictly weaker when equality cycles couple gates.
+
+
+**[THOUGHT_04_04]**  
+
+**Complexity note:** The number of profile types can grow exponentially in $m$; formulations that attempt to encode order statistics or universal ordering become intractable. Thus, even ignoring modeling gaps, practical complexity is not competitive for $m\le 50$.
+
+
+---
+
+**[CHAIN_05]**
+
+Per-gate lower bound (specification and analysis)
+
+**[THOUGHT_05_01]**  
+
+For any gate $r$, each courier in its top-$K$ must satisfy $x_{r}\ge A_r$ and $x_{s}\ge L_{r,s}$ for all $s\ne r$. Hence any such courier has
+$$
+S(u)\ \ge\ S_r\ =\ w_rA_r\ +\ \sum_{s\ne r} w_sL_{r,s}.
+$$
+
+
+**[THOUGHT_05_02]**  
+
+Therefore, the global $K$-th clearance is at least $\max_{r} S_r$.
+
+
+**[THOUGHT_05_03]**  
+
+When no threshold equalities occur (i.e., $L_{r,s}<A_s$ for all $r\ne s$), the expected answer equals $\max_{r} S_r$.
+
+
+**[THOUGHT_05_04]**  
+
+Equality at thresholds can couple gates so that multiple gates jointly force the same $K$ couriers; thus $\max_{r} S_r$ can be strict. Computing all $S_r$ takes $O(m^2)$.
+
+
+
+---
+
+**[CHAIN_06]**
+
+SCC coupling and exact aggregate bound
+
+**[THOUGHT_06_01]**  
+
+Build a directed graph on $\{1,\dots,m\}$ with an edge $r\to s$ iff $r\ne s$ and $L_{r,s}=A_s$. Directed cycles indicate groups of gates that must share the same top-$K$ couriers due to threshold ties and the universal tie-breaker.
+
+
+**[THOUGHT_06_02]**  
+
+For any component $C$ and any gate $s$, define  
+$$[
+M_{C,s} \;=\; \max_{r\in C} L_{r,s}.
+]$$  
+A courier in the shared top-$K$ of $C$ must satisfy $x_{u,j}\ge A_j$ for $j\in C$ and $x_{u,s}\ge M_{C,s}$ for $s\notin C$.
+
+
+**[THOUGHT_06_03]**  
+
+Thus, each such courier has clearance at least  
+$$[
+T_C \;=\; \sum_{j\in C} w_j A_j \;+\; \sum_{s\notin C} w_s \, M_{C,s}.
+]$$  
+Therefore, the global $K$-th clearance is at least $\max_C T_C$.
+
+
+**[THOUGHT_06_04]**  
+
+Achievability: One can construct $K$ couriers per component $C$ with readings meeting these minimums and order chip IDs compatibly with the component partial order. Hence, the minimal possible global $K$-th clearance equals  
+$$[
+\boxed{\ \max_{C} \left( \sum_{j\in C} w_j A_j \;+\; \sum_{s\notin C} w_s \max_{r\in C} L_{r,s} \right)\ }.
+]$$  
+This can be computed in $\mathcal{O}(m^2)$ time for $m\le 50$.
+
+**[THOUGHT_06_05]**
+
+Upper bound (existence of a matching construction): By contracting SCCs to a DAG and assigning $K$ couriers per component with carefully chosen readings and chip ID order, we can ensure that the per-gate $K$-th readings and cross-gate minimums hold exactly while each courier in component $C$ attains global clearance exactly $T_C$. Therefore, the minimal achievable global $K$-th clearance equals
+$$
+\max_{C} \left( \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot \max_{r \in C} L_{r,s} \right).
+$$
+This approach runs in $O(m^2)$ per test case.
+
+
+---
+
+**[CHAIN_07]**
+
+Constructing a feasible world to match the lower bound
+
+**[THOUGHT_07_01]**
+
+Contract SCCs to form a DAG $H$. For each component $C$, create exactly $K$ synthetic couriers. Assign readings as follows:
+- For any $j \in C$, assign reading exactly $A_j$ to all $K$ couriers of $C$.
+- For any $s \notin C$, assign reading exactly $M_{C,s}$ to all $K$ couriers of $C$.
+
+
+**[THOUGHT_07_02]**
+
+Order chip IDs according to a topological order of components such that if there is an edge $U \to V$ in $H$, all chip IDs of $V$ come before all chip IDs of $U$. This ensures that, at gate $r \in U$, any courier in $V$ that ties at $A_r$ appears later relative to $U$’s couriers at gate $r$, so the top-$K$ at gate $r$ are exactly the couriers from $U$ when required.
+
+
+**[THOUGHT_07_03]**
+
+Verification at each gate $r \in C$: Couriers in $C$ have reading $A_r$. Couriers in components not equal to $C$ have readings at gate $r$ at most $A_r$, by construction of $M_{C,s}$ and the DAG order. Those tying at $A_r$ are scheduled by chip ID to be after $C$’s couriers if they should not intrude. Hence, the top-$K$ at gate $r$ are exactly the $K$ couriers of $C$, and the cross-gate minimums $L_{r,s}$ are satisfied.
+
+
+**[THOUGHT_07_04]**
+
+Each courier in $C$ has global clearance exactly
+$$
+T_C = \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot M_{C,s}.
+$$
+No courier has global clearance exceeding $\max_C T_C$, and at least $K$ couriers achieve $\max_C T_C$. Thus, the global $K$-th clearance is precisely $\max_C T_C$.
+
+
+**[THOUGHT_07_05]**
+
+This construction shows that the value of $K$ does not appear in the formula; $K$ matters only to guarantee feasibility of assigning $K$ couriers per component. The computational steps depend only on $m$, $A$, $L$, and $w$.
+
+
+---
+
+**[CHAIN_08]**
+
+Analyzing complexity and detailing implementation considerations
+
+**[THOUGHT_08_01]**  
+
+Time complexity per test: building all pairwise checks is $O(m^2)$; SCCs on this graph are $O(m^2)$; per-component maxima and totals are $O(m^2)$. Overall: $O(m^2)$.
+
+
+
+**[THOUGHT_08_02]**  
+
+Space complexity: matrices and adjacency lists are $O(m^2)$; temporary vectors are $O(m)$.
+
+
+**[THOUGHT_08_03]**  
+
+Numeric safety: each product $w_jA_j$ or $w_sL_{r,s}$ is $\le 10^6\cdot 10^9=10^{15}$; sums over $m\le 50$ remain $<5\cdot 10^{16}$, which fits in $64$-bit signed integers.
+
+
+**[THOUGHT_08_04]**  
+
+Implementation notes:  
+- Add edges only when $r\ne s$ and $L_{r,s}=A_s$.  
+- After SCCs, group indices per component to compute $M_{C,s}=\max_{r\in C}L_{r,s}$.  
+- The final answer is $\max_C T_C$. Initialize with $0$ (all inputs are nonnegative).
+
+**[THOUGHT_08_05]**
+
+Corner cases to validate:
+- Gates with $w_j = 0$ should contribute nothing to the sum but can still define SCCs and influence $M_{C,s}$ values for other gates.
+- Rows or columns with zeros in $L$ should not break equality detection unless they match $A_s$ exactly.
+- $K$ is not used in arithmetic; ensure the program does not read beyond required inputs or accidentally use $K$ in computations.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given $m$ sensor gates. Each courier has a nonnegative integer reading at every gate. A universal chip ID imposes a strict total order on couriers and breaks all ties consistently across all gates and in the final global ranking. The global clearance for a courier $u$ with readings $x_{u,1}, \dots, x_{u,m}$ is:
+$$
+S(u) = \sum_{j=1}^{m} w_j \cdot x_{u,j}.
+$$
+
+Due to data loss, we only know:
+- For each gate $r$, the $K$-th largest reading at gate $r$ equals $A_r$ (with ties resolved by the same chip ID).
+- For each $r \ne s$, any courier in the top-$K$ at gate $r$ has reading at least $L_{r,s}$ at gate $s$.
+
+It is guaranteed that $L_{r,r} = 0$, for $r \ne s$ we have $L_{r,s} \le A_s$, and at least one consistent full dataset exists under the universal tie-breaker. Our goal is to find the smallest possible value of the global $K$-th clearance across all such consistent worlds.
+
+Key observation: equality constraints $L_{r,s} = A_s$ induce dependencies between gates. A directed edge $r \to s$ indicates top-$K$ at $r$ must tie at gate $s$’s threshold. With a universal tie-breaker, directed cycles of such edges force the involved gates to share the same top-$K$ set. This structure is captured by strongly connected components (SCCs) in a directed graph built on equality edges.
+
+**2. Optimal Approach**
+
+We model equality couplings with SCCs and compute the exact minimal $K$-th global clearance.
+
+- Build a directed graph on gates $\{1,\dots,m\}$. Add an edge $r \to s$ iff $r \ne s$ and $L_{r,s} = A_s$.
+- Compute the SCCs of this graph. Gates in the same SCC must share the same top-$K$ couriers.
+- For any component $C$ and any gate $s$, define
+$$
+M_{C,s} = \max_{r \in C} L_{r,s}.
+$$
+- Any courier in the shared top-$K$ set of component $C$ must have reading at least $A_j$ for all $j \in C$, and at least $M_{C,s}$ for all $s \notin C$. Therefore, each such courier has global clearance at least
+$$
+T_C = \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot M_{C,s}.
+$$
+- The minimal achievable global $K$-th clearance equals
+$$
+\max_{C} \left( \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot \max_{r \in C} L_{r,s} \right).
+$$
+
+This value is tight: by contracting SCCs to a DAG and creating $K$ synthetic couriers per component with readings set to the thresholds above, and ordering chip IDs so that if there is an edge $U \to V$, all IDs of $V$ come before all IDs of $U$, we can realize a consistent world where each courier in component $C$ achieves exactly $T_C$, and at least $K$ couriers achieve the maximum across components.
+
+Algorithm steps per test case:
+1) Build the equality graph with edges $r \to s$ when $L_{r,s} = A_s$ for $r \ne s$.
+2) Compute SCCs (Kosaraju or Tarjan).
+3) For each SCC $C$, compute $M_{C,s}$ for all $s$ and then compute $T_C$.
+4) Output $\max_{C} T_C$.
+
+This runs in $O(m^2)$ time and $O(m^2)$ space per test case. The value of $K$ only assures feasibility and does not appear in the final formula.
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+/*
+ * City Access Threshold — Readability-Focused Implementation
+ *
+ * Overview:
+ * We build a directed "equality graph" on gates with an edge i->j iff L[i][j] == A[j].
+ * Strongly Connected Components (SCCs) capture mutual tie-dependencies. For each SCC C,
+ * the minimal score forced by C is:
+ *
+ *   T_C = sum_{s in C} (w[s] * A[s]) + sum_{s not in C} (w[s] * max_{r in C} L[r][s])
+ *
+ * The final answer is max over all SCCs C of T_C.
+ *
+ * Notes:
+ * - K is read (as per input format) but not used: the minimum K-th clearance depends
+ *   only on (w, A, L) when a consistent world exists.
+ * - All values are nonnegative and the 64-bit accumulation is safe under constraints.
+ */
+
+/* Performs DFS to produce a finishing order (Kosaraju step 1). */
+void buildFinishOrderDfs(int node,
+                         const std::vector<std::vector<int>>& adjacency,
+                         std::vector<int>& visited,
+                         std::vector<int>& finishOrder) {
+    visited[node] = 1;
+    for (int next : adjacency[node]) {
+        if (!visited[next]) {
+            buildFinishOrderDfs(next, adjacency, visited, finishOrder);
+        }
+    }
+    finishOrder.push_back(node);
+}
+
+/* Performs DFS on the reversed graph to assign SCC ids (Kosaraju step 2). */
+void assignComponentDfs(int node,
+                        const std::vector<std::vector<int>>& reverseAdjacency,
+                        std::vector<int>& componentId,
+                        int currentComponentId) {
+    componentId[node] = currentComponentId;
+    for (int next : reverseAdjacency[node]) {
+        if (componentId[next] == -1) {
+            assignComponentDfs(next, reverseAdjacency, componentId, currentComponentId);
+        }
+    }
+}
+
+/*
+ * Computes T_C for an SCC C:
+ *   - For indices inside C: use A[s].
+ *   - For indices outside C: use max_{r in C} L[r][s].
+ */
+long long computeSccScore(const std::vector<int>& sccNodes,
+                          const std::vector<long long>& weight,
+                          const std::vector<long long>& kthReading,
+                          const std::vector<std::vector<long long>>& minCrossLimit) {
+    const int m = static_cast<int>(weight.size());
+
+    std::vector<long long> maxLimitFromScc(m, 0);
+    std::vector<bool> isInScc(m, false);
+
+    // Mark SCC membership and precompute max L[r][s] over r in C for every s.
+    for (int r : sccNodes) {
+        isInScc[r] = true;
+        for (int s = 0; s < m; ++s) {
+            if (minCrossLimit[r][s] > maxLimitFromScc[s]) {
+                maxLimitFromScc[s] = minCrossLimit[r][s];
+            }
+        }
+    }
+
+    long long score = 0;
+    for (int s = 0; s < m; ++s) {
+        if (isInScc[s]) {
+            // Inside the SCC: forced to A[s].
+            score += weight[s] * kthReading[s];
+        } else {
+            // Outside the SCC: forced to max_{r in C} L[r][s].
+            score += weight[s] * maxLimitFromScc[s];
+        }
+    }
+    return score;
+}
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int testCount;
+    if (!(std::cin >> testCount)) {
+        return 0;
+    }
+
+    while (testCount--) {
+        int gateCount;
+        long long topK; // Read but not used; see note in the header comment.
+        std::cin >> gateCount >> topK;
+
+        std::vector<long long> weight(gateCount);
+        std::vector<long long> kthReading(gateCount);
+        for (int i = 0; i < gateCount; ++i) {
+            std::cin >> weight[i];
+        }
+        for (int i = 0; i < gateCount; ++i) {
+            std::cin >> kthReading[i];
+        }
+
+        std::vector<std::vector<long long>> minCrossLimit(
+            gateCount, std::vector<long long>(gateCount)
+        );
+        for (int i = 0; i < gateCount; ++i) {
+            for (int j = 0; j < gateCount; ++j) {
+                std::cin >> minCrossLimit[i][j];
+            }
+        }
+
+        // Build equality graph: edge i->j if i != j and L[i][j] == A[j].
+        std::vector<std::vector<int>> equalityAdjacency(gateCount), reverseAdjacency(gateCount);
+        for (int i = 0; i < gateCount; ++i) {
+            for (int j = 0; j < gateCount; ++j) {
+                if (i == j) continue;
+                if (minCrossLimit[i][j] == kthReading[j]) {
+                    equalityAdjacency[i].push_back(j);
+                    reverseAdjacency[j].push_back(i);
+                }
+            }
+        }
+
+        // Kosaraju: step 1 — finishing order on the original graph.
+        std::vector<int> visited(gateCount, 0);
+        std::vector<int> finishOrder;
+        finishOrder.reserve(gateCount);
+        for (int i = 0; i < gateCount; ++i) {
+            if (!visited[i]) {
+                buildFinishOrderDfs(i, equalityAdjacency, visited, finishOrder);
+            }
+        }
+        std::reverse(finishOrder.begin(), finishOrder.end());
+
+        // Kosaraju: step 2 — assign components on the reversed graph.
+        std::vector<int> componentId(gateCount, -1);
+        int componentCount = 0;
+        for (int node : finishOrder) {
+            if (componentId[node] == -1) {
+                assignComponentDfs(node, reverseAdjacency, componentId, componentCount);
+                ++componentCount;
+            }
+        }
+
+        // Group nodes by component.
+        std::vector<std::vector<int>> nodesInComponent(componentCount);
+        for (int i = 0; i < gateCount; ++i) {
+            nodesInComponent[componentId[i]].push_back(i);
+        }
+
+        // Compute the answer: max T_C over all SCCs C.
+        long long minKthClearance = 0;
+        for (int cid = 0; cid < componentCount; ++cid) {
+            long long componentScore = computeSccScore(
+                nodesInComponent[cid], weight, kthReading, minCrossLimit
+            );
+            if (componentScore > minKthClearance) {
+                minKthClearance = componentScore;
+            }
+        }
+
+        std::cout << minKthClearance << '\n';
+    }
+
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- Build a directed graph on gates with an edge $r \to s$ when $r \ne s$ and $L_{r,s} = A_s$. These edges encode equality couplings at gate thresholds.
+- Compute SCCs using Kosaraju's algorithm:
+  - First DFS (buildFinishOrderDfs) collects nodes in finishing order on the original graph.
+  - Reverse the order and run DFS on the reversed graph (assignComponentDfs) to assign component IDs.
+- For each SCC $C$, compute $M_{C,s} = \max_{r \in C} L_{r,s}$ for every $s$. Then compute
+  $$
+  T_C = \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot M_{C,s}.
+  $$
+- The final result is $\max_C T_C$, which is the minimal possible global $K$-th clearance due to the constructive achievability by assigning $K$ couriers per component and ordering chip IDs so that if there is an edge $U \to V$, all IDs of $V$ precede those of $U$.
+
+Variable naming in code:
+- weights corresponds to $w$, thresholds corresponds to $A$, limits corresponds to $L$.
+
+All arithmetic uses 64-bit integers.
+
+**5. Time and Space Complexity**
+
+- Time per test case: Building the equality graph is $O(m^2)$. SCC computation via Kosaraju runs in $O(m^2)$ for dense graphs. Computing per-component $M_{C,*}$ and $T_C$ is $O(m^2)$. Overall time is $O(m^2)$.
+- Space per test case: Matrices and adjacency lists use $O(m^2)$ space; vectors for visited flags, orders, components, and temporary arrays use $O(m)$. Overall space is $O(m^2)$.
+
+**6. Conclusion**
+
+Equality constraints at thresholds and a universal tie-breaker force gates in equality cycles to share the same top-$K$ set. Modeling these constraints with SCCs yields the exact minimal $K$-th global clearance:
+$$
+\max_{C} \left( \sum_{j \in C} w_j \cdot A_j + \sum_{s \notin C} w_s \cdot \max_{r \in C} L_{r,s} \right).
+$$
+The provided $O(m^2)$ algorithm computes this value efficiently, with $K$ affecting only feasibility, not the formula itself.
+
+**7. Walkthrough (using the optimal SCC approach on the first sample)**
+
+Given: $m=2$, $K=1$, $w=[3,4]$, $A=[2,5]$, and
+$L_{1,1}=0$, $L_{1,2}=3$, $L_{2,1}=1$, $L_{2,2}=0$.
+
+**Step 1 — Build the equality graph.**  
+Add a directed edge $r\to s$ iff $r\ne s$ and $L_{r,s}=A_s$.
+- Check: $L_{1,2}=3 \ne A_2=5$ (no edge $1\to 2$).
+- Check: $L_{2,1}=1 \ne A_1=2$ (no edge $2\to 1$).  
+Hence there are no edges; the SCCs are $C_1=\{1\}$ and $C_2=\{2\}$.
+
+**Step 2 — Compute the cross-constraints $M_{C,s}=\max_{r\in C}L_{r,s}$.**
+- For $C_1=\{1\}$: $M_{C_1,1}=L_{1,1}=0$, $M_{C_1,2}=L_{1,2}=3$.
+- For $C_2=\{2\}$: $M_{C_2,1}=L_{2,1}=1$, $M_{C_2,2}=L_{2,2}=0$.
+
+**Step 3 — Compute each component’s forced score $T_C$.**
+- For $C_1=\{1\}$:
+  $$
+  T_{C_1}
+  \;=\;
+  \sum_{j\in C_1} w_j A_j \;+\; \sum_{s\notin C_1} w_s M_{C_1,s}
+  \;=\;
+  w_1A_1 \;+\; w_2 M_{C_1,2}
+  \;=\;
+  3\cdot 2 \;+\; 4\cdot 3
+  \;=\;
+  18.
+  $$
+- For $C_2=\{2\}$:
+  $$
+  T_{C_2}
+  \;=\;
+  w_2A_2 \;+\; w_1 M_{C_2,1}
+  \;=\;
+  4\cdot 5 \;+\; 3\cdot 1
+  \;=\;
+  23.
+  $$
+
+**Step 4 — Take the maximum over components.**  
+$$
+\max\{T_{C_1},\,T_{C_2}\} \;=\; \max\{18,\,23\} \;=\; 23.
+$$
+
+Thus, the minimal possible global $K$-th clearance for this instance is $23$.

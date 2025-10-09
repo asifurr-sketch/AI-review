@@ -87,6 +87,13 @@ FORMAT: Present as a clean, bulleted list of failures with specific examples, qu
 
 CRITICAL: Do NOT summarize multiple violations into general statements. Each violation must be listed separately with its exact location.
 
+FORMATTING REQUIREMENTS:
+- DO NOT use **bold** formatting or any markdown-style formatting
+- DO NOT use ChatGPT-style brackets like **[SECTION]** or **bold text**
+- Use plain text with simple bullet points (•) or dashes (-)
+- Keep formatting minimal and clean
+- Avoid any special formatting characters
+
 IMPORTANT: Focus on actionable failure information that helps the user understand what needs to be fixed. Avoid providing multiple code alternatives or improved examples.
 
 Original Response:
@@ -107,19 +114,33 @@ Original Response:
             )
             cleaned_response = message.content[0].text.strip()
             
+            # Remove ChatGPT-style formatting and markdown
+            import re
+            # Remove **bold** formatting
+            cleaned_response = re.sub(r'\*\*(.*?)\*\*', r'\1', cleaned_response)
+            # Remove *italic* formatting  
+            cleaned_response = re.sub(r'\*(.*?)\*', r'\1', cleaned_response)
+            # Remove markdown headers (# ## ###)
+            cleaned_response = re.sub(r'^#{1,6}\s+', '', cleaned_response, flags=re.MULTILINE)
+            # Remove markdown code formatting `code`
+            cleaned_response = re.sub(r'`([^`]+)`', r'\1', cleaned_response)
+            # Clean up any double spaces or extra newlines
+            cleaned_response = re.sub(r'\s+', ' ', cleaned_response)
+            cleaned_response = re.sub(r'\n\s*\n', '\n\n', cleaned_response)
+            
             # Add a small delay to respect API rate limits for the cleanup call
             import time
             time.sleep(0.5)
             
-            return cleaned_response
+            return cleaned_response.strip()
         except Exception as e:
             # If cleanup fails, return original response
             return f"[Cleanup failed: {str(e)}]\n\n{failure_response}"
 
     def _make_api_call(self, prompt: str, document: str) -> str:
         """Make API call to Claude Opus 4.1 with thinking enabled and streaming"""
-        thinking_budget = 60000  # Maximum thinking budget for the most comprehensive analysis
-        max_output = 200000  # Maximum output tokens for Claude Opus 4.1
+        thinking_budget = 20000  # Thinking budget for comprehensive analysis
+        max_output = 32000  # Maximum output tokens for Claude Opus 4.1
         
         # Use streaming for large requests as required by API
         response_text = ""
@@ -908,7 +929,68 @@ If no violations found, state "No heading violations found in thoughts."
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 29: Reasoning Thoughts Review Process
+    # Point 29: Mathematical Variables and Expressions Formatting
+    @staticmethod
+    def get_math_formatting_prompt():
+        """Check if all mathematical variables and expressions are properly enclosed in LaTeX format"""
+        return """
+You are an expert document reviewer specializing in mathematical notation and LaTeX formatting.
+
+TASK: Check if ALL variables and mathematical expressions throughout the document are properly enclosed in LaTeX format ($...$ for inline or $$...$$ for display).
+
+WHAT TO CHECK:
+1. **Single variables**: Letters used as mathematical variables (e.g., n, i, j, k, x, y, N, M, etc.)
+2. **Mathematical expressions**: Any mathematical operations, equations, or formulas
+3. **Mathematical notation**: Subscripts, superscripts, fractions, summations, etc.
+4. **Algorithm complexity**: Big O notation (e.g., O(n), O(log n), O(n²))
+5. **Mathematical relationships**: Comparisons, inequalities, ranges (e.g., i < n, x ≥ 0)
+
+WHAT NOT TO FLAG:
+- Variables in code blocks (inside ``` code blocks)
+- Programming language keywords and syntax
+- Regular English words that happen to be single letters
+- Variables that are clearly part of programming context (not mathematical)
+- File extensions, version numbers, or technical abbreviations
+
+FORMATTING REQUIREMENTS:
+- Inline math should use single dollar signs: $variable$ or $expression$
+- Display math should use double dollar signs: $$expression$$
+- All mathematical content must be enclosed, no exceptions
+
+SECTION-BY-SECTION ANALYSIS:
+You must examine ALL sections of the document including:
+- Metadata section
+- Problem statement/Prompt section
+- All CHAIN_XX sections
+- All THOUGHT_XX_YY sections
+- Response/Assistant sections
+- Any other text content
+
+VIOLATION REPORTING:
+For each violation found, provide:
+1. The exact section name where it occurs (e.g., "Metadata", "CHAIN_01", "THOUGHT_02_03", etc.)
+2. The exact unformatted text that should be in LaTeX
+3. The suggested correction with proper LaTeX formatting
+
+RESPONSE FORMAT:
+List ALL violations in this format:
+
+**VIOLATIONS FOUND:**
+
+**Section: [Section Name]**
+- Violation: "[exact unformatted text]"
+- Should be: "$[corrected LaTeX format]$"
+
+**Section: [Section Name]**
+- Violation: "[exact unformatted text]" 
+- Should be: "$[corrected LaTeX format]$"
+
+If no violations are found, state: "No mathematical formatting violations found."
+
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    # Point 30: Reasoning Thoughts Review Process
     @staticmethod
     def get_reasoning_thoughts_review_prompt():
         """Comprehensive review of reasoning thought chains"""
@@ -1184,35 +1266,9 @@ class Chain2TestCaseAnalysisReviewer(BaseReviewer):
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_chain2_testcase_analysis_prompt()
         response = self._make_api_call(prompt, document)
-        return self._parse_response_no_cleanup(response)
+        return self._parse_response(response)
 
-    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
-        """Parse response without cleanup to preserve detailed violation information"""
-        response_lower = response.lower()
-        
-        if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
-            result = ReviewResult.PASS
-            lines = response.split('\n')
-            for line in lines:
-                if 'final verdict: pass' in line.lower() or 'conclusion: pass' in line.lower():
-                    reasoning = line.strip()
-                    break
-            else:
-                reasoning = "PASS - Chain 2 contains actual test case analysis"
-        elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
-            result = ReviewResult.FAIL
-            reasoning = response.strip()
-        elif "✅" in response or "pass" in response_lower.split()[-20:]:
-            result = ReviewResult.PASS
-            reasoning = "PASS - Chain 2 contains actual test case analysis"
-        elif "❌" in response or "fail" in response_lower.split()[-20:]:
-            result = ReviewResult.FAIL
-            reasoning = response.strip()
-        else:
-            result = ReviewResult.FAIL
-            reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
-        
-        return ReviewResponse(result=result, reasoning=reasoning)
+
 
 class ThoughtHeadingViolationsReviewer(BaseReviewer):
     """Point 28: Reviews for prohibited headings in thoughts"""
@@ -1220,77 +1276,28 @@ class ThoughtHeadingViolationsReviewer(BaseReviewer):
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_thought_heading_violations_prompt()
         response = self._make_api_call(prompt, document)
-        return self._parse_response_no_cleanup(response)
+        return self._parse_response(response)
 
-    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
-        """Parse response without cleanup to preserve detailed violation information"""
-        response_lower = response.lower()
-        
-        if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
-            result = ReviewResult.PASS
-            lines = response.split('\n')
-            for line in lines:
-                if 'final verdict: pass' in line.lower() or 'conclusion: pass' in line.lower():
-                    reasoning = line.strip()
-                    break
-            else:
-                reasoning = "PASS - No prohibited headings found in thoughts"
-        elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
-            result = ReviewResult.FAIL
-            reasoning = response.strip()
-        elif "✅" in response or "pass" in response_lower.split()[-20:]:
-            result = ReviewResult.PASS
-            reasoning = "PASS - No prohibited headings found in thoughts"
-        elif "❌" in response or "fail" in response_lower.split()[-20:]:
-            result = ReviewResult.FAIL
-            reasoning = response.strip()
-        else:
-            result = ReviewResult.FAIL
-            reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
-        
-        return ReviewResponse(result=result, reasoning=reasoning)
+
+
+class MathFormattingReviewer(BaseReviewer):
+    """Point 29: Reviews mathematical variables and expressions formatting"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_math_formatting_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response(response)
+    
 
 class ReasoningThoughtsReviewer(BaseReviewer):
-    """Point 29: Comprehensive review of reasoning thought chains"""
+    """Point 30: Comprehensive review of reasoning thought chains"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_reasoning_thoughts_review_prompt()
         response = self._make_api_call(prompt, document)
-        return self._parse_response_no_cleanup(response)
+        return self._parse_response(response)
     
-    def _parse_response_no_cleanup(self, response: str) -> ReviewResponse:
-        """Parse response without cleanup for detailed reasoning analysis"""
-        response_lower = response.lower()
-        
-        # Look for clear pass/fail indicators
-        if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
-            result = ReviewResult.PASS
-            # For PASS, extract only the verdict line
-            lines = response.split('\n')
-            for line in lines:
-                if 'final verdict: pass' in line.lower() or 'conclusion: pass' in line.lower():
-                    reasoning = line.strip()
-                    break
-            else:
-                reasoning = "PASS - Review completed successfully"
-        elif "final verdict: fail" in response_lower or "conclusion: fail" in response_lower:
-            result = ReviewResult.FAIL
-            # No cleanup - keep detailed reasoning as-is
-            reasoning = response.strip()
-        elif "✅" in response or "pass" in response_lower.split()[-20:]:  # Check last 20 words
-            result = ReviewResult.PASS
-            reasoning = "PASS - Review completed successfully"
-        elif "❌" in response or "fail" in response_lower.split()[-20:]:
-            result = ReviewResult.FAIL
-            # No cleanup - keep detailed reasoning as-is
-            reasoning = response.strip()
-        else:
-            # Default to FAIL if unclear
-            result = ReviewResult.FAIL
-            # No cleanup - keep original response
-            reasoning = response.strip() + "\n\n[NOTE: Response was ambiguous, defaulting to FAIL]"
-        
-        return ReviewResponse(result=result, reasoning=reasoning)
+
 
 class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
@@ -1345,7 +1352,8 @@ class DocumentReviewSystem:
             "25. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
             "26. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
             "27. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "28. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            "28. Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
+            "29. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
@@ -1367,7 +1375,7 @@ class DocumentReviewSystem:
         print(header_msg)
         self.detailed_output.append(header_msg)
         
-        budget_msg = "💭 Extended thinking enabled with 60,000 token budget per review"
+        budget_msg = "💭 Extended thinking enabled with 20,000 token budget per review"
         print(budget_msg)
         self.detailed_output.append(budget_msg)
         
@@ -1426,7 +1434,7 @@ class DocumentReviewSystem:
                     print(first_result_msg)
                     self.detailed_output.append(first_result_msg)
                     
-                    second_run_msg = "🔄 Running Point 28 again for confirmation..."
+                    second_run_msg = "🔄 Running Point 29 again for confirmation..."
                     print(second_run_msg)
                     self.detailed_output.append(second_run_msg)
                     
@@ -1538,7 +1546,7 @@ class DocumentReviewSystem:
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
-        """Generate comprehensive review report for all 27 review points"""
+        """Generate comprehensive review report for all 29 review points"""
         report = []
         
         # Add the complete detailed execution log first
@@ -1662,9 +1670,9 @@ def main():
         
         # Model information
         print("\n🤖 Model Configuration:")
-        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 60k thinking budget")
+        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 20k thinking budget")
         print("   Secondary: Claude Sonnet 4 (claude-sonnet-4-20250514) for cleanup operations")
-        print("   Max tokens: 200,000 (Opus 4.1) / 200,000 (Sonnet 4 cleanup)")
+        print("   Max tokens: 32,000 (Opus 4.1) / 200,000 (Sonnet 4 cleanup)")
         print()
         
         # Run reviews with resume option
