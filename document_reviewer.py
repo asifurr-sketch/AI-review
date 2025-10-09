@@ -600,7 +600,57 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 0: Time Complexity Authenticity Check
+    # Point 0: Unique Solution Validation
+    @staticmethod
+    def get_unique_solution_prompt():
+        """Check if problem has unique valid solution for automated testing"""
+        return """
+You are an expert problem analysis specialist. 
+
+TASK: Determine if this problem can have multiple valid solutions for the same input, which would make it unsuitable for direct file matching validation.
+
+CRITICAL ANALYSIS REQUIREMENTS:
+1. **Single Valid Output**: For ANY given valid input, there must be exactly ONE correct output
+2. **Deterministic Result**: The problem should not allow different valid answers for the same test case
+3. **No Multiple Correct Formats**: Output format should be strictly defined with no acceptable variations
+
+EXAMPLES OF PROBLEMS THAT FAIL THIS CHECK:
+- "Print any valid permutation" (multiple correct answers exist)
+- "Output any path from A to B" (multiple valid paths possible)
+- "Print elements in any order" (different orderings are valid)
+- "Find any solution that satisfies the constraints" (multiple solutions exist)
+- Problems with floating-point outputs where precision tolerance matters
+- Problems asking for "one possible arrangement" or "any valid configuration"
+
+EXAMPLES OF PROBLEMS THAT PASS THIS CHECK:
+- "Find the minimum number of operations" (single numerical answer)
+- "Calculate the maximum profit" (single numerical answer)
+- "Determine if it's possible (YES/NO)" (binary answer)
+- "Print the lexicographically smallest sequence" (deterministic ordering)
+- "Output the unique solution" (explicitly states uniqueness)
+- "Find the shortest path length" (single numerical value)
+
+WHAT TO EXAMINE:
+1. **Problem Statement**: Look for words like "any", "one possible", "find a solution", "print any valid"
+2. **Output Requirements**: Check if output format allows variations
+3. **Constraints**: Determine if constraints guarantee uniqueness
+4. **Examples**: Verify if given examples have only one possible correct output
+5. **Problem Type**: Identify if it's optimization (usually unique) vs. construction (often multiple solutions)
+
+VALIDATION CRITERIA:
+- If the problem asks for "any valid solution" → FAIL
+- If multiple correct outputs exist for the same input → FAIL  
+- If output ordering is flexible ("in any order") → FAIL
+- If the problem guarantees unique solution → PASS
+- If it's asking for optimal value (min/max) → Usually PASS
+- If it's asking for count/existence (YES/NO) → Usually PASS
+
+RESPONSE FORMAT:
+Provide detailed analysis of why the problem does/doesn't have unique solutions, then end with:
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    # Point 1: Time Complexity Authenticity Check
     @staticmethod
     def get_time_complexity_authenticity_prompt():
         """Check if time complexity in metadata covers all approaches discussed"""
@@ -1052,8 +1102,16 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 
 # Ultimate Individual Reviewer Classes - One for each review point
 
+class UniqueSolutionReviewer(BaseReviewer):
+    """Point 0: Validates if problem has unique solution for automated testing"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_unique_solution_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response(response)
+
 class TimeComplexityAuthenticityReviewer(BaseReviewer):
-    """Point 0: Reviews time complexity authenticity in metadata for all approaches"""
+    """Point 1: Reviews time complexity authenticity in metadata for all approaches"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_time_complexity_authenticity_prompt()
@@ -1061,7 +1119,7 @@ class TimeComplexityAuthenticityReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class StyleGuideReviewer(BaseReviewer):
-    """Point 1: Reviews code style guide compliance"""
+    """Point 2: Reviews code style guide compliance"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_style_guide_prompt()
@@ -1069,7 +1127,7 @@ class StyleGuideReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class NamingConventionsReviewer(BaseReviewer):
-    """Point 2: Reviews naming conventions compliance"""
+    """Point 3: Reviews naming conventions compliance"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_naming_conventions_prompt()
@@ -1077,7 +1135,7 @@ class NamingConventionsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class DocumentationReviewer(BaseReviewer):
-    """Point 3: Reviews appropriate documentation style"""
+    """Point 4: Reviews appropriate documentation style"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_documentation_prompt()
@@ -1313,47 +1371,50 @@ class DocumentReviewSystem:
         
         # Initialize all Ultimate reviewers - each as individual API call
         self.reviewers = {
-            # Point 0: Time Complexity Check
-            "0. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
+            # Point 0: Solution Uniqueness Validation
+            "0. Unique Solution Validation": UniqueSolutionReviewer(self.client),
             
-            # Points 1-3: Code Quality
-            "1. Style Guide Compliance": StyleGuideReviewer(self.client),
-            "2. Naming Conventions": NamingConventionsReviewer(self.client),
-            "3. Documentation Standards": DocumentationReviewer(self.client),
+            # Point 1: Time Complexity Check
+            "1. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
             
-            # Points 4-11: Response Quality  
-            "4. Response Relevance to Problem": ResponseRelevanceReviewer(self.client),
-            "5. Mathematical Equations Correctness": MathEquationsReviewer(self.client),
-            "6. Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client),
-            "7. Missing Approaches in Steps": MissingApproachesReviewer(self.client),
-            "8. Code Elements Existence": CodeElementsExistenceReviewer(self.client),
-            "9. Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client),
-            "10. Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
-            "11. Conclusion Quality": ConclusionQualityReviewer(self.client),
+            # Points 2-4: Code Quality
+            "2. Style Guide Compliance": StyleGuideReviewer(self.client),
+            "3. Naming Conventions": NamingConventionsReviewer(self.client),
+            "4. Documentation Standards": DocumentationReviewer(self.client),
             
-            # Points 12-16: Problem Statement and Solution Quality
-            "12. Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
-            "13. Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
-            "14. Metadata Correctness": MetadataCorrectnessReviewer(self.client),
-            "15. Test Case Validation": TestCaseValidationReviewer(self.client),
-            "16. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
-            "17. Note Section Explanation Approach": NoteSectionReviewer(self.client),
+            # Points 5-12: Response Quality  
+            "5. Response Relevance to Problem": ResponseRelevanceReviewer(self.client),
+            "6. Mathematical Equations Correctness": MathEquationsReviewer(self.client),
+            "7. Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client),
+            "8. Missing Approaches in Steps": MissingApproachesReviewer(self.client),
+            "9. Code Elements Existence": CodeElementsExistenceReviewer(self.client),
+            "10. Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client),
+            "11. Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
+            "12. Conclusion Quality": ConclusionQualityReviewer(self.client),
             
-            # Points 18-20: Reasoning Chain Quality
-            "18. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
-            "19. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
-            "20. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            # Points 13-17: Problem Statement and Solution Quality
+            "13. Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
+            "14. Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
+            "15. Metadata Correctness": MetadataCorrectnessReviewer(self.client),
+            "16. Test Case Validation": TestCaseValidationReviewer(self.client),
+            "17. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
+            "18. Note Section Explanation Approach": NoteSectionReviewer(self.client),
             
-            # Points 21+: Subtopic, Taxonomy, and Reasoning Analysis
-            "21. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
-            "22. Typo and Spelling Check": TypoCheckReviewer(self.client),
-            "23. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
-            "24. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "25. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "26. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "27. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "28. Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
-            "29. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            # Points 19-21: Reasoning Chain Quality
+            "19. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
+            "20. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
+            "21. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            
+            # Points 22+: Subtopic, Taxonomy, and Reasoning Analysis
+            "22. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            "23. Typo and Spelling Check": TypoCheckReviewer(self.client),
+            "24. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
+            "25. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
+            "26. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "27. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
+            "28. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
+            "29. Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
+            "30. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
@@ -1434,7 +1495,7 @@ class DocumentReviewSystem:
                     print(first_result_msg)
                     self.detailed_output.append(first_result_msg)
                     
-                    second_run_msg = "🔄 Running Point 29 again for confirmation..."
+                    second_run_msg = "🔄 Running Point 30 again for confirmation..."
                     print(second_run_msg)
                     self.detailed_output.append(second_run_msg)
                     
@@ -1546,7 +1607,7 @@ class DocumentReviewSystem:
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
-        """Generate comprehensive review report for all 29 review points"""
+        """Generate comprehensive review report for all 30 review points"""
         report = []
         
         # Add the complete detailed execution log first
