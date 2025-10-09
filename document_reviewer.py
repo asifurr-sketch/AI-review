@@ -8,6 +8,7 @@ Each review point is performed by a specialized reviewer class with targeted pro
 
 Features:
 - Comprehensive review points covering all aspects of document quality
+- GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
 - Primary: Claude Opus 4.1 with 60k thinking budget for exceptional reasoning
 - Secondary: Claude Sonnet 4 for cleanup operations with 200k output tokens
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
@@ -20,8 +21,14 @@ Features:
 - Comprehensive reasoning thoughts review (Point 28)
 - Extended thinking provides deep analysis with step-by-step reasoning
 
+GitHub Requirements:
+- Document must contain a GitHub URL in metadata: **GitHub URL:** https://github.com/owner/repo
+- Repository must be accessible and cloneable
+- Repository must contain exactly one overall.md file (case-insensitive)
+- GitHub API key should be configured in .env file as: git_api = your_token_here
+
 Author: AI Assistant
-Date: September 29, 2025
+Date: October 9, 2025
 """
 
 import os
@@ -32,6 +39,11 @@ from dataclasses import dataclass
 from enum import Enum
 import json
 import time
+import re
+import subprocess
+import tempfile
+import shutil
+from urllib.parse import urlparse
 from anthropic import Anthropic
 
 class ReviewResult(Enum):
@@ -100,8 +112,10 @@ Original Response:
 """
         
         try:
-            # Use Sonnet 4 for cleanup with maximum output tokens for comprehensive failure analysis
-            message = self.client.messages.create(
+            # Use Sonnet 4 for cleanup with streaming for comprehensive failure analysis
+            cleaned_response = ""
+            
+            with self.client.messages.stream(
                 model=self.secondary_model,
                 max_tokens=200000,  # Maximum output tokens for Claude Sonnet 4
                 temperature=0.1,
@@ -111,8 +125,16 @@ Original Response:
                         "content": f"{cleanup_prompt}\n\n{failure_response}"
                     }
                 ]
-            )
-            cleaned_response = message.content[0].text.strip()
+            ) as stream:
+                for event in stream:
+                    if event.type == "content_block_delta":
+                        if hasattr(event.delta, 'text') and event.delta.text:
+                            cleaned_response += event.delta.text
+            
+            if not cleaned_response:
+                cleaned_response = "No text content in cleanup response"
+            
+            cleaned_response = cleaned_response.strip()
             
             # Remove ChatGPT-style formatting and markdown
             import re
@@ -210,7 +232,7 @@ Original Response:
 class ReviewPrompts:
     """Centralized prompts for different review processes - Ultimate comprehensive analysis"""
     
-    # Point 1: Style Guide Compliance
+    # Style Guide Compliance
     @staticmethod
     def get_style_guide_prompt():
         """Check if code follows style guide"""
@@ -307,7 +329,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 2: Naming Conventions
+    # Naming Conventions
     @staticmethod
     def get_naming_conventions_prompt():
         """Check naming conventions"""
@@ -351,7 +373,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 3: Documentation
+    # Documentation
     @staticmethod
     def get_documentation_prompt():
         """Check appropriate documentation style"""
@@ -405,7 +427,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
     
-    # Point 4: Response Relevance to Problem
+    # Response Relevance to Problem
     @staticmethod
     def get_response_relevance_prompt():
         """Check if response section is relevant to problem description"""
@@ -419,7 +441,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 5: Mathematical Equations Correctness
+    # Mathematical Equations Correctness
     @staticmethod
     def get_math_equations_prompt():
         """Check mathematical equations correctness"""
@@ -433,7 +455,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 6: Problem Constraints Consistency
+    # Problem Constraints Consistency
     @staticmethod
     def get_constraints_consistency_prompt():
         """Check if defined problem constraints match problem description"""
@@ -447,7 +469,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 7: Missing Approaches in Steps
+    # Missing Approaches in Steps
     @staticmethod
     def get_missing_approaches_prompt():
         """Check if any approaches or data structures are not explained in approach steps"""
@@ -461,7 +483,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 8: Code Elements Existence
+    # Code Elements Existence
     @staticmethod
     def get_code_elements_existence_prompt():
         """Check if mentioned variables, functions, and classes exist in code"""
@@ -475,7 +497,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 9: Example Walkthrough with Optimal Algorithm
+    # Example Walkthrough with Optimal Algorithm
     @staticmethod
     def get_example_walkthrough_prompt():
         """Check if response has example walkthrough with optimal algorithm"""
@@ -489,7 +511,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 10: Time and Space Complexity Correctness
+    # Time and Space Complexity Correctness
     @staticmethod
     def get_complexity_correctness_prompt():
         """Check time and space complexity correctness"""
@@ -503,7 +525,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 11: Conclusion Quality
+    # Conclusion Quality
     @staticmethod
     def get_conclusion_quality_prompt():
         """Check conclusion quality"""
@@ -517,7 +539,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 12: Problem Statement Consistency
+    # Problem Statement Consistency
     @staticmethod
     def get_problem_consistency_prompt():
         """Check problem statement consistency"""
@@ -531,7 +553,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 13: Solution Passability According to Limits
+    # Solution Passability According to Limits
     @staticmethod
     def get_solution_passability_prompt():
         """Check if solution is passable according to limits"""
@@ -545,7 +567,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 14: Metadata Correctness
+    # Metadata Correctness
     @staticmethod
     def get_metadata_correctness_prompt():
         """Check metadata correctness"""
@@ -600,7 +622,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 0: Unique Solution Validation
+    # Unique Solution Validation
     @staticmethod
     def get_unique_solution_prompt():
         """Check if problem has unique valid solution for automated testing"""
@@ -650,7 +672,7 @@ Provide detailed analysis of why the problem does/doesn't have unique solutions,
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 1: Time Complexity Authenticity Check
+    # Time Complexity Authenticity Check
     @staticmethod
     def get_time_complexity_authenticity_prompt():
         """Check if time complexity in metadata covers all approaches discussed"""
@@ -691,7 +713,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 16: Test Case Validation (Note: Point 15 in user's list but numbered as 16)
+    # Test Case Validation
     @staticmethod
     def get_test_case_validation_prompt():
         """Validate test cases against code and problem statement"""
@@ -705,7 +727,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 17: Sample Test Case Dry Run Validation
+    # Sample Test Case Dry Run Validation
     @staticmethod
     def get_sample_dry_run_validation_prompt():
         """Check if dry runs or explanations of sample test cases match the given examples exactly"""
@@ -737,7 +759,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 18: Note Section Explanation (Point 18 in user's list)
+    # Note Section Explanation
     @staticmethod
     def get_note_section_prompt():
         """Check note section explanation approach - only applies to problem statement/prompt section"""
@@ -767,7 +789,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 19: Inefficient Approaches Limitations (Point 19 in user's list)
+    # Inefficient Approaches Limitations
     @staticmethod
     def get_inefficient_limitations_prompt():
         """Check if inefficient approaches mention limitations"""
@@ -781,7 +803,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 20: Final Approach Discussion (Point 21 in user's list)
+    # Final Approach Discussion
     @staticmethod
     def get_final_approach_discussion_prompt():
         """Check final approach discussion completeness"""
@@ -798,7 +820,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 21: No Code in Reasoning Chains (Point 22 in user's list)
+    # No Code in Reasoning Chains
     @staticmethod
     def get_no_code_in_reasoning_prompt():
         """Check if reasoning chains contain code"""
@@ -812,7 +834,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 22: Subtopic Taxonomy Validation
+    # Subtopic Taxonomy Validation
     @staticmethod
     def get_subtopic_taxonomy_prompt():
         """Check if subtopics are from taxonomy list and relevant to problem"""
@@ -837,7 +859,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 23: Typo Check (Point 9 from reasoning section)
+    # Typo Check
     @staticmethod
     def get_typo_check_prompt():
         """Check for typos and spelling issues"""
@@ -851,7 +873,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 24: Subtopic Relevance (Point 24 in user's list)
+    # Subtopic Relevance
     @staticmethod
     def get_subtopic_relevance_prompt():
         """Check if selected subtopics are relevant"""
@@ -865,7 +887,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 25: Missing Relevant Subtopics (Point 25 in user's list)
+    # Missing Relevant Subtopics
     @staticmethod
     def get_missing_subtopics_prompt():
         """Identify missing relevant subtopics"""
@@ -881,7 +903,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 26: Predictive Headings in Thoughts
+    # Predictive Headings in Thoughts
     @staticmethod
     def get_predictive_headings_prompt():
         """Check for predictive headings in thoughts"""
@@ -905,7 +927,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 27: Chain 2 Test Case Analysis Validation
+    # Chain Test Case Analysis Validation
     @staticmethod
     def get_chain2_testcase_analysis_prompt():
         """Check if Chain 2 actually performs test case analysis"""
@@ -937,7 +959,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 28: Thought Heading Violations
+    # Thought Heading Violations
     @staticmethod
     def get_thought_heading_violations_prompt():
         """Check if thoughts have prohibited headings"""
@@ -979,7 +1001,7 @@ If no violations found, state "No heading violations found in thoughts."
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 29: Mathematical Variables and Expressions Formatting
+    # Mathematical Variables and Expressions Formatting
     @staticmethod
     def get_math_formatting_prompt():
         """Check if all mathematical variables and expressions are properly enclosed in LaTeX format"""
@@ -1040,7 +1062,7 @@ If no violations are found, state: "No mathematical formatting violations found.
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Point 30: Reasoning Thoughts Review Process
+    # Reasoning Thoughts Review Process
     @staticmethod
     def get_reasoning_thoughts_review_prompt():
         """Comprehensive review of reasoning thought chains"""
@@ -1103,7 +1125,7 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 # Ultimate Individual Reviewer Classes - One for each review point
 
 class UniqueSolutionReviewer(BaseReviewer):
-    """Point 0: Validates if problem has unique solution for automated testing"""
+    """Validates if problem has unique solution for automated testing"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_unique_solution_prompt()
@@ -1111,7 +1133,7 @@ class UniqueSolutionReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class TimeComplexityAuthenticityReviewer(BaseReviewer):
-    """Point 1: Reviews time complexity authenticity in metadata for all approaches"""
+    """Reviews time complexity authenticity in metadata for all approaches"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_time_complexity_authenticity_prompt()
@@ -1119,7 +1141,7 @@ class TimeComplexityAuthenticityReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class StyleGuideReviewer(BaseReviewer):
-    """Point 2: Reviews code style guide compliance"""
+    """Reviews code style guide compliance"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_style_guide_prompt()
@@ -1127,7 +1149,7 @@ class StyleGuideReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class NamingConventionsReviewer(BaseReviewer):
-    """Point 3: Reviews naming conventions compliance"""
+    """Reviews naming conventions compliance"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_naming_conventions_prompt()
@@ -1135,7 +1157,7 @@ class NamingConventionsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class DocumentationReviewer(BaseReviewer):
-    """Point 4: Reviews appropriate documentation style"""
+    """Reviews appropriate documentation style"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_documentation_prompt()
@@ -1143,7 +1165,7 @@ class DocumentationReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ResponseRelevanceReviewer(BaseReviewer):
-    """Point 4: Reviews if response section is relevant to problem description"""
+    """Reviews if response section is relevant to problem description"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_response_relevance_prompt()
@@ -1151,7 +1173,7 @@ class ResponseRelevanceReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class MathEquationsReviewer(BaseReviewer):
-    """Point 5: Reviews mathematical equations correctness"""
+    """Reviews mathematical equations correctness"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_math_equations_prompt()
@@ -1159,7 +1181,7 @@ class MathEquationsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ConstraintsConsistencyReviewer(BaseReviewer):
-    """Point 6: Reviews if defined problem constraints match problem description"""
+    """Reviews if defined problem constraints match problem description"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_constraints_consistency_prompt()
@@ -1167,7 +1189,7 @@ class ConstraintsConsistencyReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class MissingApproachesReviewer(BaseReviewer):
-    """Point 7: Reviews if any approaches or data structures are not explained in approach steps (this check is only for the response section, where optimal algorithm is explained)"""
+    """Reviews if any approaches or data structures are not explained in approach steps (this check is only for the response section, where optimal algorithm is explained)"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_missing_approaches_prompt()
@@ -1175,7 +1197,7 @@ class MissingApproachesReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class CodeElementsExistenceReviewer(BaseReviewer):
-    """Point 8: Reviews if mentioned variables, functions, and classes exist in code"""
+    """Reviews if mentioned variables, functions, and classes exist in code"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_code_elements_existence_prompt()
@@ -1183,7 +1205,7 @@ class CodeElementsExistenceReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ExampleWalkthroughReviewer(BaseReviewer):
-    """Point 9: Reviews if response has example walkthrough with optimal algorithm"""
+    """Reviews if response has example walkthrough with optimal algorithm"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_example_walkthrough_prompt()
@@ -1191,7 +1213,7 @@ class ExampleWalkthroughReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ComplexityCorrectnessReviewer(BaseReviewer):
-    """Point 10: Reviews time and space complexity correctness"""
+    """Reviews time and space complexity correctness"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_complexity_correctness_prompt()
@@ -1199,7 +1221,7 @@ class ComplexityCorrectnessReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ConclusionQualityReviewer(BaseReviewer):
-    """Point 11: Reviews conclusion quality"""
+    """Reviews conclusion quality"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_conclusion_quality_prompt()
@@ -1207,7 +1229,7 @@ class ConclusionQualityReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class ProblemConsistencyReviewer(BaseReviewer):
-    """Point 12: Reviews problem statement consistency"""
+    """Reviews problem statement consistency"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_problem_consistency_prompt()
@@ -1215,7 +1237,7 @@ class ProblemConsistencyReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class SolutionPassabilityReviewer(BaseReviewer):
-    """Point 13: Reviews if solution is passable according to limits"""
+    """Reviews if solution is passable according to limits"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_solution_passability_prompt()
@@ -1223,7 +1245,7 @@ class SolutionPassabilityReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class MetadataCorrectnessReviewer(BaseReviewer):
-    """Point 14: Reviews metadata correctness"""
+    """Reviews metadata correctness"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_metadata_correctness_prompt()
@@ -1231,7 +1253,7 @@ class MetadataCorrectnessReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class TestCaseValidationReviewer(BaseReviewer):
-    """Point 15: Reviews test cases against code and problem statement"""
+    """Reviews test cases against code and problem statement"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_test_case_validation_prompt()
@@ -1239,7 +1261,7 @@ class TestCaseValidationReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class SampleDryRunValidationReviewer(BaseReviewer):
-    """Point 16: Reviews if dry runs or explanations of sample test cases match the given examples exactly"""
+    """Reviews if dry runs or explanations of sample test cases match the given examples exactly"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_sample_dry_run_validation_prompt()
@@ -1247,7 +1269,7 @@ class SampleDryRunValidationReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class NoteSectionReviewer(BaseReviewer):
-    """Point 17: Reviews note section explanation approach - only applies to problem statement/prompt section"""
+    """Reviews note section explanation approach - only applies to problem statement/prompt section"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_note_section_prompt()
@@ -1255,7 +1277,7 @@ class NoteSectionReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class InefficientLimitationsReviewer(BaseReviewer):
-    """Point 18: Reviews if inefficient approaches mention limitations"""
+    """Reviews if inefficient approaches mention limitations"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_inefficient_limitations_prompt()
@@ -1263,7 +1285,7 @@ class InefficientLimitationsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class FinalApproachDiscussionReviewer(BaseReviewer):
-    """Point 20: Reviews final approach discussion completeness"""
+    """Reviews final approach discussion completeness"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_final_approach_discussion_prompt()
@@ -1271,7 +1293,7 @@ class FinalApproachDiscussionReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class NoCodeInReasoningReviewer(BaseReviewer):
-    """Point 21: Reviews if reasoning chains contain code"""
+    """Reviews if reasoning chains contain code"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_no_code_in_reasoning_prompt()
@@ -1279,7 +1301,7 @@ class NoCodeInReasoningReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class SubtopicTaxonomyReviewer(BaseReviewer):
-    """Point 22: Reviews if subtopics are from taxonomy list"""
+    """Reviews if subtopics are from taxonomy list"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_subtopic_taxonomy_prompt()
@@ -1287,7 +1309,7 @@ class SubtopicTaxonomyReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class TypoCheckReviewer(BaseReviewer):
-    """Point 23: Reviews for typos and spelling issues"""
+    """Reviews for typos and spelling issues"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_typo_check_prompt()
@@ -1295,7 +1317,7 @@ class TypoCheckReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class SubtopicRelevanceReviewer(BaseReviewer):
-    """Point 24: Reviews if selected subtopics are relevant"""
+    """Reviews if selected subtopics are relevant"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_subtopic_relevance_prompt()
@@ -1303,7 +1325,7 @@ class SubtopicRelevanceReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class MissingSubtopicsReviewer(BaseReviewer):
-    """Point 25: Reviews for missing relevant subtopics"""
+    """Reviews for missing relevant subtopics"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_missing_subtopics_prompt()
@@ -1311,7 +1333,7 @@ class MissingSubtopicsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class PredictiveHeadingsReviewer(BaseReviewer):
-    """Point 26: Reviews for predictive headings in thoughts"""
+    """Reviews for predictive headings in thoughts"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_predictive_headings_prompt()
@@ -1319,7 +1341,7 @@ class PredictiveHeadingsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class Chain2TestCaseAnalysisReviewer(BaseReviewer):
-    """Point 27: Reviews if Chain 2 performs actual test case analysis"""
+    """Reviews if Chain 2 performs actual test case analysis"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_chain2_testcase_analysis_prompt()
@@ -1329,7 +1351,7 @@ class Chain2TestCaseAnalysisReviewer(BaseReviewer):
 
 
 class ThoughtHeadingViolationsReviewer(BaseReviewer):
-    """Point 28: Reviews for prohibited headings in thoughts"""
+    """Reviews for prohibited headings in thoughts"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_thought_heading_violations_prompt()
@@ -1339,7 +1361,7 @@ class ThoughtHeadingViolationsReviewer(BaseReviewer):
 
 
 class MathFormattingReviewer(BaseReviewer):
-    """Point 29: Reviews mathematical variables and expressions formatting"""
+    """Reviews mathematical variables and expressions formatting"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_math_formatting_prompt()
@@ -1348,13 +1370,459 @@ class MathFormattingReviewer(BaseReviewer):
     
 
 class ReasoningThoughtsReviewer(BaseReviewer):
-    """Point 30: Comprehensive review of reasoning thought chains"""
+    """Comprehensive review of reasoning thought chains"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_reasoning_thoughts_review_prompt()
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
+
+
+class GitHubReviewValidator:
+    """Non-AI review: Validates GitHub post links and overall.md file existence"""
     
+    def __init__(self):
+        # Load GitHub API key from .env file
+        self.github_api_key = None
+        self._load_env_variables()
+    
+    def _load_env_variables(self):
+        """Load environment variables from .env file"""
+        env_path = '.env'
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key == 'git_api':
+                            self.github_api_key = value
+                            break
+    
+    def _extract_github_url(self, document: str) -> Optional[str]:
+        """Extract GitHub URL from document metadata"""
+        # Try the exact format first
+        github_url_pattern = r'\*\*GitHub URL:\*\*\s+(https://github\.com/[^\s\n]+)'
+        match = re.search(github_url_pattern, document)
+        if match:
+            return match.group(1)
+        
+        # Try alternative formats with different spacing or formatting
+        alternative_patterns = [
+            r'\*\*GitHub URL\*\*\s*:\s+(https://github\.com/[^\s\n]+)',
+            r'\*\*GitHub URL:\*\*[^\n]*?(https://github\.com/[^\s\n]+)',
+            r'GitHub URL[^:]*:\s*(https://github\.com/[^\s\n]+)',
+        ]
+        
+        for pattern in alternative_patterns:
+            match = re.search(pattern, document, re.IGNORECASE)
+            if match:
+                return match.group(1)
+        
+        return None
+    
+    def _parse_github_url(self, url: str) -> Tuple[Optional[str], Optional[str]]:
+        """Parse GitHub URL to extract owner and repo name"""
+        try:
+            parsed = urlparse(url)
+            if parsed.netloc == 'github.com':
+                path_parts = parsed.path.strip('/').split('/')
+                if len(path_parts) >= 2:
+                    owner = path_parts[0]
+                    repo = path_parts[1]
+                    return owner, repo
+        except Exception:
+            pass
+        return None, None
+    
+    def _clone_repository(self, url: str, temp_dir: str) -> bool:
+        """Clone GitHub repository to temporary directory"""
+        try:
+            # Use git clone command
+            result = subprocess.run([
+                'git', 'clone', url, temp_dir
+            ], capture_output=True, text=True, timeout=30)
+            
+            return result.returncode == 0
+        except subprocess.TimeoutExpired:
+            return False
+        except Exception:
+            return False
+    
+    def _find_overall_md_files(self, repo_dir: str) -> List[str]:
+        """Find all overall.md files in the repository (case-insensitive)"""
+        overall_files = []
+        
+        for root, dirs, files in os.walk(repo_dir):
+            for file in files:
+                if file.lower() == 'overall.md':
+                    overall_files.append(os.path.join(root, file))
+        
+        return overall_files
+    
+    def _check_hunyuan_cpp_files(self, repo_dir: str) -> Tuple[bool, str]:
+        """Check if runs/hunyuan-t1-dev-20250822/*.cpp files exist"""
+        hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-t1-dev-20250822')
+        
+        if not os.path.exists(hunyuan_dir):
+            return False, f"Directory 'runs/hunyuan-t1-dev-20250822' does not exist"
+        
+        cpp_files = []
+        for file in os.listdir(hunyuan_dir):
+            if file.endswith('.cpp'):
+                cpp_files.append(file)
+        
+        if not cpp_files:
+            return False, f"No .cpp files found in 'runs/hunyuan-t1-dev-20250822' directory"
+        
+        return True, f"Found {len(cpp_files)} .cpp files: {', '.join(cpp_files)}"
+    
+    def _validate_overall_md_format(self, overall_md_path: str) -> Tuple[bool, str]:
+        """Validate the format of overall.md file"""
+        try:
+            with open(overall_md_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            required_sections = [
+                "# Overall Test Report for",
+                "**Error Code Legend:**",
+                "## Detailed Model Performance",
+                "### Model: `hunyuan-t1-dev-20250822`",
+                "### Model: `standard.cpp`",
+                "## Overall Model Comparison"
+            ]
+            
+            missing_sections = []
+            for section in required_sections:
+                if section not in content:
+                    missing_sections.append(section)
+            
+            if missing_sections:
+                return False, f"Missing required sections: {', '.join(missing_sections)}"
+            
+            # Check for hunyuan model failure requirement
+            if "hunyuan-t1-dev-20250822" in content:
+                # Look for failure indicators in hunyuan section
+                hunyuan_section_start = content.find("### Model: `hunyuan-t1-dev-20250822`")
+                if hunyuan_section_start != -1:
+                    # Find the next model section or end of content
+                    next_model = content.find("### Model:", hunyuan_section_start + 1)
+                    if next_model == -1:
+                        hunyuan_section = content[hunyuan_section_start:]
+                    else:
+                        hunyuan_section = content[hunyuan_section_start:next_model]
+                    
+                    if "❌ FAIL" not in hunyuan_section and "✅ PASS" in hunyuan_section:
+                        return False, "hunyuan-t1-dev-20250822 model should show FAIL status (❌ FAIL), not PASS"
+            
+            # Check for standard.cpp pass requirement
+            if "standard.cpp" in content:
+                standard_section_start = content.find("### Model: `standard.cpp`")
+                if standard_section_start != -1:
+                    # Find the next section or end of content
+                    next_section = content.find("---", standard_section_start)
+                    if next_section == -1:
+                        standard_section = content[standard_section_start:]
+                    else:
+                        standard_section = content[standard_section_start:next_section]
+                    
+                    if "✅ PASS" not in standard_section:
+                        return False, "standard.cpp model should show PASS status (✅ PASS)"
+            
+            # Check for solution_bf.cpp constraints if present
+            if "solution_bf.cpp" in content:
+                bf_section_start = content.find("### Model: `solution_bf.cpp`")
+                if bf_section_start != -1:
+                    next_model = content.find("### Model:", bf_section_start + 1)
+                    if next_model == -1:
+                        bf_section = content[bf_section_start:]
+                    else:
+                        bf_section = content[bf_section_start:next_model]
+                    
+                    # Check for WA or CE errors (should not have these)
+                    if "|" in bf_section:  # Look for table rows
+                        table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
+                        for line in table_lines:
+                            if 'solution_bf.cpp' in line:
+                                parts = [p.strip() for p in line.split('|')]
+                                if len(parts) >= 8:  # Ensure we have enough columns
+                                    errors_column = parts[7]  # Last column with errors
+                                    # Parse errors format: WA/TLE/RTE/CE
+                                    if '/' in errors_column:
+                                        error_counts = errors_column.split('/')
+                                        if len(error_counts) >= 4:
+                                            wa_count = error_counts[0]
+                                            ce_count = error_counts[3]
+                                            if wa_count != '0':
+                                                return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
+                                            if ce_count != '0':
+                                                return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
+            
+            return True, "overall.md format validation passed"
+            
+        except Exception as e:
+            return False, f"Error reading overall.md file: {str(e)}"
+    
+    def _normalize_content(self, content: str) -> str:
+        """Normalize content by removing extra whitespace but preserving structure"""
+        lines = content.split('\n')
+        normalized_lines = []
+        
+        for line in lines:
+            # Strip trailing whitespace but preserve leading whitespace structure
+            stripped = line.rstrip()
+            normalized_lines.append(stripped)
+        
+        # Join and normalize multiple consecutive empty lines to single empty lines
+        result = '\n'.join(normalized_lines)
+        # Remove trailing newlines/whitespace
+        result = result.rstrip()
+        
+        return result
+    
+    def _extract_content_until_chain01(self, document: str) -> str:
+        """Extract content from start until and including **[CHAIN_01]** line"""
+        lines = document.split('\n')
+        result_lines = []
+        
+        for line in lines:
+            result_lines.append(line)
+            if line.strip() == "**[CHAIN_01]**":
+                break
+        
+        return '\n'.join(result_lines)
+    
+    def _extract_prompt_section(self, document: str) -> str:
+        """Extract content between **[Prompt]** and **[Assistant]** (exclusive)"""
+        lines = document.split('\n')
+        result_lines = []
+        in_prompt_section = False
+        
+        for line in lines:
+            if line.strip() == "**[Prompt]**":
+                in_prompt_section = True
+                continue  # Skip the **[Prompt]** line itself
+            elif line.strip() == "**[Assistant]**":
+                break  # Stop before **[Assistant]** line
+            elif in_prompt_section:
+                result_lines.append(line)
+        
+        return '\n'.join(result_lines)
+    
+    def _compare_content_with_diff_rules(self, content1: str, content2: str, allowed_diffs: List[str]) -> Tuple[bool, str]:
+        """Compare two contents and check if differences are only in allowed list"""
+        # Normalize both contents
+        norm1 = self._normalize_content(content1)
+        norm2 = self._normalize_content(content2)
+        
+        # If they're identical after normalization, pass
+        if norm1 == norm2:
+            return True, "Contents are identical"
+        
+        # Split into lines for detailed comparison
+        lines1 = norm1.split('\n')
+        lines2 = norm2.split('\n')
+        
+        # Simple line-by-line diff approach
+        import difflib
+        
+        differ = difflib.unified_diff(lines1, lines2, lineterm='', n=0)
+        diff_lines = list(differ)
+        
+        # Skip the header lines (first 3 lines: ---, +++, @@)
+        actual_diffs = diff_lines[3:] if len(diff_lines) > 3 else []
+        
+        violations = []
+        for diff_line in actual_diffs:
+            if diff_line.startswith('+') or diff_line.startswith('-'):
+                # Extract the actual content (remove +/- prefix)
+                content = diff_line[1:]
+                
+                # Check if this difference is allowed
+                is_allowed = False
+                for allowed in allowed_diffs:
+                    if allowed == "newlines" and content.strip() == "":
+                        is_allowed = True
+                        break
+                    elif allowed == "spaces" and content != "" and content.strip() == "":
+                        is_allowed = True
+                        break
+                    elif allowed == "---" and content.strip() == "---":
+                        is_allowed = True
+                        break
+                    elif allowed in content:
+                        is_allowed = True
+                        break
+                
+                if not is_allowed:
+                    violations.append(f"Disallowed diff: '{content}'")
+        
+        if violations:
+            return False, f"Content diff violations found: {'; '.join(violations[:5])}"  # Limit to first 5 violations
+        
+        return True, "All differences are in allowed categories"
+    
+    def _validate_solution_md_consistency(self, repo_dir: str, document: str) -> Tuple[bool, str]:
+        """Validate that solution.md matches document content until CHAIN_01"""
+        solution_md_path = os.path.join(repo_dir, 'solution.md')
+        
+        if not os.path.exists(solution_md_path):
+            return False, "solution.md file not found in repository"
+        
+        try:
+            # Read solution.md
+            with open(solution_md_path, 'r', encoding='utf-8') as f:
+                solution_content = f.read()
+            
+            # Extract document content until CHAIN_01
+            doc_content = self._extract_content_until_chain01(document)
+            
+            # Compare with allowed differences: newlines, spaces, "---"
+            is_valid, message = self._compare_content_with_diff_rules(
+                doc_content, solution_content, ["newlines", "spaces", "---"]
+            )
+            
+            if not is_valid:
+                return False, f"solution.md content mismatch: {message}"
+            
+            return True, "solution.md content validation passed"
+            
+        except Exception as e:
+            return False, f"Error validating solution.md: {str(e)}"
+    
+    def _validate_problem_statement_md_consistency(self, repo_dir: str, document: str) -> Tuple[bool, str]:
+        """Validate that problem_statement.md matches document prompt section"""
+        problem_md_path = os.path.join(repo_dir, 'problem_statement.md')
+        
+        if not os.path.exists(problem_md_path):
+            return False, "problem_statement.md file not found in repository"
+        
+        try:
+            # Read problem_statement.md
+            with open(problem_md_path, 'r', encoding='utf-8') as f:
+                problem_content = f.read()
+            
+            # Extract prompt section from document
+            prompt_content = self._extract_prompt_section(document)
+            
+            # Compare with allowed differences: newlines, spaces, "---"
+            is_valid, message = self._compare_content_with_diff_rules(
+                prompt_content, problem_content, ["newlines", "spaces", "---"]
+            )
+            
+            if not is_valid:
+                return False, f"problem_statement.md content mismatch: {message}"
+            
+            return True, "problem_statement.md content validation passed"
+            
+        except Exception as e:
+            return False, f"Error validating problem_statement.md: {str(e)}"
+    
+    def validate_github_requirements(self, document: str) -> ReviewResponse:
+        """Main validation method for GitHub requirements"""
+        # Step 1: Check for GitHub URL in document
+        github_url = self._extract_github_url(document)
+        if not github_url:
+            return ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+            )
+        
+        # Step 2: Parse GitHub URL
+        owner, repo = self._parse_github_url(github_url)
+        if not owner or not repo:
+            return ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+            )
+        
+        # Step 3: Clone repository
+        temp_dir = None
+        try:
+            temp_dir = tempfile.mkdtemp(prefix="github_review_")
+            
+            if not self._clone_repository(github_url, temp_dir):
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Failed to clone repository: {github_url}. Repository may not exist or be inaccessible."
+                )
+            
+            # Step 4: Find overall.md files
+            overall_files = self._find_overall_md_files(temp_dir)
+            
+            if len(overall_files) == 0:
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"No overall.md file found in repository {github_url}"
+                )
+            elif len(overall_files) > 1:
+                relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Multiple overall.md files found in repository {github_url}. Found {len(overall_files)} files: {', '.join(relative_paths)}. Expected exactly one."
+                )
+            
+            # Step 5: Check for hunyuan cpp files
+            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(temp_dir)
+            if not hunyuan_exists:
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"Repository validation failed: {hunyuan_msg}"
+                )
+            
+            # Step 6: Validate overall.md format
+            overall_md_path = overall_files[0]
+            format_valid, format_msg = self._validate_overall_md_format(overall_md_path)
+            if not format_valid:
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"overall.md format validation failed: {format_msg}"
+                )
+            
+            # Step 7: Validate solution.md content consistency
+            solution_valid, solution_msg = self._validate_solution_md_consistency(temp_dir, document)
+            if not solution_valid:
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"solution.md validation failed: {solution_msg}"
+                )
+            
+            # Step 8: Validate problem_statement.md content consistency
+            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(temp_dir, document)
+            if not problem_valid:
+                return ReviewResponse(
+                    result=ReviewResult.FAIL,
+                    reasoning=f"problem_statement.md validation failed: {problem_msg}"
+                )
+            
+            # All validations passed
+            relative_path = os.path.relpath(overall_md_path, temp_dir)
+            return ReviewResponse(
+                result=ReviewResult.PASS,
+                reasoning=f"✅ PASS - All GitHub requirements validated:\n" +
+                         f"• Repository: {github_url}\n" +
+                         f"• overall.md file: {relative_path}\n" +
+                         f"• Hunyuan cpp files: {hunyuan_msg}\n" +
+                         f"• Format validation: {format_msg}\n" +
+                         f"• solution.md consistency: {solution_msg}\n" +
+                         f"• problem_statement.md consistency: {problem_msg}"
+            )
+        
+        except Exception as e:
+            return ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning=f"Error during GitHub validation: {str(e)}"
+            )
+        
+        finally:
+            # Clean up temporary directory
+            if temp_dir and os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir)
+                except Exception:
+                    pass  # Ignore cleanup errors
 
 
 class DocumentReviewSystem:
@@ -1369,52 +1837,58 @@ class DocumentReviewSystem:
         self.client = Anthropic(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
         
+        # Initialize GitHub validator (non-AI review)
+        self.github_validator = GitHubReviewValidator()
+        
         # Initialize all Ultimate reviewers - each as individual API call
         self.reviewers = {
-            # Point 0: Solution Uniqueness Validation
-            "0. Unique Solution Validation": UniqueSolutionReviewer(self.client),
+            # GitHub Requirements Validation (Non-AI Review)
+            "GitHub Requirements Validation": None,  # Special handling in run_reviews
             
-            # Point 1: Time Complexity Check
-            "1. Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
+            # Solution Uniqueness Validation
+            "Unique Solution Validation": UniqueSolutionReviewer(self.client),
             
-            # Points 2-4: Code Quality
-            "2. Style Guide Compliance": StyleGuideReviewer(self.client),
-            "3. Naming Conventions": NamingConventionsReviewer(self.client),
-            "4. Documentation Standards": DocumentationReviewer(self.client),
+            # Time Complexity Check
+            "Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
             
-            # Points 5-12: Response Quality  
-            "5. Response Relevance to Problem": ResponseRelevanceReviewer(self.client),
-            "6. Mathematical Equations Correctness": MathEquationsReviewer(self.client),
-            "7. Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client),
-            "8. Missing Approaches in Steps": MissingApproachesReviewer(self.client),
-            "9. Code Elements Existence": CodeElementsExistenceReviewer(self.client),
-            "10. Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client),
-            "11. Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
-            "12. Conclusion Quality": ConclusionQualityReviewer(self.client),
+            # Code Quality
+            "Style Guide Compliance": StyleGuideReviewer(self.client),
+            "Naming Conventions": NamingConventionsReviewer(self.client),
+            "Documentation Standards": DocumentationReviewer(self.client),
             
-            # Points 13-17: Problem Statement and Solution Quality
-            "13. Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
-            "14. Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
-            "15. Metadata Correctness": MetadataCorrectnessReviewer(self.client),
-            "16. Test Case Validation": TestCaseValidationReviewer(self.client),
-            "17. Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
-            "18. Note Section Explanation Approach": NoteSectionReviewer(self.client),
+            # Response Quality  
+            "Response Relevance to Problem": ResponseRelevanceReviewer(self.client),
+            "Mathematical Equations Correctness": MathEquationsReviewer(self.client),
+            "Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client),
+            "Missing Approaches in Steps": MissingApproachesReviewer(self.client),
+            "Code Elements Existence": CodeElementsExistenceReviewer(self.client),
+            "Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client),
+            "Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
+            "Conclusion Quality": ConclusionQualityReviewer(self.client),
             
-            # Points 19-21: Reasoning Chain Quality
-            "19. Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
-            "20. Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
-            "21. No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            # Problem Statement and Solution Quality
+            "Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
+            "Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
+            "Metadata Correctness": MetadataCorrectnessReviewer(self.client),
+            "Test Case Validation": TestCaseValidationReviewer(self.client),
+            "Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
+            "Note Section Explanation Approach": NoteSectionReviewer(self.client),
             
-            # Points 22+: Subtopic, Taxonomy, and Reasoning Analysis
-            "22. Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
-            "23. Typo and Spelling Check": TypoCheckReviewer(self.client),
-            "24. Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
-            "25. Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "26. No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "27. Chain 2 Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "28. Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "29. Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
-            "30. Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            # Reasoning Chain Quality
+            "Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
+            "Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
+            "No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            
+            # Subtopic, Taxonomy, and Reasoning Analysis
+            "Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            "Typo and Spelling Check": TypoCheckReviewer(self.client),
+            "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
+            "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
+            "No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "Chain Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
+            "Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
+            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
+            "Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
     def load_document(self, file_path: str) -> str:
@@ -1427,18 +1901,30 @@ class DocumentReviewSystem:
         except Exception as e:
             raise Exception(f"Error reading document: {str(e)}")
     
-    def run_reviews(self, document: str, resume_from: int = 0) -> Dict[str, ReviewResponse]:
-        """Run all reviews on the document, optionally resuming from a specific point"""
+    def run_reviews(self, document: str, resume_from: int = 0, github_only: bool = False, skip_github: bool = False) -> Dict[str, ReviewResponse]:
+        """Run reviews on the document with various options"""
         results = {}
         self.detailed_output = []  # Reset for new run
         
-        header_msg = f"🔍 Resuming Ultimate document review from point {resume_from}..." if resume_from > 0 else "🔍 Starting Ultimate document review process..."
-        print(header_msg)
-        self.detailed_output.append(header_msg)
-        
-        budget_msg = "💭 Extended thinking enabled with 20,000 token budget per review"
-        print(budget_msg)
-        self.detailed_output.append(budget_msg)
+        # Determine what to run
+        if github_only:
+            header_msg = "🔍 Running GitHub Requirements Validation only..."
+            print(header_msg)
+            self.detailed_output.append(header_msg)
+        elif skip_github:
+            header_msg = f"🔍 Running AI reviews only (resuming from point {resume_from})..." if resume_from > 1 else "🔍 Running AI reviews only..."
+            print(header_msg)
+            self.detailed_output.append(header_msg)
+            budget_msg = "💭 Extended thinking enabled with 20,000 token budget per AI review"
+            print(budget_msg)
+            self.detailed_output.append(budget_msg)
+        else:
+            header_msg = f"🔍 Running AI reviews first, then GitHub validation (AI resuming from point {resume_from})..." if resume_from > 1 else "🔍 Running AI reviews first, then GitHub validation..."
+            print(header_msg)
+            self.detailed_output.append(header_msg)
+            budget_msg = "💭 Extended thinking enabled with 20,000 token budget per AI review"
+            print(budget_msg)
+            self.detailed_output.append(budget_msg)
         
         separator = "=" * 70
         print(separator)
@@ -1447,26 +1933,66 @@ class DocumentReviewSystem:
         # Convert reviewers dict to list for indexing
         reviewer_items = list(self.reviewers.items())
         
-        # Skip to resume point (resume_from is already 0-based)
+        # Separate GitHub and AI reviews
+        github_reviews = [(name, reviewer) for name, reviewer in reviewer_items if reviewer is None]
+        ai_reviews = [(name, reviewer) for name, reviewer in reviewer_items if reviewer is not None]
+        
+        # Handle GitHub-only mode
+        if github_only:
+            for review_name, _ in github_reviews:
+                running_msg = f"\n🔄 Running: {review_name}"
+                print(running_msg)
+                self.detailed_output.append(running_msg)
+                
+                start_time = time.time()
+                result = self.github_validator.validate_github_requirements(document)
+                
+                end_time = time.time()
+                duration_minutes = (end_time - start_time) / 60.0
+                time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                print(time_msg)
+                self.detailed_output.append(time_msg)
+                
+                results[review_name] = result
+                
+                result_msg = f"Result: {result.result.value}"
+                print(result_msg)
+                self.detailed_output.append(result_msg)
+                
+                if result.result == ReviewResult.FAIL:
+                    issues_header = "\nIssues Found:"
+                    print(issues_header)
+                    self.detailed_output.append(issues_header)
+                    print(result.reasoning)
+                    self.detailed_output.append(result.reasoning)
+                
+                sep_msg = "-" * 40
+                print(sep_msg)
+                self.detailed_output.append(sep_msg)
+            
+            return results
+        
+        # Handle AI reviews with resume functionality
         start_index = resume_from
-        if start_index < 0:
-            start_index = 0
-        elif start_index >= len(reviewer_items):
-            warning_msg = f"⚠️  Resume point {resume_from} is beyond available reviews ({len(reviewer_items)}). Starting from beginning."
+        if start_index < 1:
+            start_index = 1
+        elif start_index > len(ai_reviews):
+            warning_msg = f"⚠️  Resume point {resume_from} is beyond available AI reviews ({len(ai_reviews)}). Starting from beginning."
             print(warning_msg)
             self.detailed_output.append(warning_msg)
-            start_index = 0
+            start_index = 1
         
-        # Add skipped reviews as "SKIPPED"
-        for i in range(start_index):
-            review_name, _ = reviewer_items[i]
+        # Add skipped AI reviews as "SKIPPED"
+        for i in range(1, start_index):
+            review_name, _ = ai_reviews[i-1]
             results[review_name] = ReviewResponse(
                 result=ReviewResult.PASS,
                 reasoning="SKIPPED - Resumed from later point"
             )
         
-        for i in range(start_index, len(reviewer_items)):
-            review_name, reviewer = reviewer_items[i]
+        # Run AI reviews
+        for i in range(start_index, len(ai_reviews) + 1):
+            review_name, reviewer = ai_reviews[i-1]
             running_msg = f"\n🔄 Running: {review_name}"
             print(running_msg)
             self.detailed_output.append(running_msg)
@@ -1475,13 +2001,13 @@ class DocumentReviewSystem:
             start_time = time.time()
             
             try:
-                # Add small delay to respect API rate limits
+                # Add small delay to respect API rate limits for AI reviews
                 time.sleep(1)
-                
                 result = reviewer.review(document)
                 
                 # Special rule for last point (Comprehensive Reasoning Thoughts Review): Run twice if first attempt passes
-                if isinstance(reviewer, ReasoningThoughtsReviewer) and result.result == ReviewResult.PASS:
+                if (reviewer is not None and isinstance(reviewer, ReasoningThoughtsReviewer) and 
+                    result.result == ReviewResult.PASS):
                     # Calculate and display first run time
                     end_time = time.time()
                     duration_seconds = end_time - start_time
@@ -1495,7 +2021,7 @@ class DocumentReviewSystem:
                     print(first_result_msg)
                     self.detailed_output.append(first_result_msg)
                     
-                    second_run_msg = "🔄 Running Point 30 again for confirmation..."
+                    second_run_msg = "🔄 Running Comprehensive Reasoning Thoughts Review again for confirmation..."
                     print(second_run_msg)
                     self.detailed_output.append(second_run_msg)
                     
@@ -1576,8 +2102,9 @@ class DocumentReviewSystem:
                         print(fail_result_msg)
                         self.detailed_output.append(fail_result_msg)
                         
-                        # Only show cleanup message for points that actually do cleanup
-                        if not isinstance(reviewer, (ReasoningThoughtsReviewer, Chain2TestCaseAnalysisReviewer, ThoughtHeadingViolationsReviewer)):
+                        # Only show cleanup message for points that actually do cleanup (exclude GitHub validation and specific reviewers)
+                        if (reviewer is not None and 
+                            not isinstance(reviewer, (ReasoningThoughtsReviewer, Chain2TestCaseAnalysisReviewer, ThoughtHeadingViolationsReviewer))):
                             cleanup_msg = "🧹 Cleaning up failure details..."
                             print(cleanup_msg)
                             self.detailed_output.append(cleanup_msg)
@@ -1604,6 +2131,39 @@ class DocumentReviewSystem:
                 print(error_msg)
                 self.detailed_output.append(error_msg)
         
+        # Run GitHub validation at the end (unless skipped)
+        if not skip_github:
+            for review_name, _ in github_reviews:
+                running_msg = f"\n🔄 Running: {review_name}"
+                print(running_msg)
+                self.detailed_output.append(running_msg)
+                
+                start_time = time.time()
+                result = self.github_validator.validate_github_requirements(document)
+                
+                end_time = time.time()
+                duration_minutes = (end_time - start_time) / 60.0
+                time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes"
+                print(time_msg)
+                self.detailed_output.append(time_msg)
+                
+                results[review_name] = result
+                
+                result_msg = f"Result: {result.result.value}"
+                print(result_msg)
+                self.detailed_output.append(result_msg)
+                
+                if result.result == ReviewResult.FAIL:
+                    issues_header = "\nIssues Found:"
+                    print(issues_header)
+                    self.detailed_output.append(issues_header)
+                    print(result.reasoning)
+                    self.detailed_output.append(result.reasoning)
+                
+                sep_msg = "-" * 40
+                print(sep_msg)
+                self.detailed_output.append(sep_msg)
+        
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
@@ -1625,27 +2185,50 @@ class DocumentReviewSystem:
         report.append("=" * 70)
         report.append("")
         
+        # Separate GitHub and AI results
+        github_results = {name: result for name, result in results.items() if "GitHub Requirements Validation" in name}
+        ai_results = {name: result for name, result in results.items() if "GitHub Requirements Validation" not in name}
+        
+        # Count results separately
+        github_passed = sum(1 for r in github_results.values() if r.result == ReviewResult.PASS)
+        github_failed = len(github_results) - github_passed
+        
+        ai_passed = sum(1 for r in ai_results.values() if r.result == ReviewResult.PASS and r.reasoning != "SKIPPED - Resumed from later point")
+        ai_skipped = sum(1 for r in ai_results.values() if r.reasoning == "SKIPPED - Resumed from later point")
+        ai_total = len(ai_results)
+        ai_failed = ai_total - ai_passed - ai_skipped
+        
         # Summary
-        passed = sum(1 for r in results.values() if r.result == ReviewResult.PASS and r.reasoning != "SKIPPED - Resumed from later point")
-        skipped = sum(1 for r in results.values() if r.reasoning == "SKIPPED - Resumed from later point")
-        total = len(results)
-        failed = total - passed - skipped
+        if github_results and ai_results:
+            if ai_skipped > 0:
+                report.append(f"📊 SUMMARY: GitHub: {github_passed}/{len(github_results)} passed | AI: {ai_passed}/{ai_total - ai_skipped} passed ({ai_skipped} skipped)")
+            else:
+                report.append(f"📊 SUMMARY: GitHub: {github_passed}/{len(github_results)} passed | AI: {ai_passed}/{ai_total} passed")
+        elif github_results:
+            report.append(f"📊 SUMMARY: GitHub: {github_passed}/{len(github_results)} passed")
+        elif ai_results:
+            if ai_skipped > 0:
+                report.append(f"📊 SUMMARY: AI: {ai_passed}/{ai_total - ai_skipped} passed ({ai_skipped} skipped)")
+            else:
+                report.append(f"📊 SUMMARY: AI: {ai_passed}/{ai_total} passed")
         
-        if skipped > 0:
-            report.append(f"📊 SUMMARY: {passed}/{total - skipped} reviews passed ({skipped} skipped)")
-        else:
-            report.append(f"📊 SUMMARY: {passed}/{total} reviews passed")
+        total_failed = github_failed + ai_failed
+        if total_failed > 0:
+            if github_failed > 0 and ai_failed > 0:
+                report.append(f"⚠️  {total_failed} review(s) failed (GitHub: {github_failed}, AI: {ai_failed})")
+            elif github_failed > 0:
+                report.append(f"⚠️  {github_failed} GitHub review(s) failed")
+            else:
+                report.append(f"⚠️  {ai_failed} AI review(s) failed")
         
-        if failed > 0:
-            report.append(f"⚠️  {failed} review(s) failed")
-        if skipped > 0:
-            report.append(f"⏭️  {skipped} review(s) skipped")
+        if ai_skipped > 0:
+            report.append(f"⏭️  {ai_skipped} AI review(s) skipped")
         report.append("")
         
         # Overall status
-        if failed == 0 and skipped == 0:
+        if total_failed == 0 and ai_skipped == 0:
             report.append("🎉 OVERALL STATUS: ALL REVIEWS PASSED")
-        elif failed == 0:
+        elif total_failed == 0:
             report.append("🎉 OVERALL STATUS: ALL EXECUTED REVIEWS PASSED")
         else:
             report.append("⚠️  OVERALL STATUS: SOME REVIEWS FAILED")
@@ -1702,23 +2285,44 @@ def main():
     parser = argparse.ArgumentParser(
         description='Document Review Script - Ultimate Point Analysis',
         epilog='Examples:\n'
-               '  python3 document_reviewer.py doc.txt           # Run all Ultimate reviews on doc.txt\n'
-               '  python3 document_reviewer.py doc.txt --resume 16   # Resume from review point 16\n',
+               '  python3 document_reviewer.py doc.txt                    # Run GitHub + AI reviews\n'
+               '  python3 document_reviewer.py doc.txt --github-only      # Run only GitHub validation\n'
+               '  python3 document_reviewer.py doc.txt --ai-only          # Run only AI reviews\n'
+               '  python3 document_reviewer.py doc.txt --resume 5         # Run GitHub + AI (AI from point 5)\n'
+               '  python3 document_reviewer.py doc.txt --ai-only --resume 5  # Run only AI from point 5\n',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('file', help='Path to the text file to review')
-    parser.add_argument('--resume', type=int, default=0, metavar='X',
-                       help='Resume from review point X (0-N, default: 0)')
+    parser.add_argument('--resume', type=int, default=1, metavar='X',
+                       help='Resume AI reviews from point X (1-N, default: 1). GitHub validation always runs when enabled.')
+    parser.add_argument('--github-only', action='store_true',
+                       help='Run only GitHub requirements validation (non-AI review)')
+    parser.add_argument('--ai-only', action='store_true',
+                       help='Run only AI reviews, skip GitHub validation')
+    parser.add_argument('--skip-github', action='store_true',
+                       help='Skip GitHub validation, run only AI reviews (same as --ai-only)')
     
     args = parser.parse_args()
     
-    # Validate resume point
+    # Handle conflicting arguments
+    if args.github_only and (args.ai_only or args.skip_github):
+        print("❌ Cannot use --github-only with --ai-only or --skip-github")
+        sys.exit(1)
+    
+    if args.ai_only and args.skip_github:
+        print("ℹ️  Note: --ai-only and --skip-github are equivalent")
+    
+    # Normalize skip options
+    skip_github = args.ai_only or args.skip_github
+    github_only = args.github_only
+    
     # Initialize review system first for dynamic validation
     review_system = DocumentReviewSystem()
-    max_points = len(review_system.reviewers) - 1
-    if args.resume < 0 or args.resume > max_points:
-        print(f"❌ Invalid resume point: {args.resume}. Must be between 0 and {max_points}.")
-        sys.exit(1)
+    
+    # Validate resume point (only applies to AI reviews)
+    ai_reviewers_count = len([r for name, r in review_system.reviewers.items() if r is not None])
+    if args.resume < 1 or args.resume > ai_reviewers_count:
+        print(f"❌ Invalid resume point: {args.resume}. Must be between 1 and {ai_reviewers_count} for AI reviews.")
         sys.exit(1)
     
     try:
@@ -1736,8 +2340,13 @@ def main():
         print("   Max tokens: 32,000 (Opus 4.1) / 200,000 (Sonnet 4 cleanup)")
         print()
         
-        # Run reviews with resume option
-        results = review_system.run_reviews(document, resume_from=args.resume)
+        # Run reviews with specified options
+        results = review_system.run_reviews(
+            document, 
+            resume_from=args.resume,
+            github_only=github_only,
+            skip_github=skip_github
+        )
         
         # Generate and display report
         print("\n" + "=" * 70)
@@ -1755,7 +2364,15 @@ def main():
                          if result.result == ReviewResult.FAIL]
         
         if failed_reviews:
-            print(f"\n❌ Review completed with {len(failed_reviews)} failures")
+            github_failures = [name for name in failed_reviews if "-1. GitHub Requirements Validation" in name]
+            ai_failures = [name for name in failed_reviews if "-1. GitHub Requirements Validation" not in name]
+            
+            if github_failures and ai_failures:
+                print(f"\n❌ Review completed with {len(failed_reviews)} failures ({len(github_failures)} GitHub, {len(ai_failures)} AI)")
+            elif github_failures:
+                print(f"\n❌ Review completed with {len(github_failures)} GitHub failure(s)")
+            else:
+                print(f"\n❌ Review completed with {len(ai_failures)} AI failure(s)")
             sys.exit(1)
         else:
             print("\n✅ All reviews passed successfully!")
