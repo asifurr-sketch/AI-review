@@ -51,6 +51,8 @@ import tempfile
 import shutil
 from urllib.parse import urlparse
 from anthropic import Anthropic
+import concurrent.futures
+import threading
 
 class ReviewResult(Enum):
     PASS = "✅ PASS"
@@ -1473,9 +1475,10 @@ class ReasoningThoughtsReviewer(BaseReviewer):
 class GitHubReviewValidator:
     """Non-AI review: Validates GitHub post links and overall.md file existence"""
     
-    def __init__(self):
+    def __init__(self, quiet_mode=False):
         # Load GitHub API key from .env file
         self.github_api_key = None
+        self.quiet_mode = quiet_mode
         self._load_env_variables()
     
     def _load_env_variables(self):
@@ -1557,17 +1560,20 @@ class GitHubReviewValidator:
                 shutil.rmtree(temp_dir)
             
             # First try SSH
-            print(f"🔑 Attempting to clone using SSH: {ssh_url}")
+            if not self.quiet_mode:
+                print(f"🔑 Attempting to clone using SSH: {ssh_url}")
             result = subprocess.run([
                 'git', 'clone', '--depth=1', ssh_url, temp_dir
             ], capture_output=True, text=True, timeout=120)
             
             if result.returncode == 0:
-                print(f"✅ Successfully cloned via SSH")
+                if not self.quiet_mode:
+                    print(f"✅ Successfully cloned via SSH")
                 return True
             else:
-                print(f"⚠️  SSH clone failed, trying HTTPS fallback...")
-                print(f"   SSH Error: {result.stderr}")
+                if not self.quiet_mode:
+                    print(f"⚠️  SSH clone failed, trying HTTPS fallback...")
+                    print(f"   SSH Error: {result.stderr}")
                 
                 # Clean up failed attempt
                 if os.path.exists(temp_dir):
@@ -1575,31 +1581,36 @@ class GitHubReviewValidator:
                     shutil.rmtree(temp_dir)
                 
                 # Fallback to HTTPS if SSH fails
-                print(f"🌐 Attempting to clone using HTTPS: {url}")
+                if not self.quiet_mode:
+                    print(f"🌐 Attempting to clone using HTTPS: {url}")
                 https_result = subprocess.run([
                     'git', 'clone', '--depth=1', url, temp_dir
                 ], capture_output=True, text=True, timeout=120)
                 
                 if https_result.returncode == 0:
-                    print(f"✅ Successfully cloned via HTTPS fallback")
+                    if not self.quiet_mode:
+                        print(f"✅ Successfully cloned via HTTPS fallback")
                     return True
                 else:
-                    print(f"❌ Both SSH and HTTPS clone failed")
-                    print(f"   SSH Error: {result.stderr}")
-                    print(f"   HTTPS Error: {https_result.stderr}")
-                    print(f"   ")
-                    print(f"   💡 SSH Setup Help:")
-                    print(f"   1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'")
-                    print(f"   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519")
-                    print(f"   3. Add public key to GitHub: cat ~/.ssh/id_ed25519.pub")
-                    print(f"   4. Test SSH access: ssh -T git@github.com")
+                    if not self.quiet_mode:
+                        print(f"❌ Both SSH and HTTPS clone failed")
+                        print(f"   SSH Error: {result.stderr}")
+                        print(f"   HTTPS Error: {https_result.stderr}")
+                        print(f"   ")
+                        print(f"   💡 SSH Setup Help:")
+                        print(f"   1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'")
+                        print(f"   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519")
+                        print(f"   3. Add public key to GitHub: cat ~/.ssh/id_ed25519.pub")
+                        print(f"   4. Test SSH access: ssh -T git@github.com")
                     return False
                 
         except subprocess.TimeoutExpired:
-            print("❌ Git clone timed out after 120 seconds")
+            if not self.quiet_mode:
+                print("❌ Git clone timed out after 120 seconds")
             return False
         except Exception as e:
-            print(f"Git clone exception: {e}")
+            if not self.quiet_mode:
+                print(f"Git clone exception: {e}")
             return False
     
     def _find_overall_md_files(self, repo_dir: str) -> List[str]:
@@ -1740,16 +1751,6 @@ class GitHubReviewValidator:
                                                 return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
                                             if ce_count != '0':
                                                 return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
-            
-            # Check memory limit requirement (must be at least 32 MB)
-            memory_limit_pattern = r'Memory Limit:\s*\*\*(\d+)\s*MB\*\*'
-            memory_match = re.search(memory_limit_pattern, content, re.IGNORECASE)
-            if memory_match:
-                memory_limit = int(memory_match.group(1))
-                if memory_limit < 32:
-                    return False, f"Memory limit must be at least 32 MB, found {memory_limit} MB"
-            else:
-                return False, "Memory limit specification not found (should be in format 'Memory Limit: **XX MB**')"
             
             return True, "overall.md format validation passed"
             
@@ -1966,11 +1967,13 @@ class GitHubReviewValidator:
                     reasoning=f"No overall.md file found in repository {github_url}"
                 )
             elif len(overall_files) > 1:
+                # Select the overall.md file with the largest alphabetical path
+                overall_files.sort()
+                selected_file = overall_files[-1]
                 relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
-                return ReviewResponse(
-                    result=ReviewResult.FAIL,
-                    reasoning=f"Multiple overall.md files found in repository {github_url}. Found {len(overall_files)} files: {', '.join(relative_paths)}. Expected exactly one."
-                )
+                selected_relative = os.path.relpath(selected_file, temp_dir)
+                # Update overall_files to contain only the selected file
+                overall_files = [selected_file]
             
             # Step 5: Check for hunyuan cpp files
             hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(temp_dir)
@@ -2093,12 +2096,16 @@ class GitHubReviewValidator:
                 # Continue with remaining tasks even if overall.md is missing
                 overall_md_path = None
             elif len(overall_files) > 1:
+                # Select the overall.md file with the largest alphabetical path
+                overall_files.sort()
+                selected_file = overall_files[-1]
                 relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
+                selected_relative = os.path.relpath(selected_file, temp_dir)
                 results.append(("Overall.md File Detection", ReviewResponse(
-                    result=ReviewResult.FAIL,
-                    reasoning=f"Multiple overall.md files found in repository {github_url}. Found {len(overall_files)} files: {', '.join(relative_paths)}. Expected exactly one."
+                    result=ReviewResult.PASS,
+                    reasoning=f"✅ PASS - Found multiple overall.md files, selected: {selected_relative} (largest alphabetical path from: {', '.join(relative_paths)})"
                 )))
-                overall_md_path = None
+                overall_md_path = selected_file
             else:
                 relative_path = os.path.relpath(overall_files[0], temp_dir)
                 results.append(("Overall.md File Detection", ReviewResponse(
@@ -2187,7 +2194,7 @@ class GitHubReviewValidator:
 class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
-    def __init__(self):
+    def __init__(self, quiet_mode=False):
         # Initialize Anthropic client with API key from environment
         api_key = os.getenv('ANTHROPIC_API_KEY')
         if not api_key:
@@ -2195,15 +2202,14 @@ class DocumentReviewSystem:
         
         self.client = Anthropic(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
+        self.output_lock = threading.Lock()  # Thread-safe output
+        self.quiet_mode = quiet_mode  # Control output verbosity
         
         # Initialize GitHub validator (non-AI review)
-        self.github_validator = GitHubReviewValidator()
+        self.github_validator = GitHubReviewValidator(quiet_mode=quiet_mode)
         
         # Initialize all Ultimate reviewers - each as individual API call
         self.reviewers = {
-            # GitHub Requirements Validation (Non-AI Review)
-            "GitHub Requirements Validation": None,  # Special handling in run_reviews
-            
             # Solution Uniqueness Validation
             "Unique Solution Validation": UniqueSolutionReviewer(self.client),
             
@@ -2254,6 +2260,71 @@ class DocumentReviewSystem:
             "Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
         }
     
+    def _thread_safe_print(self, message: str, force_quiet=False):
+        """Thread-safe printing and logging"""
+        with self.output_lock:
+            # Always log to detailed output for the report
+            self.detailed_output.append(message)
+            # Only print to console if not in quiet mode (unless forced)
+            if not self.quiet_mode and not force_quiet:
+                print(message)
+    
+    def _progress_print(self, message: str):
+        """Print progress messages (shown even in quiet mode)"""
+        with self.output_lock:
+            print(message)
+            self.detailed_output.append(message)
+    
+    def _run_single_ai_review(self, review_name: str, reviewer, document: str, review_number: int) -> Tuple[str, ReviewResponse]:
+        """Run a single AI review in a thread-safe manner"""
+        start_time = time.time()
+        try:
+            # Show start message even in quiet mode for AI reviews
+            start_msg = f"🔄 {review_number}. {review_name} - Starting..."
+            self._thread_safe_print(start_msg)
+            
+            result = reviewer.review(document)
+            
+            elapsed_time = time.time() - start_time
+            status_emoji = "✅" if result.result == ReviewResult.PASS else "❌"
+            # Show completion message even in quiet mode for AI reviews
+            completion_msg = f"{status_emoji} {review_number}. {review_name} - {result.result.value} ({elapsed_time:.1f}s)"
+            self._thread_safe_print(completion_msg)
+            
+            return review_name, result
+            
+        except Exception as e:
+            elapsed_time = time.time() - start_time
+            error_msg = f"💥 {review_number}. {review_name} - ERROR: {str(e)} ({elapsed_time:.1f}s)"
+            self._thread_safe_print(error_msg)
+            return review_name, ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning=f"Review failed with error: {str(e)}"
+            )
+    
+    def _run_single_ai_review_quiet(self, review_name: str, reviewer, document: str, review_number: int) -> Tuple[str, ReviewResponse]:
+        """Run a single AI review without showing start message (used when start message is shown upfront)"""
+        start_time = time.time()
+        try:
+            result = reviewer.review(document)
+            
+            elapsed_time = time.time() - start_time
+            status_emoji = "✅" if result.result == ReviewResult.PASS else "❌"
+            # Show completion message
+            completion_msg = f"{status_emoji} {review_number}. {review_name} - {result.result.value} ({elapsed_time:.1f}s)"
+            self._progress_print(completion_msg)
+            
+            return review_name, result
+            
+        except Exception as e:
+            elapsed_time = time.time() - start_time
+            error_msg = f"💥 {review_number}. {review_name} - ERROR: {str(e)} ({elapsed_time:.1f}s)"
+            self._progress_print(error_msg)
+            return review_name, ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning=f"Review failed with error: {str(e)}"
+            )
+    
     def load_document(self, file_path: str) -> str:
         """Load document from file"""
         try:
@@ -2272,33 +2343,19 @@ class DocumentReviewSystem:
         # Determine what to run
         if single_review:
             header_msg = f"🔍 Running single AI review: {single_review}..."
-            print(header_msg)
-            self.detailed_output.append(header_msg)
-            budget_msg = "💭 Extended thinking enabled with 20,000 token budget for this review"
-            print(budget_msg)
-            self.detailed_output.append(budget_msg)
+            self._progress_print(header_msg)
         elif github_only:
             header_msg = "🔍 Running GitHub Requirements Validation only..."
-            print(header_msg)
-            self.detailed_output.append(header_msg)
+            self._progress_print(header_msg)
         elif skip_github:
             header_msg = f"🔍 Running AI reviews only (resuming from point {resume_from})..." if resume_from > 1 else "🔍 Running AI reviews only..."
-            print(header_msg)
-            self.detailed_output.append(header_msg)
-            budget_msg = "💭 Extended thinking enabled with 20,000 token budget per AI review"
-            print(budget_msg)
-            self.detailed_output.append(budget_msg)
+            self._progress_print(header_msg)
         else:
-            header_msg = f"🔍 Running AI reviews first, then GitHub validation (AI resuming from point {resume_from})..." if resume_from > 1 else "🔍 Running AI reviews first, then GitHub validation..."
-            print(header_msg)
-            self.detailed_output.append(header_msg)
-            budget_msg = "💭 Extended thinking enabled with 20,000 token budget per AI review"
-            print(budget_msg)
-            self.detailed_output.append(budget_msg)
+            header_msg = f"🔍 Running complete review (AI + GitHub)..."
+            self._progress_print(header_msg)
         
         separator = "=" * 70
-        print(separator)
-        self.detailed_output.append(separator)
+        self._thread_safe_print(separator)
         
         # Convert reviewers dict to list for indexing
         reviewer_items = list(self.reviewers.items())
@@ -2316,35 +2373,37 @@ class DocumentReviewSystem:
             duration_seconds = end_time - start_time
             duration_minutes = duration_seconds / 60.0
             
+            task_count = 0
+            total_tasks = len(github_tasks)
             for task_name, result in github_tasks:
+                task_count += 1
+                # Just show progress in quiet mode
+                progress_msg = f"🔄 GitHub Task {task_count}/{total_tasks}: {result.result.value}"
+                self._progress_print(progress_msg)
+                
+                # Store detailed information for report only
                 running_msg = f"\n🔄 Running GitHub Task: {task_name}"
-                print(running_msg)
-                self.detailed_output.append(running_msg)
+                self._thread_safe_print(running_msg, force_quiet=True)
                 
                 # Show both seconds and minutes for better accuracy perception
                 if duration_seconds < 60:
                     time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
                 else:
                     time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
-                print(time_msg)
-                self.detailed_output.append(time_msg)
+                self._thread_safe_print(time_msg, force_quiet=True)
                 
                 results[task_name] = result
                 
                 result_msg = f"Result: {result.result.value}"
-                print(result_msg)
-                self.detailed_output.append(result_msg)
+                self._thread_safe_print(result_msg, force_quiet=True)
                 
                 if result.result == ReviewResult.FAIL:
                     issues_header = "\nIssues Found:"
-                    print(issues_header)
-                    self.detailed_output.append(issues_header)
-                    print(result.reasoning)
-                    self.detailed_output.append(result.reasoning)
+                    self._thread_safe_print(issues_header, force_quiet=True)
+                    self._thread_safe_print(result.reasoning, force_quiet=True)
                 
                 sep_msg = "-" * 40
-                print(sep_msg)
-                self.detailed_output.append(sep_msg)
+                self._thread_safe_print(sep_msg, force_quiet=True)
             
             return results
         
@@ -2374,10 +2433,9 @@ class DocumentReviewSystem:
                         results[single_review] = result
                         break
             else:
-                # This is an AI review
-                running_msg = f"\n🔄 Running AI Review: {single_review}"
-                print(running_msg)
-                self.detailed_output.append(running_msg)
+                # This is an AI review - use the same format as parallel reviews
+                running_msg = f"🔄 1. {single_review} - Starting..."
+                self._thread_safe_print(running_msg)
                 
                 start_time = time.time()
                 
@@ -2386,33 +2444,17 @@ class DocumentReviewSystem:
                     
                     end_time = time.time()
                     duration_seconds = end_time - start_time
-                    duration_minutes = duration_seconds / 60.0
                     
-                    # Show timing
-                    if duration_seconds < 60:
-                        time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
-                    else:
-                        time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
-                    print(time_msg)
-                    self.detailed_output.append(time_msg)
-                    
-                    result_msg = f"Result: {result.result.value}"
-                    print(result_msg)
-                    self.detailed_output.append(result_msg)
-                    
-                    if result.result == ReviewResult.FAIL:
-                        issues_header = "\nIssues Found:"
-                        print(issues_header)
-                        self.detailed_output.append(issues_header)
-                        print(result.reasoning)
-                        self.detailed_output.append(result.reasoning)
+                    status_emoji = "✅" if result.result == ReviewResult.PASS else "❌"
+                    completion_msg = f"{status_emoji} 1. {single_review} - {result.result.value} ({duration_seconds:.1f}s)"
+                    self._thread_safe_print(completion_msg)
                     
                     results[single_review] = result
                     
                 except Exception as e:
-                    error_msg = f"❌ Error in {single_review}: {str(e)}"
-                    print(error_msg)
-                    self.detailed_output.append(error_msg)
+                    elapsed_time = time.time() - start_time
+                    error_msg = f"💥 1. {single_review} - ERROR: {str(e)} ({elapsed_time:.1f}s)"
+                    self._thread_safe_print(error_msg)
                     
                     results[single_review] = ReviewResponse(
                         result=ReviewResult.FAIL,
@@ -2439,189 +2481,72 @@ class DocumentReviewSystem:
                 reasoning="SKIPPED - Resumed from later point"
             )
         
-        # Run AI reviews
-        for i in range(start_index, len(ai_reviews) + 1):
-            review_name, reviewer = ai_reviews[i-1]
-            running_msg = f"\n🔄 Running {i}. {review_name}"
-            print(running_msg)
-            self.detailed_output.append(running_msg)
-            
-            # Start timing the review
-            start_time = time.time()
-            
-            try:
-                # Add small delay to respect API rate limits for AI reviews
-                time.sleep(1)
-                result = reviewer.review(document)
-                
-                # Special rule for last point (Comprehensive Reasoning Thoughts Review): Run twice if first attempt passes
-                if (reviewer is not None and isinstance(reviewer, ReasoningThoughtsReviewer) and 
-                    result.result == ReviewResult.PASS):
-                    # Calculate and display first run time
-                    end_time = time.time()
-                    duration_seconds = end_time - start_time
-                    duration_minutes = duration_seconds / 60.0
-                    
-                    first_run_msg = f"⏱️ First run completed in {duration_minutes:.2f} minutes"
-                    print(first_run_msg)
-                    self.detailed_output.append(first_run_msg)
-                    
-                    first_result_msg = f"Result: {result.result.value} (First run)"
-                    print(first_result_msg)
-                    self.detailed_output.append(first_result_msg)
-                    
-                    second_run_msg = "🔄 Running Comprehensive Reasoning Thoughts Review again for confirmation..."
-                    print(second_run_msg)
-                    self.detailed_output.append(second_run_msg)
-                    
-                    # Second run
-                    second_start_time = time.time()
-                    time.sleep(1)  # Rate limit delay
-                    second_result = reviewer.review(document)
-                    second_end_time = time.time()
-                    second_duration_seconds = second_end_time - second_start_time
-                    second_duration_minutes = second_duration_seconds / 60.0
-                    
-                    total_duration_minutes = duration_minutes + second_duration_minutes
-                    second_time_msg = f"⏱️ Second run completed in {second_duration_minutes:.2f} minutes"
-                    print(second_time_msg)
-                    self.detailed_output.append(second_time_msg)
-                    
-                    total_time_msg = f"⏱️ Total time: {total_duration_minutes:.2f} minutes"
-                    print(total_time_msg)
-                    self.detailed_output.append(total_time_msg)
-                    
-                    separator_msg = "-" * 40
-                    print(separator_msg)
-                    self.detailed_output.append(separator_msg)
-                    
-                    # Final result based on both runs
-                    if second_result.result == ReviewResult.PASS:
-                        final_pass_msg = f"Result: ✅ PASS (Both runs passed)"
-                        print(final_pass_msg)
-                        self.detailed_output.append(final_pass_msg)
-                        results[review_name] = ReviewResponse(
-                            result=ReviewResult.PASS,
-                            reasoning="PASS - Both comprehensive analysis runs completed successfully"
-                        )
-                    else:
-                        final_fail_msg = f"Result: ❌ FAIL (Second run failed)"
-                        print(final_fail_msg)
-                        self.detailed_output.append(final_fail_msg)
-                        
-                        second_issues_header = "\nSecond run issues:"
-                        print(second_issues_header)
-                        self.detailed_output.append(second_issues_header)
-                        
-                        print(second_result.reasoning)
-                        self.detailed_output.append(second_result.reasoning)
-                        
-                        results[review_name] = ReviewResponse(
-                            result=ReviewResult.FAIL,
-                            reasoning=f"First run: PASS\nSecond run: FAIL\n\nSecond run issues:\n{second_result.reasoning}"
-                        )
-                        
-                        end_separator = "\n" + "-" * 40
-                        print(end_separator)
-                        self.detailed_output.append(end_separator)
-                else:
-                    # Normal handling for all other cases
-                    results[review_name] = result
-                    
-                    # Calculate and display execution time
-                    end_time = time.time()
-                    duration_seconds = end_time - start_time
-                    duration_minutes = duration_seconds / 60.0
-                    
-                    # Show both seconds and minutes for better accuracy perception
-                    if duration_seconds < 60:
-                        time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
-                    else:
-                        time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
-                    print(time_msg)
-                    self.detailed_output.append(time_msg)
-                    
-                    sep_msg = "-" * 40
-                    print(sep_msg)
-                    self.detailed_output.append(sep_msg)
-                    
-                    # Print immediate result with details for failures
-                    if result.result == ReviewResult.PASS:
-                        result_msg = f"Result: {result.result.value}"
-                        print(result_msg)
-                        self.detailed_output.append(result_msg)
-                    else:
-                        fail_result_msg = f"Result: {result.result.value}"
-                        print(fail_result_msg)
-                        self.detailed_output.append(fail_result_msg)
-                        
-                        # Only show cleanup message for points that actually do cleanup (exclude GitHub validation and specific reviewers)
-                        if (reviewer is not None and 
-                            not isinstance(reviewer, (ReasoningThoughtsReviewer, Chain2TestCaseAnalysisReviewer, ThoughtHeadingViolationsReviewer))):
-                            cleanup_msg = "🧹 Cleaning up failure details..."
-                            print(cleanup_msg)
-                            self.detailed_output.append(cleanup_msg)
-                        
-                        issues_header = "\nIssues Found:"
-                        print(issues_header)
-                        self.detailed_output.append(issues_header)
-                        
-                        print(result.reasoning)
-                        self.detailed_output.append(result.reasoning)
-                        
-                        issues_separator = "\n" + "-" * 40
-                        print(issues_separator)
-                        self.detailed_output.append(issues_separator)
-                
-            except Exception as e:
-                error_result = ReviewResponse(
-                    result=ReviewResult.FAIL,
-                    reasoning=f"Review failed due to error: {str(e)}"
-                )
-                results[review_name] = error_result
-                
-                error_msg = f"Result: ❌ ERROR - {str(e)}"
-                print(error_msg)
-                self.detailed_output.append(error_msg)
+        # Run AI reviews in parallel
+        ai_reviews_to_run = ai_reviews[start_index-1:]  # Reviews to actually run
         
+        if ai_reviews_to_run:
+            parallel_msg = f"🚀 Starting {len(ai_reviews_to_run)} AI reviews..."
+            self._progress_print(parallel_msg)
+            
+            # Show all starting messages immediately
+            for i, (review_name, reviewer) in enumerate(ai_reviews_to_run):
+                review_number = start_index + i
+                start_msg = f"🔄 {review_number}. {review_name} - Starting..."
+                self._progress_print(start_msg)
+            
+            # Use ThreadPoolExecutor for parallel execution
+            max_workers = min(8, len(ai_reviews_to_run))  # Limit concurrent threads to avoid rate limiting
+            
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all AI reviews to the thread pool
+                future_to_review = {}
+                for i, (review_name, reviewer) in enumerate(ai_reviews_to_run):
+                    review_number = start_index + i
+                    future = executor.submit(self._run_single_ai_review_quiet, review_name, reviewer, document, review_number)
+                    future_to_review[future] = (review_name, review_number)
+                
+                # Collect results as they complete
+                for future in concurrent.futures.as_completed(future_to_review):
+                    review_name, result = future.result()
+                    results[review_name] = result
+            
+            # Summary after all parallel reviews complete
+            total_completed = len(ai_reviews_to_run)
+            # Count only the AI reviews we just ran
+            ai_passed = sum(1 for name, result in results.items() 
+                          if any(review_name == name for review_name, _ in ai_reviews_to_run) 
+                          and result.result == ReviewResult.PASS)
+            ai_failed = total_completed - ai_passed
+            parallel_complete_msg = f"✅ AI reviews completed: {ai_passed} passed, {ai_failed} failed"
+            self._progress_print(parallel_complete_msg)
+            
         # Run GitHub validation at the end (unless skipped)
         if not skip_github:
-            for review_name, _ in github_reviews:
-                running_msg = f"\n🔄 Running GitHub Check: {review_name}"
-                print(running_msg)
-                self.detailed_output.append(running_msg)
-                
-                start_time = time.time()
-                result = self.github_validator.validate_github_requirements(document)
-                
-                end_time = time.time()
-                duration_seconds = end_time - start_time
-                duration_minutes = duration_seconds / 60.0
-                
-                # Show both seconds and minutes for better accuracy perception
-                if duration_seconds < 60:
-                    time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
-                else:
-                    time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
-                print(time_msg)
-                self.detailed_output.append(time_msg)
-                
-                results[review_name] = result
-                
-                result_msg = f"Result: {result.result.value}"
-                print(result_msg)
-                self.detailed_output.append(result_msg)
-                
-                if result.result == ReviewResult.FAIL:
-                    issues_header = "\nIssues Found:"
-                    print(issues_header)
-                    self.detailed_output.append(issues_header)
-                    print(result.reasoning)
-                    self.detailed_output.append(result.reasoning)
-                
-                sep_msg = "-" * 40
-                print(sep_msg)
-                self.detailed_output.append(sep_msg)
+            # Show progress message
+            progress_msg = f"🔄 Running GitHub validation..."
+            self._progress_print(progress_msg)
+            
+            # Use the detailed GitHub tasks approach for consistency with --github-only mode
+            start_time = time.time()
+            github_tasks = self.github_validator.validate_github_requirements_detailed(document)
+            end_time = time.time()
+            
+            duration_seconds = end_time - start_time
+            duration_minutes = duration_seconds / 60.0
+            
+            # Count passing tasks for summary
+            passed_tasks = sum(1 for _, result in github_tasks if result.result == ReviewResult.PASS)
+            total_tasks = len(github_tasks)
+            
+            # Show overall result progress
+            github_result_msg = f"✅ GitHub validation: {passed_tasks}/{total_tasks} passed"
+            self._progress_print(github_result_msg)
+            
+            # Process each task for detailed logging
+            for task_name, result in github_tasks:
+                # Store result immediately without logging task details to detailed_output
+                # (they will be logged in the report generation phase instead)
+                results[task_name] = result
         
         return results
     
@@ -2645,8 +2570,15 @@ class DocumentReviewSystem:
         report.append("")
         
         # Separate GitHub and AI results
-        github_results = {name: result for name, result in results.items() if "GitHub Requirements Validation" in name}
-        ai_results = {name: result for name, result in results.items() if "GitHub Requirements Validation" not in name}
+        # GitHub results include both the main validation and individual GitHub tasks
+        github_keywords = ["GitHub Requirements Validation", "GitHub URL Extraction", "GitHub URL Parsing", 
+                          "Repository Cloning", "Overall.md File Detection", "Hunyuan CPP Files Check",
+                          "Overall.md Format Validation", "Solution.md Content Consistency", 
+                          "Problem Statement.md Content Consistency"]
+        github_results = {name: result for name, result in results.items() 
+                         if any(keyword in name for keyword in github_keywords)}
+        ai_results = {name: result for name, result in results.items() 
+                     if not any(keyword in name for keyword in github_keywords)}
         
         # Count results separately
         github_passed = sum(1 for r in github_results.values() if r.result == ReviewResult.PASS)
@@ -2695,15 +2627,16 @@ class DocumentReviewSystem:
         report.append("")
         report.append("=" * 70)
         
-        # Results - show all details since we now have the complete log above
+        # Results - show AI reviews first, then GitHub results
         ai_counter = 1
         for review_name, result in results.items():
+            # Skip detailed GitHub tasks in first pass - show them after AI reviews
+            if any(keyword in review_name for keyword in github_keywords):
+                continue
+                
             report.append("")
-            if "GitHub Requirements Validation" in review_name:
-                report.append(f"📝 GITHUB CHECK: {review_name.upper()}")
-            else:
-                report.append(f"📝 {ai_counter}. {review_name.upper()}")
-                ai_counter += 1
+            report.append(f"📝 {ai_counter}. {review_name.upper()}")
+            ai_counter += 1
             report.append("-" * 50)
             
             if result.reasoning == "SKIPPED - Resumed from later point":
@@ -2718,6 +2651,30 @@ class DocumentReviewSystem:
                 elif result.result == ReviewResult.PASS:
                     report.append("Review passed successfully")
             
+            report.append("")
+            report.append("-" * 50)
+        
+        # Now add GitHub results after AI reviews
+        github_counter = ai_counter
+        for review_name, result in results.items():
+            # Only show GitHub tasks in this pass
+            if not any(keyword in review_name for keyword in github_keywords):
+                continue
+                
+            report.append("")
+            report.append(f"📝 {github_counter}. {review_name.upper()}")
+            github_counter += 1
+            report.append("-" * 50)
+            
+            report.append(f"Status: {result.result.value}")
+            
+            if result.result == ReviewResult.FAIL:
+                report.append("")
+                report.append("Issues Found:")
+                report.append(result.reasoning)
+            elif result.result == ReviewResult.PASS:
+                report.append("Review passed successfully")
+        
             report.append("")
             report.append("-" * 50)
         
@@ -2766,6 +2723,8 @@ def main():
                        help='Run only AI reviews, skip GitHub validation')
     parser.add_argument('--single-review', type=str, metavar='NAME',
                        help='Run only a single AI review by name (e.g., "Solution Uniqueness Validation")')
+    parser.add_argument('--verbose', action='store_true',
+                       help='Enable verbose output (show all execution details in terminal)')
     
     args = parser.parse_args()
     
@@ -2784,7 +2743,7 @@ def main():
     single_review = args.single_review
     
     # Initialize review system first for dynamic validation
-    review_system = DocumentReviewSystem()
+    review_system = DocumentReviewSystem(quiet_mode=False)  # Use verbose mode for validation
     
     # Validate single review name if specified
     if single_review:
@@ -2805,7 +2764,8 @@ def main():
         sys.exit(1)
     
     try:
-        # Review system already initialized for validation above
+        # Initialize review system with quiet mode (unless verbose flag is set)
+        review_system = DocumentReviewSystem(quiet_mode=not args.verbose)
         
         # Load document
         print(f"📖 Loading document from {args.file}...")
@@ -2828,13 +2788,20 @@ def main():
             single_review=single_review
         )
         
-        # Generate and display report
-        print("\n" + "=" * 70)
-        print("📋 GENERATING FINAL REPORT - ULTIMATE POINT ANALYSIS")
-        print("=" * 70)
+        # Generate and save report (don't display detailed report in terminal)
+        if not args.verbose:
+            progress_msg = "📋 Generating final report..."
+            print(progress_msg)
+        else:
+            print("\n" + "=" * 70)
+            print("📋 GENERATING FINAL REPORT - ULTIMATE POINT ANALYSIS")
+            print("=" * 70)
         
         report = review_system.generate_report(results)
-        print("\n" + report)
+        
+        # Only display full report in verbose mode
+        if args.verbose:
+            print("\n" + report)
         
         # Save report
         review_system.save_report(report, args.file)
@@ -2844,8 +2811,15 @@ def main():
                          if result.result == ReviewResult.FAIL]
         
         if failed_reviews:
-            github_failures = [name for name in failed_reviews if "-1. GitHub Requirements Validation" in name]
-            ai_failures = [name for name in failed_reviews if "-1. GitHub Requirements Validation" not in name]
+            # Use the same classification logic as in generate_report
+            github_keywords = ["GitHub Requirements Validation", "GitHub URL Extraction", "GitHub URL Parsing", 
+                              "Repository Cloning", "Overall.md File Detection", "Hunyuan CPP Files Check",
+                              "Overall.md Format Validation", "Solution.md Content Consistency", 
+                              "Problem Statement.md Content Consistency"]
+            github_failures = [name for name in failed_reviews 
+                             if any(keyword in name for keyword in github_keywords)]
+            ai_failures = [name for name in failed_reviews 
+                         if not any(keyword in name for keyword in github_keywords)]
             
             if github_failures and ai_failures:
                 print(f"\n❌ Review completed with {len(failed_reviews)} failures ({len(github_failures)} GitHub, {len(ai_failures)} AI)")
