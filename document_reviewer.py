@@ -2764,27 +2764,22 @@ def main():
                        help='Run only GitHub requirements validation (non-AI review)')
     parser.add_argument('--ai-only', action='store_true',
                        help='Run only AI reviews, skip GitHub validation')
-    parser.add_argument('--skip-github', action='store_true',
-                       help='Skip GitHub validation, run only AI reviews (same as --ai-only)')
     parser.add_argument('--single-review', type=str, metavar='NAME',
                        help='Run only a single AI review by name (e.g., "Solution Uniqueness Validation")')
     
     args = parser.parse_args()
     
     # Handle conflicting arguments
-    if args.github_only and (args.ai_only or args.skip_github):
-        print("❌ Cannot use --github-only with --ai-only or --skip-github")
+    if args.github_only and args.ai_only:
+        print("❌ Cannot use --github-only with --ai-only")
         sys.exit(1)
     
-    if args.ai_only and args.skip_github:
-        print("ℹ️  Note: --ai-only and --skip-github are equivalent")
-    
-    if args.single_review and (args.github_only or args.ai_only or args.skip_github):
+    if args.single_review and (args.github_only or args.ai_only):
         print("❌ Cannot use --single-review with other mode options")
         sys.exit(1)
     
     # Normalize skip options
-    skip_github = args.ai_only or args.skip_github
+    skip_github = args.ai_only
     github_only = args.github_only
     single_review = args.single_review
     
