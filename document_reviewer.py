@@ -582,6 +582,8 @@ The document MUST contain a metadata section at the beginning that follows this 
 
 **Category:** - [value]
 
+**GitHub URL:** - [GitHub URL]
+
 **Topic:** - [value]
 
 **Subtopic:** - [JSON array of subtopics]
@@ -600,6 +602,7 @@ REQUIRED FORMAT SPECIFICATIONS:
 3. There must be a space after the colon, then a dash, then a space before the value
 4. All fields must be present in this exact order
 5. The subtopic must be a valid JSON array format with proper quotes
+6. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
 
 CRITICAL VALIDATION FOR "Number of Approaches":
 - Must contain both the count and the time complexity progression
@@ -622,12 +625,13 @@ CRITICAL VALIDATION FOR "Number of Chains":
 
 WHAT TO CHECK:
 1. Metadata section exists with "# Metadata" header
-2. All required fields are present in correct order
+2. All required fields are present in correct order: Category, GitHub URL, Topic, Subtopic, Difficulty, Languages, Number of Approaches, Number of Chains
 3. Each field follows the exact format: **FieldName:** - value
-4. Number of Approaches contains both count and valid time complexity progression
-5. Number of Chains matches actual CHAIN_XX sections count
-6. Subtopic is a properly formatted JSON array
-7. Values are appropriate for the content
+4. GitHub URL is a valid GitHub repository URL starting with https://github.com/
+5. Number of Approaches contains both count and valid time complexity progression
+6. Number of Chains matches actual CHAIN_XX sections count
+7. Subtopic is a properly formatted JSON array
+8. Values are appropriate for the content
 
 Please answer pass or fail.
 
