@@ -17,24 +17,12 @@ This system analyzes documents (particularly coding problem statements and solut
 ### Prerequisites
 - Python 3.7+
 - Anthropic API key
-- SSH key setup for GitHub (recommended)
+- SSH key setup for GitHub 
 
 ### Setup
-1. **Set your API key:**
-   ```bash
-   export ANTHROPIC_API_KEY="your-api-key-here"
-   # Or add to your .bashrc for persistence
-   echo 'export ANTHROPIC_API_KEY="your-api-key-here"' >> ~/.bashrc
-   source ~/.bashrc
-   ```
 
-2. **Optional: Setup SSH for GitHub (recommended):**
-   ```bash
-   ssh-keygen -t ed25519 -C "your_email@example.com"
-   ssh-add ~/.ssh/id_ed25519
-   # Add public key to GitHub: cat ~/.ssh/id_ed25519.pub
-   ```
-
+You must setup github ssh key to use github checks.
+   
 ### Usage
 ```bash
 # Run complete analysis (GitHub + AI reviews)
