@@ -23,9 +23,15 @@ Features:
 
 GitHub Requirements:
 - Document must contain a GitHub URL in metadata: **GitHub URL:** https://github.com/owner/repo
-- Repository must be accessible and cloneable
+- Repository cloning uses SSH by default with HTTPS fallback for better security
+- Repository must be accessible and cloneable (SSH key setup recommended)
 - Repository must contain exactly one overall.md file (case-insensitive)
-- GitHub API key should be configured in .env file as: git_api = your_token_here
+- SSH Setup (Recommended):
+  1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'
+  2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519
+  3. Add public key to GitHub: Copy content of ~/.ssh/id_ed25519.pub to GitHub settings
+  4. Test SSH access: ssh -T git@github.com
+- GitHub API key should be configured in .env file as: git_api = your_token_here (optional for public repos)
 
 Author: AI Assistant
 Date: October 9, 2025
@@ -1523,29 +1529,74 @@ class GitHubReviewValidator:
             pass
         return None, None
     
+    def _convert_to_ssh_url(self, https_url: str) -> str:
+        """Convert HTTPS GitHub URL to SSH format"""
+        # https://github.com/owner/repo -> git@github.com:owner/repo.git
+        if https_url.startswith('https://github.com/'):
+            # Remove https://github.com/ prefix
+            repo_path = https_url.replace('https://github.com/', '')
+            # Remove .git suffix if present
+            if repo_path.endswith('.git'):
+                repo_path = repo_path[:-4]
+            # Convert to SSH format
+            ssh_url = f"git@github.com:{repo_path}.git"
+            return ssh_url
+        else:
+            # If it's already in SSH format or different format, return as-is
+            return https_url
+    
     def _clone_repository(self, url: str, temp_dir: str) -> bool:
-        """Clone GitHub repository to temporary directory"""
+        """Clone GitHub repository to temporary directory using SSH with HTTPS fallback"""
         try:
+            # Convert HTTPS URL to SSH format
+            ssh_url = self._convert_to_ssh_url(url)
+            
             # Ensure temp_dir doesn't exist (git clone creates it)
             if os.path.exists(temp_dir):
                 import shutil
                 shutil.rmtree(temp_dir)
             
-            # Use git clone command with depth=1 for faster cloning
+            # First try SSH
+            print(f"🔑 Attempting to clone using SSH: {ssh_url}")
             result = subprocess.run([
-                'git', 'clone', '--depth=1', url, temp_dir
+                'git', 'clone', '--depth=1', ssh_url, temp_dir
             ], capture_output=True, text=True, timeout=120)
             
             if result.returncode == 0:
+                print(f"✅ Successfully cloned via SSH")
                 return True
             else:
-                print(f"Git clone failed with return code {result.returncode}")
-                print(f"stdout: {result.stdout}")
-                print(f"stderr: {result.stderr}")
-                return False
+                print(f"⚠️  SSH clone failed, trying HTTPS fallback...")
+                print(f"   SSH Error: {result.stderr}")
+                
+                # Clean up failed attempt
+                if os.path.exists(temp_dir):
+                    import shutil
+                    shutil.rmtree(temp_dir)
+                
+                # Fallback to HTTPS if SSH fails
+                print(f"🌐 Attempting to clone using HTTPS: {url}")
+                https_result = subprocess.run([
+                    'git', 'clone', '--depth=1', url, temp_dir
+                ], capture_output=True, text=True, timeout=120)
+                
+                if https_result.returncode == 0:
+                    print(f"✅ Successfully cloned via HTTPS fallback")
+                    return True
+                else:
+                    print(f"❌ Both SSH and HTTPS clone failed")
+                    print(f"   SSH Error: {result.stderr}")
+                    print(f"   HTTPS Error: {https_result.stderr}")
+                    print(f"   ")
+                    print(f"   💡 SSH Setup Help:")
+                    print(f"   1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'")
+                    print(f"   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519")
+                    print(f"   3. Add public key to GitHub: cat ~/.ssh/id_ed25519.pub")
+                    print(f"   4. Test SSH access: ssh -T git@github.com")
+                    return False
                 
         except subprocess.TimeoutExpired:
-            print("Git clone timed out after 60 seconds")
+            print("❌ Git clone timed out after 120 seconds")
             return False
         except Exception as e:
             print(f"Git clone exception: {e}")
