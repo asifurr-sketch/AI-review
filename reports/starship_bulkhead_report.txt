@@ -1,0 +1,1037 @@
+📋 COMPLETE EXECUTION LOG
+======================================================================
+
+🔍 Running AI reviews first, then GitHub validation...
+💭 Extended thinking enabled with 20,000 token budget per AI review
+======================================================================
+
+🔄 Running 1. Unique Solution Validation
+⏱️ Completed in 25.0 seconds (0.42 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 2. Time Complexity Authenticity Check
+⏱️ Completed in 1.32 minutes (79.3 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• Missing Complexity Analysis: Document does not explicitly discuss or analyze approaches with O(n·m²) complexity (listed twice in metadata) or clearly define an O(n·m·log m) approach. While binary search is briefly mentioned in THOUGHT_05_02, no complexity analysis is provided.
+
+• Count Mismatch: Metadata claims 5 distinct approaches with specific complexities, but document only clearly provides complexity analysis for 2 approaches:
+  - Brute force (exponential/O(m^n))
+  - Final DP (O(n·m))
+
+• Approaches Without Complexity: Greedy approaches (Chain 04) and alternative methods (Chain 05) are discussed but without time complexity analysis.
+
+• Missing O(n·m²) Analysis: Two instances of O(n·m²) complexity listed in metadata but no corresponding approaches with this complexity are analyzed in the document.
+
+• Missing O(n·m·log m) Analysis: Metadata lists O(n·m·log m) complexity but document does not provide explicit complexity analysis for any approach matching this complexity.
+
+----------------------------------------
+
+🔄 Running 3. Style Guide Compliance
+⏱️ Completed in 1.09 minutes (65.4 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 4. Naming Conventions
+⏱️ Completed in 1.05 minutes (62.7 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 5. Documentation Standards
+⏱️ Completed in 41.4 seconds (0.69 minutes)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• struct GameResult - No doxygen documentation, missing documentation for members numberOfOpens and numberOfDiscards
+
+• isBetterResult function - Has only simple inline comment "// Compare two game results: prefer more opens; if tied, fewer discards", missing doxygen-style documentation with @param and @return tags
+
+• main function - No documentation at all, should have at least basic doxygen documentation explaining the program's purpose
+
+• GameResult struct members (numberOfOpens, numberOfDiscards) - Lack documentation
+
+• Code uses simple inline comments instead of proper doxygen-style documentation
+
+• None of the functions, structs, or public APIs have appropriate doxygen documentation as required
+
+----------------------------------------
+
+🔄 Running 6. Response Relevance to Problem
+⏱️ Completed in 1.80 minutes (108.0 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 7. Mathematical Equations Correctness
+⏱️ Completed in 48.1 seconds (0.80 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 8. Problem Constraints Consistency
+Result: ❌ ERROR - peer closed connection without sending complete message body (incomplete chunked read)
+
+🔄 Running 9. Missing Approaches in Steps
+Result: ❌ ERROR - peer closed connection without sending complete message body (incomplete chunked read)
+
+🔄 Running 10. Code Elements Existence
+⏱️ Completed in 40.0 seconds (0.67 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 11. Example Walkthrough with Optimal Algorithm
+⏱️ Completed in 34.4 seconds (0.57 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 12. Time and Space Complexity Correctness
+Result: ❌ ERROR - peer closed connection without sending complete message body (incomplete chunked read)
+
+🔄 Running 13. Conclusion Quality
+⏱️ Completed in 1.61 minutes (96.8 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 14. Problem Statement Consistency
+⏱️ Completed in 1.35 minutes (81.0 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• Problem statement references undefined parameter S: "you are allowed to incinerate (discard) up to S of your front cards" but S is never defined in input format, constraints section, or examples
+
+• Example 2 contains impossible explanation: States "Card 1 fails on all bulkheads, card 5 fails on first four (10s) but succeeds on the last (5). Total opened = 1" but this contradicts mechanics where failed cards remain at front and block queue - card 5 would never get chance to be used if card 1 fails and stays at front
+
+• Goal ambiguity: Undefined parameter S conflicts with stated goal of minimizing discards - creates confusion between having discard budget limit versus unlimited strategic discarding
+
+• Mechanical contradiction: Solution approach assumes unlimited strategic discarding at each bulkhead, but undefined S suggests global discard limit
+
+• Result should be 0 opens in Example 2, not 1, based on stated mechanics
+
+----------------------------------------
+
+🔄 Running 15. Solution Passability According to Limits
+⏱️ Completed in 1.83 minutes (109.7 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 16. Metadata Correctness
+⏱️ Completed in 57.1 seconds (0.95 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 17. Test Case Validation
+⏱️ Completed in 2.54 minutes (152.7 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• THOUGHT_02_02 - Example 2 Analysis: States "Without discards: card 1 fails all, card 5 fails on first four but succeeds on the last = 1 open" - INCORRECT. Card 1 (power 1) fails all 5 bulkheads and never succeeds, so it's never consumed. Card 5 never becomes the front card. Actual result: 0 opens without discards.
+
+• THOUGHT_02_03 - Discards beneficial case: States "With 2 discards: discard cards 1,2, card 6 succeeds all three = 3 opens" - INCORRECT. After discarding cards 1 and 2, card 6 becomes front and succeeds bulkhead 1 (6 ≥ 5) and is consumed. No cards remain for bulkheads 2 and 3. Actual result: 1 open, not 3.
+
+• THOUGHT_02_04 - No discards needed: States "Cards are in reverse order but all succeed = 3 opens with 0 discards" - INCORRECT. Card 1 (power 3) succeeds bulkhead 1 (threshold 1), consumed. Card 2 (power 2) succeeds bulkhead 2 (threshold 2), consumed. Card 3 (power 1) fails bulkhead 3 (threshold 3). Actual result: 2 opens, not 3.
+
+• THOUGHT_02_07 - Repeated thresholds: States "Without discards: card 1 fails, card 6 succeeds first..." - INCORRECT. Card 1 (power 1) fails all bulkheads and never gets consumed. Card 6 never becomes the front card without discarding card 1. Actual result: 0 opens without discards.
+
+• THOUGHT_02_08 - Careful discard timing: States optimal is "2 opens with 2 discards" - INCORRECT. Better strategy exists: Let card 1 succeed on bulkhead 2 (1 ≥ 1), then card 2 succeeds on bulkhead 4 (5 ≥ 1). Actual optimal: 2 opens with 0 discards.
+
+• Fundamental error in Chain 2's explanations: Misunderstanding that failed cards block the queue. When a card fails, it remains at the front and prevents access to subsequent cards unless explicitly discarded.
+
+----------------------------------------
+
+🔄 Running 18. Sample Test Case Dry Run Validation
+⏱️ Completed in 3.29 minutes (197.6 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• THOUGHT_02_02: Incorrectly states "Without discards: card 1 fails all, card 5 fails first 4 but succeeds last = 1 open" (should be 0 opens)
+
+• "Another Example" section: Claims "Without discards: Card 1 fails all bulkheads, Card 5 fails first 4 but succeeds on last = 1 open" (should be 0 opens)
+
+• "Example Execution" sections: Walkthroughs are confusing and don't accurately represent either the actual game flow or the DP computation process
+
+• Example 2 dry run error: Document incorrectly calculates that 1 bulkhead can be opened without any discards, when the correct answer is 0 bulkheads
+
+• Game flow misunderstanding: Since card 1 never gets consumed (fails all attempts with power 1 vs thresholds 10,10,10,10,5), card 5 never becomes the front card, resulting in 0 opens not 1 open
+
+----------------------------------------
+
+🔄 Running 19. Note Section Explanation Approach
+⏱️ Completed in 41.9 seconds (0.70 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 20. Inefficient Approaches Limitations
+⏱️ Completed in 1.14 minutes (68.5 seconds)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 21. Final Approach Discussion
+⏱️ Completed in 57.1 seconds (0.95 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 22. No Code in Reasoning Chains
+⏱️ Completed in 41.4 seconds (0.69 minutes)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• CHAIN_10 violates the requirement "There should not be any code in reasoning chains"
+
+• THOUGHT_10_02 includes a C++ code block showing the DP transition logic
+
+• THOUGHT_10_03 includes a C++ code block showing the comparison function implementation
+
+• THOUGHT_10_04 includes code snippets referencing `dp[i][m]`, `dp[i+1][m]`, and `dp[0][0].numberOfDiscards`
+
+• Code blocks should only appear in the final RESPONSE section, not within the reasoning chains
+
+• Reasoning chains should describe solution approach conceptually without actual code implementation
+
+----------------------------------------
+
+🔄 Running 23. Subtopic Taxonomy Validation
+⏱️ Completed in 51.4 seconds (0.86 minutes)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• "Binary Search" listed as subtopic but NOT present in taxonomy list (only "Searching Algorithms" is listed, not "Binary Search" specifically)
+
+• "Binary Search" listed as subtopic but NOT relevant to actual solution - only mentioned in THOUGHT_05_02 as a considered but rejected approach, not used in the actual solution at all
+
+----------------------------------------
+
+🔄 Running 24. Typo and Spelling Check
+⏱️ Completed in 53.3 seconds (0.89 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 25. Subtopic Relevance
+⏱️ Completed in 53.8 seconds (0.90 minutes)
+----------------------------------------
+Result: ✅ PASS
+
+🔄 Running 26. Missing Relevant Subtopics
+⏱️ Completed in 54.7 seconds (0.91 minutes)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• Missing relevant subtopic: "Functions and Recursion"
+  - Chain 03 extensively discusses "direct recursive enumeration" as an approach
+  - The DP solution is described as having a "recursive structure with overlapping subproblems"
+  - The implementation uses custom functions (e.g., `isBetterResult`)
+  - The thought process repeatedly references recursive approaches and how they lead to the DP solution
+  - The document explicitly explores recursive approaches before arriving at the DP solution
+
+----------------------------------------
+
+🔄 Running 27. No Predictive Headings in Thoughts
+⏱️ Completed in 1.27 minutes (76.4 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• THOUGHT_03_04: "We recognize that this is actually a dynamic programming problem in disguise"
+  - Directly reveals that dynamic programming is THE solution before completing the analysis
+  - Declares it IS the answer rather than exploring DP as one option
+  - Predictive of the solution approach
+
+• THOUGHT_05_05: "We realize that all these approaches essentially lead to the same dynamic programming solution"
+  - Reveals that DP is the solution before the analysis justifies this conclusion
+  - Predicts the outcome that all paths lead to DP
+
+----------------------------------------
+
+🔄 Running 28. Chain Test Case Analysis Validation
+⏱️ Completed in 1.20 minutes (72.0 seconds)
+----------------------------------------
+Result: ❌ FAIL
+
+Issues Found:
+• CHAIN_02 violates requirements throughout all thoughts (THOUGHT_02_01 through THOUGHT_02_10)
+
+• THOUGHT_02_01: States "The card succeeds, so we need 0 discards to achieve 1 open" without showing step-by-step execution
+
+• THOUGHT_02_02: States "Without discards: fails first (2<3), succeeds second (2≥1) = 1 open" but doesn't provide detailed trace like "At bulkhead 1: card power 2 vs threshold 3 → fails, move to bulkhead 2 with same card..."
+
+• THOUGHT_02_03: States "Without discards: card 1 fails first, card 2 fails second, card 6 succeeds third = 1 open" but should have shown detailed steps like:
+  - Step 1: At bulkhead 1 (threshold 5), front card is 1 (power 1). Compare: 1 < 5, fails. Move to bulkhead 2, card stays at position 0.
+  - Step 2: At bulkhead 2 (threshold 3), front card is still 1 (power 1). Compare: 1 < 3, fails. Move to bulkhead 3, card stays at position 0.
+
+• THOUGHT_02_04 through THOUGHT_02_10: All follow same pattern - propose test cases and state expected results but never walk through execution in detail
+
+• CHAIN_02 only suggests test cases and states their expected outcomes
+
+• CHAIN_02 does NOT provide step-by-step execution traces
+
+• CHAIN_02 does NOT show detailed walkthroughs of how the algorithm processes each test case
+
+• CHAIN_02 does NOT demonstrate the actual mechanics of the algorithm on specific inputs
+
+• Entire chain is about designing test cases rather than analyzing them with detailed execution
+
+----------------------------------------
+
+🔄 Running 29. Thought Heading Violations Check
+⏱️ Completed in 1.92 minutes (115.3 seconds)
+----------------------------------------
+Result: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_01: "Construct minimal baseline cases:" - Missing actual test cases
+• THOUGHT_02_02: "Test the provided examples from the problem statement:" - Missing actual test cases  
+• THOUGHT_02_03: "Test cases where discards are beneficial:" - Missing actual test cases
+• THOUGHT_02_04: "Test cases where no discards are needed:" - Missing actual test cases
+• THOUGHT_02_05: "Test edge cases with extreme values:" - Missing actual test cases
+• THOUGHT_02_06: "Test cases where all cards are too weak:" - Missing actual test cases
+• THOUGHT_02_07: "Test cases with repeated thresholds:" - Missing actual test cases
+• THOUGHT_02_08: "Test cases where optimal strategy requires careful discard timing:" - Missing actual test cases
+• THOUGHT_02_09: "Test cases with more cards than bulkheads:" - Missing actual test cases
+• THOUGHT_02_10: "Test cases with more bulkheads than cards:" - Missing actual test cases
+• THOUGHT_08_02: "We test the provided examples from the problem statement:" - Missing actual test cases
+• THOUGHT_10_02: "The core DP transition logic is:" - Incomplete explanation
+
+----------------------------------------
+
+🔄 Running 30. Mathematical Variables and Expressions Formatting
+⏱️ Completed in 2.85 minutes (171.1 seconds)
+----------------------------------------
+Result: ❌ FAIL
+🧹 Cleaning up failure details...
+
+Issues Found:
+• Section: Prompt - Violation: "sequence of n sealed bulkheads" - Should be: "sequence of $n$ sealed bulkheads"
+
+• Section: Prompt - Violation: "Each bulkhead i requires" - Should be: "Each bulkhead $i$ requires"
+
+• Section: Prompt - Violation: "You carry a magazine of m access cards" - Should be: "You carry a magazine of $m$ access cards"
+
+• Section: Prompt - Violation: "the j-th card" - Should be: "the $j$-th card"
+
+• Section: Prompt - Violation: "up to S of your front cards" - Should be: "up to $S$ of your front cards"
+
+• Section: Prompt - Violation: "i = 1..n" - Should be: "$i = 1..n$"
+
+• Section: Prompt - Violation: "Before attempting to unlock bulkhead i" - Should be: "Before attempting to unlock bulkhead $i$"
+
+• Section: Prompt - Violation: "After any discards at bulkhead i" - Should be: "After any discards at bulkhead $i$"
+
+• Section: Prompt - Violation: "attempting the n-th bulkhead" - Should be: "attempting the $n$-th bulkhead"
+
+• Section: THOUGHT_01_01 - Violation: "there are n bulkheads" - Should be: "there are $n$ bulkheads"
+
+• Section: THOUGHT_01_01 - Violation: "queue of m access cards" - Should be: "queue of $m$ access cards"
+
+• Section: THOUGHT_01_01 - Violation: "Before each bulkhead i" - Should be: "Before each bulkhead $i$"
+
+• Section: THOUGHT_01_03 - Violation: "At bulkhead i:" - Should be: "At bulkhead $i$:"
+
+• Section: THOUGHT_01_06 - Violation: "current bulkhead index i and the index j" - Should be: "current bulkhead index $i$ and the index $j$"
+
+• Section: THOUGHT_03_01 - Violation: "At each bulkhead i with front card j" - Should be: "At each bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_03_01 - Violation: "move to card j+1, stay at bulkhead i" - Should be: "move to card $j+1$, stay at bulkhead $i$"
+
+• Section: THOUGHT_03_01 - Violation: "advance to bulkhead i+1 and card j+1" - Should be: "advance to bulkhead $i+1$ and card $j+1$"
+
+• Section: THOUGHT_03_01 - Violation: "advance to bulkhead i+1 but stay at card j" - Should be: "advance to bulkhead $i+1$ but stay at card $j$"
+
+• Section: THOUGHT_03_02 - Violation: "For each state (i, j)" - Should be: "For each state $(i, j)$"
+
+• Section: THOUGHT_03_03 - Violation: "recursion depth is bounded by n + m" - Should be: "recursion depth is bounded by $n + m$"
+
+• Section: THOUGHT_03_03 - Violation: "state space is O(n · m)" - Should be: "state space is $O(n \cdot m)$"
+
+• Section: THOUGHT_03_03 - Violation: "at any bulkhead i with any front card j" - Should be: "at any bulkhead $i$ with any front card $j$"
+
+• Section: THOUGHT_03_04 - Violation: "for each (i, j) pair" - Should be: "for each $(i, j)$ pair"
+
+• Section: THOUGHT_03_05 - Violation: "From state (i, j):" - Should be: "From state $(i, j)$:"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i, j+1)" - Should be: "move to $(i, j+1)$"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i+1, j+1)" - Should be: "move to $(i+1, j+1)$"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i+1, j)" - Should be: "move to $(i+1, j)$"
+
+• Section: THOUGHT_03_05 - Violation: "where dp[i][j] stores the best result from bulkhead i with front card j" - Should be: "where dp[$i$][$j$] stores the best result from bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_05_04 - Violation: "each state (i, j) represents being at bulkhead i with front card j" - Should be: "each state $(i, j)$ represents being at bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_06_01 - Violation: "define the state function F(i, j)" - Should be: "define the state function $F(i, j)$"
+
+• Section: THOUGHT_06_01 - Violation: "starting from bulkhead i with front card at index j" - Should be: "starting from bulkhead $i$ with front card at index $j$"
+
+• Section: THOUGHT_06_02 - Violation: "If i = n" - Should be: "If $i = n$"
+
+• Section: THOUGHT_06_02 - Violation: "F(n, j) = (0, 0) for all j" - Should be: "$F(n, j) = (0, 0)$ for all $j$"
+
+• Section: THOUGHT_06_02 - Violation: "If j = m" - Should be: "If $j = m$"
+
+• Section: THOUGHT_06_02 - Violation: "at any i" - Should be: "at any $i$"
+
+• Section: THOUGHT_06_02 - Violation: "F(i, m) = (0, 0)" - Should be: "$F(i, m) = (0, 0)$"
+
+• Section: THOUGHT_06_03 - Violation: "From state (i, j) with j < m:" - Should be: "From state $(i, j)$ with $j < m$:"
+
+• Section: THOUGHT_06_03 - Violation: "This gives us F(i, j+1)" - Should be: "This gives us $F(i, j+1)$"
+
+• Section: THOUGHT_06_03 - Violation: "result is F(i+1, j+1)" - Should be: "result is $F(i+1, j+1)$"
+
+• Section: THOUGHT_06_03 - Violation: "result is F(i+1, j)" - Should be: "result is $F(i+1, j)$"
+
+• Section: THOUGHT_06_05 - Violation: "There are n+1 values of i and m+1 values of j" - Should be: "There are $n+1$ values of $i$ and $m+1$ values of $j$"
+
+• Section: THOUGHT_06_05 - Violation: "totaling O(n · m) states" - Should be: "totaling $O(n \cdot m)$ states"
+
+• Section: THOUGHT_06_06 - Violation: "All transitions move to either (i+1, j+1), (i+1, j), or (i, j+1)" - Should be: "All transitions move to either $(i+1, j+1)$, $(i+1, j)$, or $(i, j+1)$"
+
+• Section: THOUGHT_06_06 - Violation: "permits processing i in descending order and j in descending order" - Should be: "permits processing $i$ in descending order and $j$ in descending order"
+
+• Section: RESPONSE - Violation: "You traverse n bulkheads" - Should be: "You traverse $n$ bulkheads"
+
+• Section: RESPONSE - Violation: "Each bulkhead i needs access power" - Should be: "Each bulkhead $i$ needs access power"
+
+• Section: RESPONSE - Violation: "You have m access cards" - Should be: "You have $m$ access cards"
+
+• Section: RESPONSE - Violation: "the j-th card has power" - Should be: "the $j$-th card has power"
+
+• Section: RESPONSE - Violation: "current bulkhead index i and front card index j" - Should be: "current bulkhead index $i$ and front card index $j$"
+
+• Section: RESPONSE - Violation: "F(i, j) = best result" - Should be: "$F(i, j)$ = best result"
+
+• Section: RESPONSE - Violation: "starting at bulkhead i with front card at index j" - Should be: "starting at bulkhead $i$ with front card at index $j$"
+
+• Section: RESPONSE - Violation: "F(n, j) = (0, 0) for all j" - Should be: "$F(n, j) = (0, 0)$ for all $j$"
+
+• Section: RESPONSE - Violation: "If j = m, there are no cards left, so F(i, m) = (0, 0) for all i" - Should be: "If $j = m$, there are no cards left, so $F(i, m) = (0, 0)$ for all $i$"
+
+• Section: RESPONSE - Violation: "Transitions for j < m:" - Should be: "Transitions for $j < m$:"
+
+• Section: RESPONSE - Violation: "giving us F(i, j+1)" - Should be: "giving us $F(i, j+1)$"
+
+• Section: RESPONSE - Violation: "giving us F(i+1, j+1)" - Should be: "giving us $F(i+1, j+1)$"
+
+• Section: RESPONSE - Violation: "giving us F(i+1, j)" - Should be: "giving us $F(i+1, j)$"
+
+• Section: RESPONSE - Violation: "Iterate i from n-1 down to 0 since each state depends on i+1" - Should be: "Iterate $i$ from $n-1$ down to $0$ since each state depends on $i+1$"
+
+• Section: RESPONSE - Violation: "For fixed i, compute j from m-1 down to 0 so that discard transitions to (i, j+1)" - Should be: "For fixed $i$, compute $j$ from $m-1$ down to $0$ so that discard transitions to $(i, j+1)$"
+
+• Section: RESPONSE - Violation: "2D DP table of size (n+1) × (m+1)" - Should be: "2D DP table of size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "2D DP table dp[i][j] stores the best result from bulkhead i with front card j" - Should be: "2D DP table dp[$i$][$j$] stores the best result from bulkhead $i$ with front card $j$"
+
+• Section: RESPONSE - Violation: "Reads n (number of bulkheads) and m (number of cards)" - Should be: "Reads $n$ (number of bulkheads) and $m$ (number of cards)"
+
+• Section: RESPONSE - Violation: "Initializes DP table with size (n+1) × (m+1)" - Should be: "Initializes DP table with size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "dp[n][j] = (0, 0) for all j" - Should be: "$dp[n][j] = (0, 0)$ for all $j$"
+
+• Section: RESPONSE - Violation: "dp[i][m] = dp[i+1][m] for all i" - Should be: "$dp[i][m] = dp[i+1][m]$ for all $i$"
+
+• Section: RESPONSE - Violation: "Iterates bulkheads from n-1 down to 0" - Should be: "Iterates bulkheads from $n-1$ down to $0$"
+
+• Section: RESPONSE - Violation: "For each bulkhead i and card j:" - Should be: "For each bulkhead $i$ and card $j$:"
+
+• Section: RESPONSE - Violation: "success gives dp[i+1][j+1]" - Should be: "success gives $dp[i+1][j+1]$"
+
+• Section: RESPONSE - Violation: "failure gives dp[i+1][j]" - Should be: "failure gives $dp[i+1][j]$"
+
+• Section: RESPONSE - Violation: "Gives dp[i][j+1]" - Should be: "Gives $dp[i][j+1]$"
+
+• Section: RESPONSE - Violation: "Returns dp[0][0].numberOfDiscards" - Should be: "Returns $dp[0][0]$.numberOfDiscards"
+
+• Section: RESPONSE - Violation: "Time complexity: O(n · m), since for each bulkhead i we process every card j" - Should be: "Time complexity: $O(n \cdot m)$, since for each bulkhead $i$ we process every card $j$"
+
+• Section: RESPONSE - Violation: "Space complexity: O(n · m), using a 2D DP table of size (n+1) × (m+1)" - Should be: "Space complexity: $O(n \cdot m)$, using a 2D DP table of size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "DP values are at most n" - Should be: "DP values are at most $n$"
+
+• Section: RESPONSE - Violation: "over (i, j)" - Should be: "over $(i, j)$"
+
+• Section: RESPONSE - Violation: "within O(n · m) time and space" - Should be: "within $O(n \cdot m)$ time and space"
+
+----------------------------------------
+
+🔄 Running 31. Comprehensive Reasoning Thoughts Review
+⏱️ Completed in 1.64 minutes (98.4 seconds)
+----------------------------------------
+Result: ❌ FAIL
+
+Issues Found:
+• THOUGHT_01_07: "This suggests we need a dynamic programming approach that considers both objectives simultaneously" - Contains information about an efficient approach (dynamic programming) in Chain 1, violating criterion 1d which states Chain 1 should not contain information about approaches that are efficient or inefficient.
+
+• THOUGHT_03_04: "We recognize that this is actually a dynamic programming problem in disguise" - Presents the conclusion first before analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_05_05: "We realize that all these approaches essentially lead to the same dynamic programming solution" - States the conclusion before providing supporting analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_02: "Greedy heuristics fail because they make local decisions without considering global consequences" - Starts with the conclusion "Greedy heuristics fail" before the explanation, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_03: "Alternative approaches like two-stage optimization or binary search are complex because the relationship between discards and opens is not straightforward" - Begins with conclusion about complexity before analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_04: "Dynamic programming over $(i, j)$ with a result struct capturing both objectives is the most natural solution" - States conclusion that DP is the most natural solution before explaining why, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_06: "The final solution is clean and efficient: O(n·m) time and space complexity" - Presents conclusion about the solution being clean and efficient before the supporting details, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_10_06: "The implementation is robust and handles all edge cases properly" - States the conclusion about robustness before explaining the details, violating criterion 1b (presentation-style reasoning).
+
+----------------------------------------
+
+🔄 Running GitHub Check: GitHub Requirements Validation
+⏱️ Completed in 2.00 minutes (120.1 seconds)
+Result: ❌ FAIL
+
+Issues Found:
+Failed to clone repository: https://github.com/NOI-gen/starship_bulkhead_blitz. Repository may not exist or be inaccessible.
+----------------------------------------
+
+
+📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS
+======================================================================
+
+📊 SUMMARY: GitHub: 0/1 passed | AI: 15/31 passed
+⚠️  17 review(s) failed (GitHub: 1, AI: 16)
+
+⚠️  OVERALL STATUS: SOME REVIEWS FAILED
+
+======================================================================
+
+📝 1. UNIQUE SOLUTION VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 2. TIME COMPLEXITY AUTHENTICITY CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Missing Complexity Analysis: Document does not explicitly discuss or analyze approaches with O(n·m²) complexity (listed twice in metadata) or clearly define an O(n·m·log m) approach. While binary search is briefly mentioned in THOUGHT_05_02, no complexity analysis is provided.
+
+• Count Mismatch: Metadata claims 5 distinct approaches with specific complexities, but document only clearly provides complexity analysis for 2 approaches:
+  - Brute force (exponential/O(m^n))
+  - Final DP (O(n·m))
+
+• Approaches Without Complexity: Greedy approaches (Chain 04) and alternative methods (Chain 05) are discussed but without time complexity analysis.
+
+• Missing O(n·m²) Analysis: Two instances of O(n·m²) complexity listed in metadata but no corresponding approaches with this complexity are analyzed in the document.
+
+• Missing O(n·m·log m) Analysis: Metadata lists O(n·m·log m) complexity but document does not provide explicit complexity analysis for any approach matching this complexity.
+
+--------------------------------------------------
+
+📝 3. STYLE GUIDE COMPLIANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 4. NAMING CONVENTIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 5. DOCUMENTATION STANDARDS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• struct GameResult - No doxygen documentation, missing documentation for members numberOfOpens and numberOfDiscards
+
+• isBetterResult function - Has only simple inline comment "// Compare two game results: prefer more opens; if tied, fewer discards", missing doxygen-style documentation with @param and @return tags
+
+• main function - No documentation at all, should have at least basic doxygen documentation explaining the program's purpose
+
+• GameResult struct members (numberOfOpens, numberOfDiscards) - Lack documentation
+
+• Code uses simple inline comments instead of proper doxygen-style documentation
+
+• None of the functions, structs, or public APIs have appropriate doxygen documentation as required
+
+--------------------------------------------------
+
+📝 6. RESPONSE RELEVANCE TO PROBLEM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 7. MATHEMATICAL EQUATIONS CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 8. PROBLEM CONSTRAINTS CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+Review failed due to error: peer closed connection without sending complete message body (incomplete chunked read)
+
+--------------------------------------------------
+
+📝 9. MISSING APPROACHES IN STEPS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+Review failed due to error: peer closed connection without sending complete message body (incomplete chunked read)
+
+--------------------------------------------------
+
+📝 10. CODE ELEMENTS EXISTENCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 11. EXAMPLE WALKTHROUGH WITH OPTIMAL ALGORITHM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 12. TIME AND SPACE COMPLEXITY CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+Review failed due to error: peer closed connection without sending complete message body (incomplete chunked read)
+
+--------------------------------------------------
+
+📝 13. CONCLUSION QUALITY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 14. PROBLEM STATEMENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Problem statement references undefined parameter S: "you are allowed to incinerate (discard) up to S of your front cards" but S is never defined in input format, constraints section, or examples
+
+• Example 2 contains impossible explanation: States "Card 1 fails on all bulkheads, card 5 fails on first four (10s) but succeeds on the last (5). Total opened = 1" but this contradicts mechanics where failed cards remain at front and block queue - card 5 would never get chance to be used if card 1 fails and stays at front
+
+• Goal ambiguity: Undefined parameter S conflicts with stated goal of minimizing discards - creates confusion between having discard budget limit versus unlimited strategic discarding
+
+• Mechanical contradiction: Solution approach assumes unlimited strategic discarding at each bulkhead, but undefined S suggests global discard limit
+
+• Result should be 0 opens in Example 2, not 1, based on stated mechanics
+
+--------------------------------------------------
+
+📝 15. SOLUTION PASSABILITY ACCORDING TO LIMITS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 16. METADATA CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 17. TEST CASE VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_02 - Example 2 Analysis: States "Without discards: card 1 fails all, card 5 fails on first four but succeeds on the last = 1 open" - INCORRECT. Card 1 (power 1) fails all 5 bulkheads and never succeeds, so it's never consumed. Card 5 never becomes the front card. Actual result: 0 opens without discards.
+
+• THOUGHT_02_03 - Discards beneficial case: States "With 2 discards: discard cards 1,2, card 6 succeeds all three = 3 opens" - INCORRECT. After discarding cards 1 and 2, card 6 becomes front and succeeds bulkhead 1 (6 ≥ 5) and is consumed. No cards remain for bulkheads 2 and 3. Actual result: 1 open, not 3.
+
+• THOUGHT_02_04 - No discards needed: States "Cards are in reverse order but all succeed = 3 opens with 0 discards" - INCORRECT. Card 1 (power 3) succeeds bulkhead 1 (threshold 1), consumed. Card 2 (power 2) succeeds bulkhead 2 (threshold 2), consumed. Card 3 (power 1) fails bulkhead 3 (threshold 3). Actual result: 2 opens, not 3.
+
+• THOUGHT_02_07 - Repeated thresholds: States "Without discards: card 1 fails, card 6 succeeds first..." - INCORRECT. Card 1 (power 1) fails all bulkheads and never gets consumed. Card 6 never becomes the front card without discarding card 1. Actual result: 0 opens without discards.
+
+• THOUGHT_02_08 - Careful discard timing: States optimal is "2 opens with 2 discards" - INCORRECT. Better strategy exists: Let card 1 succeed on bulkhead 2 (1 ≥ 1), then card 2 succeeds on bulkhead 4 (5 ≥ 1). Actual optimal: 2 opens with 0 discards.
+
+• Fundamental error in Chain 2's explanations: Misunderstanding that failed cards block the queue. When a card fails, it remains at the front and prevents access to subsequent cards unless explicitly discarded.
+
+--------------------------------------------------
+
+📝 18. SAMPLE TEST CASE DRY RUN VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_02: Incorrectly states "Without discards: card 1 fails all, card 5 fails first 4 but succeeds last = 1 open" (should be 0 opens)
+
+• "Another Example" section: Claims "Without discards: Card 1 fails all bulkheads, Card 5 fails first 4 but succeeds on last = 1 open" (should be 0 opens)
+
+• "Example Execution" sections: Walkthroughs are confusing and don't accurately represent either the actual game flow or the DP computation process
+
+• Example 2 dry run error: Document incorrectly calculates that 1 bulkhead can be opened without any discards, when the correct answer is 0 bulkheads
+
+• Game flow misunderstanding: Since card 1 never gets consumed (fails all attempts with power 1 vs thresholds 10,10,10,10,5), card 5 never becomes the front card, resulting in 0 opens not 1 open
+
+--------------------------------------------------
+
+📝 19. NOTE SECTION EXPLANATION APPROACH
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 20. INEFFICIENT APPROACHES LIMITATIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 21. FINAL APPROACH DISCUSSION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 22. NO CODE IN REASONING CHAINS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_10 violates the requirement "There should not be any code in reasoning chains"
+
+• THOUGHT_10_02 includes a C++ code block showing the DP transition logic
+
+• THOUGHT_10_03 includes a C++ code block showing the comparison function implementation
+
+• THOUGHT_10_04 includes code snippets referencing `dp[i][m]`, `dp[i+1][m]`, and `dp[0][0].numberOfDiscards`
+
+• Code blocks should only appear in the final RESPONSE section, not within the reasoning chains
+
+• Reasoning chains should describe solution approach conceptually without actual code implementation
+
+--------------------------------------------------
+
+📝 23. SUBTOPIC TAXONOMY VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• "Binary Search" listed as subtopic but NOT present in taxonomy list (only "Searching Algorithms" is listed, not "Binary Search" specifically)
+
+• "Binary Search" listed as subtopic but NOT relevant to actual solution - only mentioned in THOUGHT_05_02 as a considered but rejected approach, not used in the actual solution at all
+
+--------------------------------------------------
+
+📝 24. TYPO AND SPELLING CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 25. SUBTOPIC RELEVANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 26. MISSING RELEVANT SUBTOPICS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Missing relevant subtopic: "Functions and Recursion"
+  - Chain 03 extensively discusses "direct recursive enumeration" as an approach
+  - The DP solution is described as having a "recursive structure with overlapping subproblems"
+  - The implementation uses custom functions (e.g., `isBetterResult`)
+  - The thought process repeatedly references recursive approaches and how they lead to the DP solution
+  - The document explicitly explores recursive approaches before arriving at the DP solution
+
+--------------------------------------------------
+
+📝 27. NO PREDICTIVE HEADINGS IN THOUGHTS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_03_04: "We recognize that this is actually a dynamic programming problem in disguise"
+  - Directly reveals that dynamic programming is THE solution before completing the analysis
+  - Declares it IS the answer rather than exploring DP as one option
+  - Predictive of the solution approach
+
+• THOUGHT_05_05: "We realize that all these approaches essentially lead to the same dynamic programming solution"
+  - Reveals that DP is the solution before the analysis justifies this conclusion
+  - Predicts the outcome that all paths lead to DP
+
+--------------------------------------------------
+
+📝 28. CHAIN TEST CASE ANALYSIS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_02 violates requirements throughout all thoughts (THOUGHT_02_01 through THOUGHT_02_10)
+
+• THOUGHT_02_01: States "The card succeeds, so we need 0 discards to achieve 1 open" without showing step-by-step execution
+
+• THOUGHT_02_02: States "Without discards: fails first (2<3), succeeds second (2≥1) = 1 open" but doesn't provide detailed trace like "At bulkhead 1: card power 2 vs threshold 3 → fails, move to bulkhead 2 with same card..."
+
+• THOUGHT_02_03: States "Without discards: card 1 fails first, card 2 fails second, card 6 succeeds third = 1 open" but should have shown detailed steps like:
+  - Step 1: At bulkhead 1 (threshold 5), front card is 1 (power 1). Compare: 1 < 5, fails. Move to bulkhead 2, card stays at position 0.
+  - Step 2: At bulkhead 2 (threshold 3), front card is still 1 (power 1). Compare: 1 < 3, fails. Move to bulkhead 3, card stays at position 0.
+
+• THOUGHT_02_04 through THOUGHT_02_10: All follow same pattern - propose test cases and state expected results but never walk through execution in detail
+
+• CHAIN_02 only suggests test cases and states their expected outcomes
+
+• CHAIN_02 does NOT provide step-by-step execution traces
+
+• CHAIN_02 does NOT show detailed walkthroughs of how the algorithm processes each test case
+
+• CHAIN_02 does NOT demonstrate the actual mechanics of the algorithm on specific inputs
+
+• Entire chain is about designing test cases rather than analyzing them with detailed execution
+
+--------------------------------------------------
+
+📝 29. THOUGHT HEADING VIOLATIONS CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_01: "Construct minimal baseline cases:" - Missing actual test cases
+• THOUGHT_02_02: "Test the provided examples from the problem statement:" - Missing actual test cases  
+• THOUGHT_02_03: "Test cases where discards are beneficial:" - Missing actual test cases
+• THOUGHT_02_04: "Test cases where no discards are needed:" - Missing actual test cases
+• THOUGHT_02_05: "Test edge cases with extreme values:" - Missing actual test cases
+• THOUGHT_02_06: "Test cases where all cards are too weak:" - Missing actual test cases
+• THOUGHT_02_07: "Test cases with repeated thresholds:" - Missing actual test cases
+• THOUGHT_02_08: "Test cases where optimal strategy requires careful discard timing:" - Missing actual test cases
+• THOUGHT_02_09: "Test cases with more cards than bulkheads:" - Missing actual test cases
+• THOUGHT_02_10: "Test cases with more bulkheads than cards:" - Missing actual test cases
+• THOUGHT_08_02: "We test the provided examples from the problem statement:" - Missing actual test cases
+• THOUGHT_10_02: "The core DP transition logic is:" - Incomplete explanation
+
+--------------------------------------------------
+
+📝 30. MATHEMATICAL VARIABLES AND EXPRESSIONS FORMATTING
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Section: Prompt - Violation: "sequence of n sealed bulkheads" - Should be: "sequence of $n$ sealed bulkheads"
+
+• Section: Prompt - Violation: "Each bulkhead i requires" - Should be: "Each bulkhead $i$ requires"
+
+• Section: Prompt - Violation: "You carry a magazine of m access cards" - Should be: "You carry a magazine of $m$ access cards"
+
+• Section: Prompt - Violation: "the j-th card" - Should be: "the $j$-th card"
+
+• Section: Prompt - Violation: "up to S of your front cards" - Should be: "up to $S$ of your front cards"
+
+• Section: Prompt - Violation: "i = 1..n" - Should be: "$i = 1..n$"
+
+• Section: Prompt - Violation: "Before attempting to unlock bulkhead i" - Should be: "Before attempting to unlock bulkhead $i$"
+
+• Section: Prompt - Violation: "After any discards at bulkhead i" - Should be: "After any discards at bulkhead $i$"
+
+• Section: Prompt - Violation: "attempting the n-th bulkhead" - Should be: "attempting the $n$-th bulkhead"
+
+• Section: THOUGHT_01_01 - Violation: "there are n bulkheads" - Should be: "there are $n$ bulkheads"
+
+• Section: THOUGHT_01_01 - Violation: "queue of m access cards" - Should be: "queue of $m$ access cards"
+
+• Section: THOUGHT_01_01 - Violation: "Before each bulkhead i" - Should be: "Before each bulkhead $i$"
+
+• Section: THOUGHT_01_03 - Violation: "At bulkhead i:" - Should be: "At bulkhead $i$:"
+
+• Section: THOUGHT_01_06 - Violation: "current bulkhead index i and the index j" - Should be: "current bulkhead index $i$ and the index $j$"
+
+• Section: THOUGHT_03_01 - Violation: "At each bulkhead i with front card j" - Should be: "At each bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_03_01 - Violation: "move to card j+1, stay at bulkhead i" - Should be: "move to card $j+1$, stay at bulkhead $i$"
+
+• Section: THOUGHT_03_01 - Violation: "advance to bulkhead i+1 and card j+1" - Should be: "advance to bulkhead $i+1$ and card $j+1$"
+
+• Section: THOUGHT_03_01 - Violation: "advance to bulkhead i+1 but stay at card j" - Should be: "advance to bulkhead $i+1$ but stay at card $j$"
+
+• Section: THOUGHT_03_02 - Violation: "For each state (i, j)" - Should be: "For each state $(i, j)$"
+
+• Section: THOUGHT_03_03 - Violation: "recursion depth is bounded by n + m" - Should be: "recursion depth is bounded by $n + m$"
+
+• Section: THOUGHT_03_03 - Violation: "state space is O(n · m)" - Should be: "state space is $O(n \cdot m)$"
+
+• Section: THOUGHT_03_03 - Violation: "at any bulkhead i with any front card j" - Should be: "at any bulkhead $i$ with any front card $j$"
+
+• Section: THOUGHT_03_04 - Violation: "for each (i, j) pair" - Should be: "for each $(i, j)$ pair"
+
+• Section: THOUGHT_03_05 - Violation: "From state (i, j):" - Should be: "From state $(i, j)$:"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i, j+1)" - Should be: "move to $(i, j+1)$"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i+1, j+1)" - Should be: "move to $(i+1, j+1)$"
+
+• Section: THOUGHT_03_05 - Violation: "move to (i+1, j)" - Should be: "move to $(i+1, j)$"
+
+• Section: THOUGHT_03_05 - Violation: "where dp[i][j] stores the best result from bulkhead i with front card j" - Should be: "where dp[$i$][$j$] stores the best result from bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_05_04 - Violation: "each state (i, j) represents being at bulkhead i with front card j" - Should be: "each state $(i, j)$ represents being at bulkhead $i$ with front card $j$"
+
+• Section: THOUGHT_06_01 - Violation: "define the state function F(i, j)" - Should be: "define the state function $F(i, j)$"
+
+• Section: THOUGHT_06_01 - Violation: "starting from bulkhead i with front card at index j" - Should be: "starting from bulkhead $i$ with front card at index $j$"
+
+• Section: THOUGHT_06_02 - Violation: "If i = n" - Should be: "If $i = n$"
+
+• Section: THOUGHT_06_02 - Violation: "F(n, j) = (0, 0) for all j" - Should be: "$F(n, j) = (0, 0)$ for all $j$"
+
+• Section: THOUGHT_06_02 - Violation: "If j = m" - Should be: "If $j = m$"
+
+• Section: THOUGHT_06_02 - Violation: "at any i" - Should be: "at any $i$"
+
+• Section: THOUGHT_06_02 - Violation: "F(i, m) = (0, 0)" - Should be: "$F(i, m) = (0, 0)$"
+
+• Section: THOUGHT_06_03 - Violation: "From state (i, j) with j < m:" - Should be: "From state $(i, j)$ with $j < m$:"
+
+• Section: THOUGHT_06_03 - Violation: "This gives us F(i, j+1)" - Should be: "This gives us $F(i, j+1)$"
+
+• Section: THOUGHT_06_03 - Violation: "result is F(i+1, j+1)" - Should be: "result is $F(i+1, j+1)$"
+
+• Section: THOUGHT_06_03 - Violation: "result is F(i+1, j)" - Should be: "result is $F(i+1, j)$"
+
+• Section: THOUGHT_06_05 - Violation: "There are n+1 values of i and m+1 values of j" - Should be: "There are $n+1$ values of $i$ and $m+1$ values of $j$"
+
+• Section: THOUGHT_06_05 - Violation: "totaling O(n · m) states" - Should be: "totaling $O(n \cdot m)$ states"
+
+• Section: THOUGHT_06_06 - Violation: "All transitions move to either (i+1, j+1), (i+1, j), or (i, j+1)" - Should be: "All transitions move to either $(i+1, j+1)$, $(i+1, j)$, or $(i, j+1)$"
+
+• Section: THOUGHT_06_06 - Violation: "permits processing i in descending order and j in descending order" - Should be: "permits processing $i$ in descending order and $j$ in descending order"
+
+• Section: RESPONSE - Violation: "You traverse n bulkheads" - Should be: "You traverse $n$ bulkheads"
+
+• Section: RESPONSE - Violation: "Each bulkhead i needs access power" - Should be: "Each bulkhead $i$ needs access power"
+
+• Section: RESPONSE - Violation: "You have m access cards" - Should be: "You have $m$ access cards"
+
+• Section: RESPONSE - Violation: "the j-th card has power" - Should be: "the $j$-th card has power"
+
+• Section: RESPONSE - Violation: "current bulkhead index i and front card index j" - Should be: "current bulkhead index $i$ and front card index $j$"
+
+• Section: RESPONSE - Violation: "F(i, j) = best result" - Should be: "$F(i, j)$ = best result"
+
+• Section: RESPONSE - Violation: "starting at bulkhead i with front card at index j" - Should be: "starting at bulkhead $i$ with front card at index $j$"
+
+• Section: RESPONSE - Violation: "F(n, j) = (0, 0) for all j" - Should be: "$F(n, j) = (0, 0)$ for all $j$"
+
+• Section: RESPONSE - Violation: "If j = m, there are no cards left, so F(i, m) = (0, 0) for all i" - Should be: "If $j = m$, there are no cards left, so $F(i, m) = (0, 0)$ for all $i$"
+
+• Section: RESPONSE - Violation: "Transitions for j < m:" - Should be: "Transitions for $j < m$:"
+
+• Section: RESPONSE - Violation: "giving us F(i, j+1)" - Should be: "giving us $F(i, j+1)$"
+
+• Section: RESPONSE - Violation: "giving us F(i+1, j+1)" - Should be: "giving us $F(i+1, j+1)$"
+
+• Section: RESPONSE - Violation: "giving us F(i+1, j)" - Should be: "giving us $F(i+1, j)$"
+
+• Section: RESPONSE - Violation: "Iterate i from n-1 down to 0 since each state depends on i+1" - Should be: "Iterate $i$ from $n-1$ down to $0$ since each state depends on $i+1$"
+
+• Section: RESPONSE - Violation: "For fixed i, compute j from m-1 down to 0 so that discard transitions to (i, j+1)" - Should be: "For fixed $i$, compute $j$ from $m-1$ down to $0$ so that discard transitions to $(i, j+1)$"
+
+• Section: RESPONSE - Violation: "2D DP table of size (n+1) × (m+1)" - Should be: "2D DP table of size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "2D DP table dp[i][j] stores the best result from bulkhead i with front card j" - Should be: "2D DP table dp[$i$][$j$] stores the best result from bulkhead $i$ with front card $j$"
+
+• Section: RESPONSE - Violation: "Reads n (number of bulkheads) and m (number of cards)" - Should be: "Reads $n$ (number of bulkheads) and $m$ (number of cards)"
+
+• Section: RESPONSE - Violation: "Initializes DP table with size (n+1) × (m+1)" - Should be: "Initializes DP table with size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "dp[n][j] = (0, 0) for all j" - Should be: "$dp[n][j] = (0, 0)$ for all $j$"
+
+• Section: RESPONSE - Violation: "dp[i][m] = dp[i+1][m] for all i" - Should be: "$dp[i][m] = dp[i+1][m]$ for all $i$"
+
+• Section: RESPONSE - Violation: "Iterates bulkheads from n-1 down to 0" - Should be: "Iterates bulkheads from $n-1$ down to $0$"
+
+• Section: RESPONSE - Violation: "For each bulkhead i and card j:" - Should be: "For each bulkhead $i$ and card $j$:"
+
+• Section: RESPONSE - Violation: "success gives dp[i+1][j+1]" - Should be: "success gives $dp[i+1][j+1]$"
+
+• Section: RESPONSE - Violation: "failure gives dp[i+1][j]" - Should be: "failure gives $dp[i+1][j]$"
+
+• Section: RESPONSE - Violation: "Gives dp[i][j+1]" - Should be: "Gives $dp[i][j+1]$"
+
+• Section: RESPONSE - Violation: "Returns dp[0][0].numberOfDiscards" - Should be: "Returns $dp[0][0]$.numberOfDiscards"
+
+• Section: RESPONSE - Violation: "Time complexity: O(n · m), since for each bulkhead i we process every card j" - Should be: "Time complexity: $O(n \cdot m)$, since for each bulkhead $i$ we process every card $j$"
+
+• Section: RESPONSE - Violation: "Space complexity: O(n · m), using a 2D DP table of size (n+1) × (m+1)" - Should be: "Space complexity: $O(n \cdot m)$, using a 2D DP table of size $(n+1) \times (m+1)$"
+
+• Section: RESPONSE - Violation: "DP values are at most n" - Should be: "DP values are at most $n$"
+
+• Section: RESPONSE - Violation: "over (i, j)" - Should be: "over $(i, j)$"
+
+• Section: RESPONSE - Violation: "within O(n · m) time and space" - Should be: "within $O(n \cdot m)$ time and space"
+
+--------------------------------------------------
+
+📝 31. COMPREHENSIVE REASONING THOUGHTS REVIEW
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_01_07: "This suggests we need a dynamic programming approach that considers both objectives simultaneously" - Contains information about an efficient approach (dynamic programming) in Chain 1, violating criterion 1d which states Chain 1 should not contain information about approaches that are efficient or inefficient.
+
+• THOUGHT_03_04: "We recognize that this is actually a dynamic programming problem in disguise" - Presents the conclusion first before analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_05_05: "We realize that all these approaches essentially lead to the same dynamic programming solution" - States the conclusion before providing supporting analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_02: "Greedy heuristics fail because they make local decisions without considering global consequences" - Starts with the conclusion "Greedy heuristics fail" before the explanation, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_03: "Alternative approaches like two-stage optimization or binary search are complex because the relationship between discards and opens is not straightforward" - Begins with conclusion about complexity before analysis, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_04: "Dynamic programming over $(i, j)$ with a result struct capturing both objectives is the most natural solution" - States conclusion that DP is the most natural solution before explaining why, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_09_06: "The final solution is clean and efficient: O(n·m) time and space complexity" - Presents conclusion about the solution being clean and efficient before the supporting details, violating criterion 1b (presentation-style reasoning).
+
+• THOUGHT_10_06: "The implementation is robust and handles all edge cases properly" - States the conclusion about robustness before explaining the details, violating criterion 1b (presentation-style reasoning).
+
+--------------------------------------------------
+
+📝 GITHUB CHECK: GITHUB REQUIREMENTS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+Failed to clone repository: https://github.com/NOI-gen/starship_bulkhead_blitz. Repository may not exist or be inaccessible.
+
+--------------------------------------------------

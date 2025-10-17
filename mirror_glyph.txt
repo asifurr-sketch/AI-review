@@ -1,0 +1,601 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/mirror_glyph_chronicles
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Trees and Tries", "Basic Data Structures", "Arrays and Lists", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, $O(n^4)$ -> $O(n^2)$ -> $O(n)$ -> $O(n)$
+
+**Number of Sections:** - 10
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+# Mirror-Glyph Chronicles
+
+Time Limit: **1 seconds**  
+Memory Limit: **32 MB**
+
+An ancient scroll reveals itself one character at a time. A mirror-glyph is any palindromic substring. For every prefix of the scroll, record:
+
+- the number of different mirror-glyphs seen so far,
+- the length of the longest mirror-glyph so far,
+- the total sum of lengths of all distinct mirror-glyphs discovered so far.
+
+You are given a lowercase string g of length n. For each prefix g[1..m], define the following:
+
+- M(m) = the number of distinct palindromic substrings in g[1..m]
+- R(m) = the maximum length of a palindromic substring in g[1..m]
+- I(m) = the sum of lengths of all distinct palindromic substrings in g[1..m]
+
+You are given q queries. For each query m, output M(m), R(m), and I(m).
+
+Distinct palindromic substrings are considered by content only. For example, if "aa" appears multiple times, it is counted once.
+
+**Input Format:-**
+
+- The first line contains an integer t, the number of test cases.
+- For each test case:
+  - A line with two integers n and q.
+  - A line with the string g of length n consisting of lowercase English letters.
+  - A line with q integers m1, m2, ..., mq, where each mi is a prefix length.
+
+**Output Format:-**
+
+- For each query mi (in order), print three integers: M(mi) R(mi) I(mi).
+- Print answers for different queries on separate lines.
+
+**Constraints:-**
+
+- $1 \le n \le 2 \cdot 10^{5}$
+- $1 \le q \le 2 \cdot 10^{5}$
+- $1 \le m_i \le n$
+- $\sum n \le 2 \cdot 10^{5} $ over all test cases
+- $\sum q \le 2 \cdot 10^{5}$ over all test cases  
+  **Examples:-**
+- **Input:**
+
+```
+1
+1 1
+a
+1
+```
+
+- **Output:**
+
+```
+1 1 1
+```
+
+**Explanation**
+
+- Prefix $g[1..1] = a$.
+- Distinct palindromic substrings: $a$.
+
+  - $M(1) = 1$ (only $a$),
+  - $R(1) = 1$ (longest is length $1$),
+  - $I(1) = 1$ (sum of lengths = $1$).
+
+- **Input:**
+
+```
+1
+5 5
+aaaaa
+1 2 3 4 5
+```
+
+- **Output:**
+
+```
+1 1 1
+2 2 3
+3 3 6
+4 4 10
+5 5 15
+```
+
+**Notes:**
+
+- First example (g = "a", queries: 1): For prefix $g[1..1] = a$, the distinct palindromic substrings are $\{a\}$. Thus $M(1)=1$, $R(1)=1$, $I(1)=1$.
+- Second example (g = "aaaaa", queries: 1 2 3 4 5):
+  - $m=1$: distinct palindromes $\{a\}$ → $M=1$, $R=1$, $I=1$.
+  - $m=2$: $\{a, aa\}$ → $M=2$, $R=2$, $I=1+2=3$.
+  - $m=3$: $\{a, aa, aaa\}$ → $M=3$, $R=3$, $I=1+2+3=6$.
+  - $m=4$: $\{a, aa, aaa, aaaa\}$ → $M=4$, $R=4$, $I=1+2+3+4=10$.
+  - $m=5$: $\{a, aa, aaa, aaaa, aaaaa\}$ → $M=5$, $R=5$, $I=1+2+3+4+5=15$.
+
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding objectives, constraints, and distinctness by content
+
+**[THOUGHT_01_01]**
+
+We are given a lowercase string g of length n and q prefix queries. For each prefix g[1..m], compute: M(m) (number of distinct palindromic substrings by content), R(m) (maximum palindrome length), and I(m) (sum of lengths of all distinct palindromes). Distinctness is by content, so multiple occurrences count once. Global bounds ($\sum n, \sum q \le 2\cdot 10^5$) require near-linear total time; quadratic or worse will not pass.
+
+
+**[THOUGHT_01_02]**
+
+Input/output conformance: For each test case, read integers $n$ and $q$, then the string $g$ of length $n$, then $q$ prefix lengths $m$. For each $m$, output $M(m)\ R(m)\ I(m)$ on its own line. Queries can be unsorted and repeated; the solution must answer them directly from precomputed arrays without re-computation.
+
+
+**[THOUGHT_01_03]**
+
+Observation about monotonicity: $M(m)$, $R(m)$, and $I(m)$ are non-decreasing with $m$ because new distinct palindromes, if any, can only be introduced (never removed) when extending the prefix.
+
+
+---
+
+**[CHAIN_02]**
+
+Design sample tests and edge cases to anchor expectations
+
+
+**[THOUGHT_02_01]**
+
+Minimal and illustrative cases:
+- n=1, g="a": $M(1)=1, R(1)=1, I(1)=1$.
+- All distinct letters: g="abcde": only single-letter palindromes; $M(m)=m$, $R(m)=1$, $I(m)=m$.
+- Homogeneous: g="aaaaa": for prefix m, palindromes are "a","aa",..., length m; $M(m)=m$, $R(m)=m$, $I(m)=m(m+1)/2$ → needs 64-bit sums.
+- Alternating: g="ababa": at m=5, distinct {"a","b","aba","bab","ababa"} checks overlap handling and content-based deduplication.
+- Multiple tests and unsorted/duplicate queries validate reinit and direct O(1) lookups.
+
+
+**[THOUGHT_02_02]**
+
+Stress and numeric checks: very long homogeneous strings (e.g., $g=\text{\"a...a\"}$) maximize the count and sum; ensure $I(m)$ uses 64-bit. Randomized strings near the bound validate average-case behavior and detect off-by-one issues in the extension condition.
+
+
+**[THOUGHT_02_03]**
+
+Correct link setting cases: ensure that when a new node has length 1, its suffix link points to the empty-string root; otherwise, the link is derived by walking from the current node’s suffix link and following the transition of the introduced character.
+
+
+---
+
+**[CHAIN_03]**
+
+Naive enumeration to probe feasibility (failed approach)
+
+
+**[THOUGHT_03_01]**
+
+Enumerate all substrings per prefix and test palindromicity, deduplicating in a set by content. This is prohibitive: O(m^2) substrings per prefix, leading to O(n^3) or worse overall. Even rolling hashes do not mitigate the enumeration volume. Conclusion: infeasible for $n$ up to $2\cdot 10^5$.
+
+
+**[THOUGHT_03_02]**
+
+Why deduplication by content explodes: repetitive inputs (e.g., all same letters) generate $\Theta(n^2)$ palindromes; hashing each unique content and tracking earliest introduction still requires enumerating them. Memory also becomes quadratic.
+
+
+---
+
+
+**[CHAIN_04]**
+
+Leverage Manacher but confront output-scale limitations
+
+
+**[THOUGHT_04_01]**
+
+Manacher computes palindrome radii in O(n), yet materializing distinct palindromes remains O(n^2) in worst-case strings (e.g., homogeneous). Hash-based content deduplication adds complexity and memory while still processing too many palindromes. Conclusion: not scalable within constraints.
+
+
+**[THOUGHT_04_02]**
+
+Earliest-introduction timing: Even with radii known, determining the first prefix $m$ where each content appears requires per-content tracking; doing so across $\Theta(n^2)$ candidates breaks time and space budgets.
+
+
+---
+
+**[CHAIN_05]**
+
+Adopt the Palindromic Tree (Eertree) for online distinctness
+
+
+**[THOUGHT_05_01]**
+
+Eertree stores only distinct palindromes, creates at most one new node per appended character, and maintains suffix links for efficient extension checks. Maintain prefix arrays: cnt (M), maxLen (R), sumLen (I). On node creation of length L at step i, increment cnt, update maxLen with L, and add L to sumLen; otherwise, carry over. This yields O(n) preprocessing and O(1) per query.
+
+
+**[THOUGHT_05_02]**
+
+Why at most one node: If two different palindromes could be newly introduced on the same step, one would be a proper palindromic suffix of the other, contradicting that the shorter one must already have been present due to the suffix-link invariant.
+
+
+---
+
+**[CHAIN_06]**
+
+Implementation essentials, numeric bounds, and pitfalls
+
+
+**[THOUGHT_06_01]**
+
+Two roots (length -1 self-linked, and 0 linked to -1); transitions for 26 lowercase letters; processed characters as 0..25 integers; track longest palindromic suffix. Guard index checks $(pos - curLen - 1 \ge 0)$. Use 64-bit for $I(m)$ due to $\Theta(n^2)$ sums. Arrays $cnt$, $maxLen$, $sumLen$ are size $n+1$. Reinitialize per test to avoid state leakage.
+
+
+**[THOUGHT_06_02]**
+
+Alphabet handling: transitions are indexed by $g[i]-'a'$ to map to $[0,25]$. The Eertree here is specialized to lowercase English letters, matching the problem statement.
+
+
+**[THOUGHT_06_03]**
+
+Memory footprint: the number of nodes is at most $n+2$ (including roots). Each node stores 26 integers plus two metadata fields; arrays for $cnt$, $maxLen$, and $sumLen$ are linear in $n$.
+
+
+---
+
+**[CHAIN_07]**
+
+Validation, examples, and complexity summary
+
+
+**[THOUGHT_07_01]**
+
+Examples: g="aaa" → creations of lengths 1,2,3 give $(M,R,I)$ as (1,1,1),(2,2,3),(3,3,6). g="ababa" → creations at i=1..5 produce $(M,R,I)$: (1,1,1),(2,1,2),(3,3,5),(4,3,8),(5,5,13). Complexity: $O(n)$ total insertions and $O(q)$ query reads per test; space $O(n)$ nodes plus arrays. Correctness follows from each distinct palindrome being created exactly once at its first occurrence.
+
+
+**[THOUGHT_07_02]**
+
+No-creation steps: when the extension leads to an already existing node via transition, $cnt$, $maxLen$, $sumLen$ carry over unchanged for that prefix.
+
+
+**[THOUGHT_07_03]**
+
+Multiple test cases: reinitialize the Eertree and arrays per test to avoid state bleed. This guarantees that answers for each test depend only on its own input.
+
+
+---
+
+**[CHAIN_08]**
+
+Correctness arguments and numeric bounds
+
+
+**[THOUGHT_08_01]**
+
+One-new-palindrome property: appending a character extends palindromic suffixes; only the longest extendable palindromic suffix can yield a new content. Shorter ones, if extendable, already exist, enforced by suffix links. Hence at most one new node per position.
+
+
+**[THOUGHT_08_02]**
+
+Mapping to outputs: each distinct palindrome corresponds to exactly one node created at its first occurrence. Therefore, $M(m)$ equals the number of nodes created up to prefix $m$; $R(m)$ is the maximum created length up to $m$; $I(m)$ is the sum of created lengths up to $m$.
+
+
+**[THOUGHT_08_03]**
+
+Complexity: amortized $O(1)$ per character to walk suffix links and possibly create one node; total $O(n)$. Answering $q$ queries is $O(q)$ from precomputed arrays. Space $O(n)$ nodes plus three arrays of size $n+1$.
+
+
+**[THOUGHT_08_04]**
+
+Numeric bounds: $I(m)$ can be $\Theta(n^2)$ (e.g., homogeneous strings), so 64-bit integers are required for $sumLen$. $M(m)$ and $R(m)$ fit in 32-bit.
+
+
+---
+
+**[CHAIN_09]**
+
+Implementation details and pitfalls to avoid
+
+
+**[THOUGHT_09_01]**
+
+Core components: nodes store $length$, $link$, and $nextNode[26]$. Two roots exist: length $-1$ with a self-link and length $0$ linked to $-1$. A $suffix$ pointer tracks the longest palindromic suffix of the current prefix.
+
+
+**[THOUGHT_09_02]**
+
+Insertion routine: push the new character (as $0..25$). Follow suffix links until the extension check $(pos - curLen - 1 \ge 0 \wedge data[pos - curLen - 1] = c)$ holds. If a transition exists, move $suffix$ there (no new node). Otherwise, create a node of length $curLen+2$, wire the transition, set $link$ to $1$ if length $=1$, else find the proper link via another suffix walk, then finalize $suffix$ to the new node.
+
+
+**[THOUGHT_09_03]**
+
+Prefix arrays: for each $i$, let $created$ indicate whether a node was added and $L$ be its length. Update $cnt[i+1]=cnt[i]+(created?1:0)$, $maxLen[i+1]=\max(maxLen[i],\, created?L:0)$, $sumLen[i+1]=sumLen[i]+(created?L:0)$.
+
+
+**[THOUGHT_09_04]**
+
+Pitfalls: reinitialize per test case; ensure index guard $(pos - curLen - 1 \ge 0)$; alphabet indices stay within $[0,25]$; use 64-bit for $sumLen$; do not double count when no new node is created.
+
+
+---
+
+**[CHAIN_10]**
+
+Positioning versus alternate approaches
+
+
+**[THOUGHT_10_01]**
+
+Compared to brute force, Eertree avoids enumerating $O(n^2)$ substrings per prefix by certifying one-new-palindrome per character, reducing time from super-cubic/quadratic-per-prefix to linear overall.
+
+
+**[THOUGHT_10_02]**
+
+Compared to Manacher plus hashing, Eertree avoids materializing $O(n^2)$ substrings and hash deduplication; it stores only distinct palindromes as needed.
+
+
+**[THOUGHT_10_03]**
+
+Compared to suffix automaton ideas, Eertree directly captures palindromic structure and earliest occurrence timing without heavy augmentations, making $M,R,I$ maintenance straightforward.
+
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given a lowercase string g of length n. For any prefix g[1..m], define:
+- M(m): the number of distinct palindromic substrings within the prefix g[1..m], where distinctness is by content.
+- R(m): the maximum length among all palindromic substrings within g[1..m].
+- I(m): the sum of lengths of all distinct palindromic substrings within g[1..m].
+
+We are given q queries, each query provides a prefix length m, and we must output M(m), R(m), and I(m) for that prefix.
+
+Key observations:
+- Extending the string by one character to the right introduces at most one new distinct palindromic substring.
+- This suggests an online, incremental approach where we process characters from left to right and maintain M, R, and I for all prefixes.
+
+Constraints and implications:
+- $1 \le n \le 2 \cdot 10^{5}$
+- $1 \le q \le 2 \cdot 10^{5}$
+- $\sum n \le 2 \cdot 10^{5}$ and $\sum q \le 2 \cdot 10^{5}$ over all test cases
+- Any solution should run in near-linear time overall, and we must use 64-bit integers for $I(m)$ because it can be as large as $\Theta(n^{2})$.
+
+
+**2. Optimal Approach**
+
+We use a Palindromic Tree (Eertree), a linear-time data structure that stores all distinct palindromic substrings of the processed prefix. It has:
+- Two root nodes: one with length -1 (virtual) and one with length 0 (empty).
+- Each node represents a distinct palindrome, stores its length, a suffix link to the largest proper palindromic suffix, and transitions by characters.
+
+Processing steps:
+1. Initialize the Eertree with the two roots and set the current suffix pointer to the empty root.
+2. For each new character g[i]:
+   - Walk suffix links from the current longest palindromic suffix to find the longest suffix that can be extended by g[i] on both ends.
+   - If the resulting palindrome already exists, no new node is created.
+   - Otherwise, create a new node with length equal to the extended palindrome’s length and set its suffix link by finding the next largest proper palindromic suffix that extends appropriately.
+3. Maintain three arrays for prefixes:
+   - cnt[m] = M(m): increment by 1 only when a new node is created.
+   - maxLen[m] = R(m): update with the maximum of the previous value and the newly created palindrome length.
+   - sumLen[m] = I(m): add the length of the newly created palindrome when it occurs.
+
+Correctness rationale:
+- Each distinct palindrome is created exactly once, at its first appearance. Thus M(m) is the number of created nodes up to m, R(m) is the maximum created length up to m, and I(m) sums created lengths once at their introduction.
+
+Complexity:
+- Building the Eertree is O(n) since each character causes at most one node creation and a constant amortized number of suffix-link traversals.
+- Answering each query is O(1) by indexing precomputed arrays.
+- Overall complexity across all tests is $O(\sum n + \sum q)$, and space is $O(n)$.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <array>
+#include <string>
+#include <algorithm>
+#include <utility>
+using namespace std;
+
+/**
+ * @brief Palindromic Tree (Eertree) to store all distinct palindromic substrings.
+ *
+ * Supports online insertion of characters and ensures at most one new
+ * palindrome node is created per character.
+ */
+class Eertree
+{
+public:
+    // Define constants in kCamelCase style for clarity
+    static constexpr int kAlphabetSize = 26;
+    /**
+     * @brief Node representing a distinct palindrome in the Eertree.
+     *
+     * Fields:
+     * - length: Length of the palindrome represented by this node.
+     * - link: Suffix link to the largest proper palindromic suffix node.
+     * - nextNode: Transitions by character to other palindrome nodes.
+     */
+    struct Node
+    {
+        int length;
+        int link;
+        array<int, kAlphabetSize> nextNode;
+        Node(int l = 0) : length(l), link(0) { nextNode.fill(-1); }
+    };
+
+    /**
+     * @brief Constructs the Eertree and optionally preallocates memory.
+     *
+     * @param n Expected maximum length of the string to process.
+     */
+    explicit Eertree(int numElements = 0) { init(numElements); }
+
+    /**
+     * @brief Reinitializes the Eertree to process a new string.
+     *
+     * @param n Expected maximum length of the string to process.
+     */
+    void init(int numElements)
+    {
+        tree.clear();
+        data.clear();
+        tree.reserve(numElements + 3);
+        data.reserve(numElements);
+
+        // Root -1: length = -1, link to itself
+        tree.emplace_back(Node(-1));
+        tree[0].link = 0;
+
+        // Root 0: length = 0, link to root -1
+        tree.emplace_back(Node(0));
+        tree[1].link = 0;
+
+        suffix = 1; // Start with the empty string root
+    }
+
+    /**
+     * @brief Adds a character to the end of the current string.
+     *
+     * @param residues Zero-based index of the character in [0..25].
+     * @return Pair {createdNewNode, createdPalindromeLength}.
+     */
+    pair<bool, int> addChar(int residues)
+    {
+        data.push_back(residues);
+        int pos = static_cast<int>(data.size()) - 1;
+
+        int cur = suffix;
+        while (true)
+        {
+            int curLen = tree[cur].length;
+            if (pos - curLen - 1 >= 0 && data[pos - curLen - 1] == residues)
+            {
+                break;
+            }
+            cur = tree[cur].link;
+        }
+
+        if (tree[cur].nextNode[residues] != -1)
+        {
+            suffix = tree[cur].nextNode[residues];
+            return {false, 0};
+        }
+
+        int now = static_cast<int>(tree.size());
+        tree.emplace_back(Node(tree[cur].length + 2));
+        tree[cur].nextNode[residues] = now;
+
+        if (tree[now].length == 1)
+        {
+            tree[now].link = 1;
+        }
+        else
+        {
+            int linkCandidate = tree[cur].link;
+            while (true)
+            {
+                int candLen = tree[linkCandidate].length;
+                if (pos - candLen - 1 >= 0 && data[pos - candLen - 1] == residues)
+                {
+                    break;
+                }
+                linkCandidate = tree[linkCandidate].link;
+            }
+            tree[now].link = tree[linkCandidate].nextNode[residues];
+        }
+
+        suffix = now;
+        return {true, tree[now].length};
+    }
+
+private:
+    vector<Node> tree;
+    vector<int> data; // Processed characters as integers [0..25]
+    int suffix;       // Node index of the longest palindromic suffix
+};
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int t;
+    if (!(cin >> t))
+    {
+        return 0;
+    }
+    while (t--)
+    {
+        int numElements, q;
+        cin >> numElements >> q;
+        string g;
+        cin >> g;
+
+        Eertree eertree(numElements);
+        vector<long long> sumLen(numElements + 1, 0); // I[m]
+        vector<int> cnt(numElements + 1, 0);          // M[m]
+        vector<int> maxLen(numElements + 1, 0);       // R[m]
+
+        for (int i = 0; i < numElements; ++i)
+        {
+            auto res = eertree.addChar(g[i] - 'a');
+            int createdLen = res.second;
+            cnt[i + 1] = cnt[i] + (res.first ? 1 : 0);
+            maxLen[i + 1] = max(maxLen[i], (res.first ? createdLen : 0));
+            sumLen[i + 1] = sumLen[i] + (res.first ? static_cast<long long>(createdLen) : 0LL);
+        }
+
+        for (int i = 0; i < q; ++i)
+        {
+            int m;
+            cin >> m;
+            cout << cnt[m] << " " << maxLen[m] << " " << sumLen[m] << "\n";
+        }
+    }
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- We build an Eertree to maintain all distinct palindromic substrings of the current prefix.
+- The tree has two special root nodes: one with length -1 and one with length 0. The suffix pointer tracks the longest palindromic suffix of the current prefix.
+- For each character g[i], we:
+  - Traverse suffix links from the current suffix until we find a palindrome that can be extended by g[i].
+  - If the resulting palindrome already exists, no new node is created.
+  - Otherwise, we create one new node with length equal to the extended palindrome length and set its suffix link accordingly.
+- Arrays cnt, maxLen, and sumLen track, respectively, the number of distinct palindromes, the best palindrome length, and the sum of lengths of distinct palindromes for every prefix. Each time a new node is created with length L, we increment cnt, update maxLen with L if needed, and add L to sumLen.
+- Finally, we answer each query m in O(1) using these arrays: print cnt[m], maxLen[m], sumLen[m].
+
+Example on g = "ababa":
+- After processing "a": new "a" created, M = 1, R = 1, I = 1.
+- After processing "ab": new "b" created, M = 2, R = 1, I = 2.
+- After processing "aba": new "aba" created, M = 3, R = 3, I = 5.
+- After processing "abab": new "bab" created, M = 4, R = 3, I = 8.
+- After processing "ababa": new "ababa" created, M = 5, R = 5, I = 13.
+
+This matches the expected outputs.
+
+**5. Time and Space Complexity**
+
+- Building the Eertree over the string is O(n) because each character causes at most one node creation and constant amortized traversal along suffix links.
+- Each query is answered in O(1).
+- Overall time across all tests is O(\sum n + \sum q).
+- Space usage is $O(n)$ nodes in the Eertree plus $O(n)$ for the arrays. Use 64-bit integers for $I(m)$ due to potential growth up to $\Theta(n^{2})$.
+
+**6. Conclusion**
+
+By leveraging the Eertree, we process the string online and maintain counts, maximum lengths, and total lengths of distinct palindromic substrings for every prefix in linear time. Each appended character introduces at most one new distinct palindrome, enabling simple O(1) updates to M, R, and I. The solution answers queries in O(1) after preprocessing, fits within memory limits, and adheres to the problem’s constraints.

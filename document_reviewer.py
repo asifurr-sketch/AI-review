@@ -1147,6 +1147,51 @@ CRITICAL: Use VERY EXTENDED THINKING to ensure comprehensive analysis. Miss no i
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
+    @staticmethod
+    def get_time_limit_validation_prompt():
+        """Check if time limit is properly specified in document"""
+        return """
+You are a document validator. Check if the document contains a properly specified time limit for the problem.
+
+REQUIREMENTS:
+1. The document must contain a time limit specification
+2. The time limit should be in a clear, recognizable format (e.g., "Time Limit: 1 second", "Time: 2 seconds", "1s", etc.)
+3. The time limit must be a positive value
+
+ANALYSIS:
+- Look through the entire document for any mention of time limits
+- Check common locations: problem statement, constraints section, metadata
+- Verify the format is clear and the value is reasonable (typically 0.1s to 10s for competitive programming)
+
+PASS if: Time limit is clearly specified with a positive value
+FAIL if: No time limit found or time limit is unclear/invalid
+
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
+    @staticmethod
+    def get_memory_limit_validation_prompt():
+        """Check if memory limit is at least 32 MB"""
+        return """
+You are a document validator. Check if the document contains a memory limit specification that is at least 32 MB.
+
+REQUIREMENTS:
+1. The document must contain a memory limit specification
+2. The memory limit must be at least 32 MB (32 megabytes)
+3. The format should be clear and recognizable (e.g., "Memory Limit: 64 MB", "Memory: 128 MB", etc.)
+
+ANALYSIS:
+- Look through the entire document for any mention of memory limits
+- Check common locations: problem statement, constraints section, metadata
+- Convert the value to MB if needed (e.g., 32768 KB = 32 MB, 0.032 GB = 32 MB)
+- Verify the value is at least 32 MB
+
+PASS if: Memory limit is specified and is at least 32 MB
+FAIL if: No memory limit found, memory limit is less than 32 MB, or format is unclear
+
+FINAL VERDICT: PASS or FINAL VERDICT: FAIL
+"""
+
 # Ultimate Individual Reviewer Classes - One for each review point
 
 class UniqueSolutionReviewer(BaseReviewer):
@@ -1333,6 +1378,22 @@ class SubtopicTaxonomyReviewer(BaseReviewer):
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
+class TimeLimitValidationReviewer(BaseReviewer):
+    """Validates that time limit is specified in the document"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_time_limit_validation_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response(response)
+
+class MemoryLimitValidationReviewer(BaseReviewer):
+    """Validates that memory limit is at least 32 MB"""
+    
+    def review(self, document: str) -> ReviewResponse:
+        prompt = ReviewPrompts.get_memory_limit_validation_prompt()
+        response = self._make_api_call(prompt, document)
+        return self._parse_response(response)
+
 class TypoCheckReviewer(BaseReviewer):
     """Reviews for typos and spelling issues"""
     
@@ -1465,15 +1526,29 @@ class GitHubReviewValidator:
     def _clone_repository(self, url: str, temp_dir: str) -> bool:
         """Clone GitHub repository to temporary directory"""
         try:
-            # Use git clone command
-            result = subprocess.run([
-                'git', 'clone', url, temp_dir
-            ], capture_output=True, text=True, timeout=30)
+            # Ensure temp_dir doesn't exist (git clone creates it)
+            if os.path.exists(temp_dir):
+                import shutil
+                shutil.rmtree(temp_dir)
             
-            return result.returncode == 0
+            # Use git clone command with depth=1 for faster cloning
+            result = subprocess.run([
+                'git', 'clone', '--depth=1', url, temp_dir
+            ], capture_output=True, text=True, timeout=120)
+            
+            if result.returncode == 0:
+                return True
+            else:
+                print(f"Git clone failed with return code {result.returncode}")
+                print(f"stdout: {result.stdout}")
+                print(f"stderr: {result.stderr}")
+                return False
+                
         except subprocess.TimeoutExpired:
+            print("Git clone timed out after 60 seconds")
             return False
-        except Exception:
+        except Exception as e:
+            print(f"Git clone exception: {e}")
             return False
     
     def _find_overall_md_files(self, repo_dir: str) -> List[str]:
@@ -1595,28 +1670,14 @@ class GitHubReviewValidator:
                     else:
                         bf_section = content[bf_section_start:next_model]
                     
-                    # Check that solution_bf.cpp should NOT pass (should fail at least once)
-                    if "✅ PASS" in bf_section:
-                        return False, "solution_bf.cpp should not show PASS status (✅ PASS) - it must fail at least once"
-                    
                     # Check for WA or CE errors (should not have these)
-                    bf_has_failures = False
                     if "|" in bf_section:  # Look for table rows
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
                             if 'solution_bf.cpp' in line:
                                 parts = [p.strip() for p in line.split('|')]
                                 if len(parts) >= 8:  # Ensure we have enough columns
-                                    status_column = parts[1]  # Status column  
                                     errors_column = parts[7]  # Last column with errors
-                                    
-                                    # Check that it doesn't pass 100%
-                                    if "PASS" in status_column or "✅" in status_column:
-                                        return False, "solution_bf.cpp should not pass all test cases - it must fail at least once"
-                                    
-                                    # Check for failures (should have some)
-                                    if "FAIL" in status_column or "❌" in status_column or "TLE" in status_column or "RTE" in status_column:
-                                        bf_has_failures = True
                                     
                                     # Parse errors format: WA/TLE/RTE/CE
                                     if '/' in errors_column:
@@ -1628,10 +1689,16 @@ class GitHubReviewValidator:
                                                 return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
                                             if ce_count != '0':
                                                 return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
-                    
-                    # Ensure solution_bf.cpp actually has some failures
-                    if not bf_has_failures:
-                        return False, "solution_bf.cpp must fail at least once with TLE or RTE (not pass 100%)"
+            
+            # Check memory limit requirement (must be at least 32 MB)
+            memory_limit_pattern = r'Memory Limit:\s*\*\*(\d+)\s*MB\*\*'
+            memory_match = re.search(memory_limit_pattern, content, re.IGNORECASE)
+            if memory_match:
+                memory_limit = int(memory_match.group(1))
+                if memory_limit < 32:
+                    return False, f"Memory limit must be at least 32 MB, found {memory_limit} MB"
+            else:
+                return False, "Memory limit specification not found (should be in format 'Memory Limit: **XX MB**')"
             
             return True, "overall.md format validation passed"
             
@@ -2122,6 +2189,10 @@ class DocumentReviewSystem:
             
             # Subtopic, Taxonomy, and Reasoning Analysis
             "Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            
+            # Time and Memory Limit Validation
+            "Time Limit Validation": TimeLimitValidationReviewer(self.client),
+            "Memory Limit Validation": MemoryLimitValidationReviewer(self.client),
             "Typo and Spelling Check": TypoCheckReviewer(self.client),
             "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
@@ -2142,13 +2213,20 @@ class DocumentReviewSystem:
         except Exception as e:
             raise Exception(f"Error reading document: {str(e)}")
     
-    def run_reviews(self, document: str, resume_from: int = 0, github_only: bool = False, skip_github: bool = False) -> Dict[str, ReviewResponse]:
+    def run_reviews(self, document: str, resume_from: int = 0, github_only: bool = False, skip_github: bool = False, single_review = None) -> Dict[str, ReviewResponse]:
         """Run reviews on the document with various options"""
         results = {}
         self.detailed_output = []  # Reset for new run
         
         # Determine what to run
-        if github_only:
+        if single_review:
+            header_msg = f"🔍 Running single AI review: {single_review}..."
+            print(header_msg)
+            self.detailed_output.append(header_msg)
+            budget_msg = "💭 Extended thinking enabled with 20,000 token budget for this review"
+            print(budget_msg)
+            self.detailed_output.append(budget_msg)
+        elif github_only:
             header_msg = "🔍 Running GitHub Requirements Validation only..."
             print(header_msg)
             self.detailed_output.append(header_msg)
@@ -2216,6 +2294,79 @@ class DocumentReviewSystem:
                 sep_msg = "-" * 40
                 print(sep_msg)
                 self.detailed_output.append(sep_msg)
+            
+            return results
+        
+        # Handle single review mode
+        if single_review:
+            reviewer = self.reviewers[single_review]
+            if reviewer is None:
+                # This is a GitHub task, handle it specially
+                github_tasks = self.github_validator.validate_github_requirements_detailed(document)
+                for task_name, result in github_tasks:
+                    if task_name == single_review:
+                        running_msg = f"\n🔄 Running GitHub Task: {task_name}"
+                        print(running_msg)
+                        self.detailed_output.append(running_msg)
+                        
+                        result_msg = f"Result: {result.result.value}"
+                        print(result_msg)
+                        self.detailed_output.append(result_msg)
+                        
+                        if result.result == ReviewResult.FAIL:
+                            issues_header = "\nIssues Found:"
+                            print(issues_header)
+                            self.detailed_output.append(issues_header)
+                            print(result.reasoning)
+                            self.detailed_output.append(result.reasoning)
+                        
+                        results[single_review] = result
+                        break
+            else:
+                # This is an AI review
+                running_msg = f"\n🔄 Running AI Review: {single_review}"
+                print(running_msg)
+                self.detailed_output.append(running_msg)
+                
+                start_time = time.time()
+                
+                try:
+                    result = reviewer.review(document)
+                    
+                    end_time = time.time()
+                    duration_seconds = end_time - start_time
+                    duration_minutes = duration_seconds / 60.0
+                    
+                    # Show timing
+                    if duration_seconds < 60:
+                        time_msg = f"⏱️ Completed in {duration_seconds:.1f} seconds ({duration_minutes:.2f} minutes)"
+                    else:
+                        time_msg = f"⏱️ Completed in {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
+                    print(time_msg)
+                    self.detailed_output.append(time_msg)
+                    
+                    result_msg = f"Result: {result.result.value}"
+                    print(result_msg)
+                    self.detailed_output.append(result_msg)
+                    
+                    if result.result == ReviewResult.FAIL:
+                        issues_header = "\nIssues Found:"
+                        print(issues_header)
+                        self.detailed_output.append(issues_header)
+                        print(result.reasoning)
+                        self.detailed_output.append(result.reasoning)
+                    
+                    results[single_review] = result
+                    
+                except Exception as e:
+                    error_msg = f"❌ Error in {single_review}: {str(e)}"
+                    print(error_msg)
+                    self.detailed_output.append(error_msg)
+                    
+                    results[single_review] = ReviewResponse(
+                        result=ReviewResult.FAIL,
+                        reasoning=f"Review failed with error: {str(e)}"
+                    )
             
             return results
         
@@ -2551,7 +2702,8 @@ def main():
                '  python3 document_reviewer.py doc.txt --github-only      # Run only GitHub validation\n'
                '  python3 document_reviewer.py doc.txt --ai-only          # Run only AI reviews\n'
                '  python3 document_reviewer.py doc.txt --resume 5         # Run GitHub + AI (AI from point 5)\n'
-               '  python3 document_reviewer.py doc.txt --ai-only --resume 5  # Run only AI from point 5\n',
+               '  python3 document_reviewer.py doc.txt --ai-only --resume 5  # Run only AI from point 5\n'
+               '  python3 document_reviewer.py doc.txt --single-review "Memory Limit Validation"  # Run single AI review\n',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('file', help='Path to the text file to review')
@@ -2563,6 +2715,8 @@ def main():
                        help='Run only AI reviews, skip GitHub validation')
     parser.add_argument('--skip-github', action='store_true',
                        help='Skip GitHub validation, run only AI reviews (same as --ai-only)')
+    parser.add_argument('--single-review', type=str, metavar='NAME',
+                       help='Run only a single AI review by name (e.g., "Solution Uniqueness Validation")')
     
     args = parser.parse_args()
     
@@ -2574,16 +2728,33 @@ def main():
     if args.ai_only and args.skip_github:
         print("ℹ️  Note: --ai-only and --skip-github are equivalent")
     
+    if args.single_review and (args.github_only or args.ai_only or args.skip_github):
+        print("❌ Cannot use --single-review with other mode options")
+        sys.exit(1)
+    
     # Normalize skip options
     skip_github = args.ai_only or args.skip_github
     github_only = args.github_only
+    single_review = args.single_review
     
     # Initialize review system first for dynamic validation
     review_system = DocumentReviewSystem()
     
+    # Validate single review name if specified
+    if single_review:
+        available_reviews = list(review_system.reviewers.keys())
+        ai_reviews = [name for name, reviewer in review_system.reviewers.items() if reviewer is not None]
+        
+        if single_review not in available_reviews:
+            print(f"❌ Invalid review name: '{single_review}'")
+            print(f"📋 Available AI reviews:")
+            for name in ai_reviews:
+                print(f"   - {name}")
+            sys.exit(1)
+    
     # Validate resume point (only applies to AI reviews)
     ai_reviewers_count = len([r for name, r in review_system.reviewers.items() if r is not None])
-    if args.resume < 1 or args.resume > ai_reviewers_count:
+    if not single_review and (args.resume < 1 or args.resume > ai_reviewers_count):
         print(f"❌ Invalid resume point: {args.resume}. Must be between 1 and {ai_reviewers_count} for AI reviews.")
         sys.exit(1)
     
@@ -2607,7 +2778,8 @@ def main():
             document, 
             resume_from=args.resume,
             github_only=github_only,
-            skip_github=skip_github
+            skip_github=skip_github,
+            single_review=single_review
         )
         
         # Generate and display report

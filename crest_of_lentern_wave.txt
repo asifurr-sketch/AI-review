@@ -1,0 +1,860 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/crest_of_the_lantern_wave_strict_peak_edition
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Basic Data Structures", "Arrays and Lists", "Sorting Algorithms", "Searching Algorithms", "Dynamic Programming", "Trees and Tries", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** $4$: $O(2^m) \rightarrow O(m^2) \rightarrow O(m\log m) \rightarrow O\big((n+m)\log m\big)$
+
+**Number of Chains:** $11$
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+**[Prompt]**
+
+# Crest of the Lantern Wave (Strict Peak Edition)
+
+Time Limit: **1 seconds**
+
+Memory Limit: **34 MB**
+
+Every year, a night parade walks along a straight avenue marked with posts $1$ through $m$. Each of the $n$ floats casts a spell of light over a contiguous stretch of posts $[l_i, r_i]$. At a post $x$, the brightness is the number of spells that cover $x$.
+
+You want to plan a "wave" of cheers by choosing some posts in increasing order so that the observed brightness along those posts first never decreases and then, after a single peak position, strictly decreases. Among all such cheering waves, find:
+- $K$: the maximum possible number of posts in such a wave.
+- $W$: how many distinct waves achieve this maximum length (modulo $1000000007$).
+
+Formally, let $b(x)$ be the brightness at post $x$. A wave is a sequence $x_1 < x_2 < \dots < x_k$ such that there exists a pivot $p$ with $1 \le p \le k$ where:
+- $b(x_1) \le b(x_2) \le \dots \le b(x_p)$, and
+- $b(x_p) > b(x_{p+1}) > \dots > b(x_k)$.
+
+The pivot can be at the first or the last post; the strictly decreasing part may be empty.
+
+It is guaranteed that no post is lit by all $n$ spells.
+
+**Input Format:-**
+- The first line contains two integers $n$ and $m$.
+- Each of the next $n$ lines contains two integers $l_i$ and $r_i$ describing the interval $[l_i, r_i]$ illuminated by the $i$-th float.
+
+**Output Format:-**
+Print two integers $K$ and $W$. Here $K$ is the maximum length of a valid wave, and $W$ is the number of distinct waves that achieve this length, taken modulo $1000000007$.
+
+**Constraints:-**
+- $1 \le n, m \le 100000$
+- $1 \le l_i \le r_i \le m$
+- No post is covered by all $n$ intervals
+
+**Examples:-**
+ - **Input:**
+```
+3 6
+1 3
+1 3
+4 6
+```
+
+ - **Output:**
+```
+4 3
+```
+ - **Explanation:**
+
+    **Example 1.1 - Brightness calculation:** intervals $[1,3],[1,3],[4,6]$ ⇒ $b=[2,2,2,1,1,1]$.
+
+    **Example 1.2 - Optimal wave construction:** take all three 2's (nondecreasing), then **exactly one** 1 (must strictly decrease; cannot take two 1's).  
+    - Length $K=3+1=4$.  
+    - Choices for the final 1: posts 4, 5, or 6 ⇒ $W=3$.
+
+ - **Input:**
+```
+6 8
+1 5
+2 5
+3 5
+6 8
+6 7
+8 8
+```
+
+ - **Output:**
+```
+6 3
+```
+ - **Explanation:**
+
+    **Example 2.1 - Brightness calculation:** intervals $[1,5],[2,5],[3,5],[6,8],[6,7],[8,8]$ ⇒ $b=[1,2,3,3,3,2,2,2]$.
+
+    **Example 2.2 - Optimal wave construction:** take posts 1–5 with values $1,2,3,3,3$ (nondecreasing), then **exactly one** 2 from posts 6–8 (strictly decreasing forbids a second 2).  
+    - Length $K=5+1=6$.  
+    - Choices for the final 2: posts 6, 7, or 8 ⇒ $W=3$.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the Problem Requirements
+
+**[THOUGHT_01_01]**
+
+We are given $n$ intervals on a line of posts $1 \dots m$. The brightness $b(x)$ at post $x$ equals the number of intervals $[l_i, r_i]$ that cover $x$. We must select an increasing sequence of posts $x_1 < x_2 < \dots < x_k$ forming a "wave" such that brightnesses first never decrease and then, after a single pivot, strictly decrease. The goal is to compute two things: $K$, the maximum number of posts in such a wave, and $W$, the number of distinct waves of maximum length, modulo $1000000007$.
+
+**[THOUGHT_01_02]**
+
+Formally, a wave is a sequence $x_1 < x_2 < \dots < x_k$ such that there exists a pivot $p$ with $1 \le p \le k$ where:
+- $b(x_1) \le b(x_2) \le \dots \le b(x_p)$, and
+- $b(x_p) > b(x_{p+1}) > \dots > b(x_k)$.
+The strictly decreasing suffix may be empty (pivot at the end), and the non-decreasing prefix may be just the first element (pivot at the start).
+
+**[THOUGHT_01_03]**
+
+The computed brightness array has length $m$, and there are $n$ intervals, with $n, m \le 10^5$. It is guaranteed that no post is covered by all $n$ intervals. Therefore, for all $x \in [1, m]$, the brightness satisfies $b(x) \in [0, n-1]$.
+
+**[THOUGHT_01_04]**
+
+A wave admits a pivot-based characterization independent of any algorithm. For any candidate $S=(x_1 < \cdots < x_k)$, define its pivot index $p$ as the largest index with $b(x_p) = \max_{1 \le t \le k} b(x_t)$. The wave condition requires $b(x_1) \le \cdots \le b(x_p)$ and $b(x_p) > b(x_{p+1}) > \cdots > b(x_k)$. Because the suffix is strictly decreasing, this pivot is unique. The suffix may be empty, and the non-decreasing prefix may consist of a single element.
+
+**[THOUGHT_01_05]**
+
+Let $\mathcal{W}$ be the set of all sequences $S=(x_1 < \cdots < x_k)$ that satisfy the wave condition. Define
+$$
+K \;=\; \max_{S \in \mathcal{W}} |S|, \qquad
+\mathcal{W}^{\star} \;=\; \{\, S \in \mathcal{W} \mid |S| = K \,\}, \qquad
+W \;=\; |\mathcal{W}^{\star}| \bmod 1000000007.
+$$
+These definitions specify the required outputs without prescribing any computational method; the strictness on the right ensures each wave has a unique pivot.
+
+---
+
+**[CHAIN_02]**
+
+Designing comprehensive tests to exercise edge cases
+
+**[THOUGHT_02_01]**
+
+Single post and single interval: $n = 1$, $m = 1$, interval $[1, 1]$. Brightness is $[1]$. The only wave has length $K = 1$, $W = 1$. This checks base cases, array sizing, and fencepost errors.
+
+**[THOUGHT_02_02]**
+
+All posts with equal brightness: for example, disjoint intervals covering alternating posts or overlapping intervals that yield a constant $b(x)$ across all $m$. Then any non-decreasing sequence of all posts is valid, with empty strictly decreasing suffix. Expect $K = m$ and $W = 1$ (the entire avenue). This stresses equality handling and pivot-at-end logic.
+
+
+**[THOUGHT_02_03]**
+
+Strictly increasing brightness: a scenario like intervals $[1,1], [1,2], [1,3], \dots$ that yield $b(1) < b(2) < \dots < b(m)$. Then $K = m$, $W = 1$ with pivot at $m$. Validates monotone arrays.
+
+**[THOUGHT_02_04]**
+
+Strictly decreasing brightness: similarly, $b(1) > b(2) > \dots > b(m)$. Then $K = m$, $W = 1$ with pivot at $1$. Stresses pivot-at-start and strictly decreasing suffix.
+
+**[THOUGHT_02_05]**
+
+Plateau at the top: $b = [1, 3, 3, 3, 2]$. The pivot can be any of the three posts with brightness $3$, but the right side must strictly decrease. This tests non-decreasing prefix with equalities and strictness on the right, ensuring counts aggregate over all pivot positions.
+
+
+**[THOUGHT_02_06]**
+
+Multiple equal plateaus and repeated values on both sides: $b = [2, 2, 3, 3, 2, 2, 1]$. Carefully verify $L[i]$ with non-decreasing ties and $R[i]$ with the strictly decreasing constraint. Ensures left ties contribute but right ties do not.
+
+**[THOUGHT_02_07]**
+
+Disjoint intervals and gaps: sets of intervals forming brightness like $[1, 0, 1, 0, 1]$. Confirms that zero values are valid, and the method handles zeros without special cases.
+
+**[THOUGHT_02_08]**
+
+Large randomized cases with $n, m \approx 10^5$ and adversarial endpoint patterns. This stresses the specification under maximal input sizes and confirms that results remain well-defined under large counts (with arithmetic taken modulo $10^9 + 7$).
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force and recognizing infeasibility
+
+**[THOUGHT_03_01]**
+
+The most naive attempt is to enumerate all increasing subsequences of posts $S = \{x_1 < \dots < x_k\}$ and check the wave condition on the induced brightness sequence. This requires building $b(x)$ first and then iterating over $O(2^m)$ subsets. Even with pruning by checking monotonic segments, this approach is computationally impossible for $m$ up to $10^5$.
+
+**THOUGHT_03_02**
+
+A slightly better approach would fix each possible pivot position and compute the longest non-decreasing subsequence ending at that position and the longest strictly decreasing subsequence starting at that position. However, doing this with a simple $O(numPosts^2)$ DP for each pivot would result in $O(numPosts^3)$ total complexity, still too slow.
+
+
+**[THOUGHT_03_02]**
+
+A slightly less naive strategy is to fix a pivot $i$ and compute, independently, the longest nondecreasing subsequence ending at $i$ from the left and the longest strictly decreasing subsequence starting at $i$ from the right, then combine lengths and counts. However, doing this from scratch for each pivot costs $O(m^2)$ per pivot, totaling $O(m^3)$, which is infeasible.
+
+**[THOUGHT_03_03]**
+
+Compressing the brute force to two nested loops per direction yields an $O(m^2)$ DP that can compute all $L[i]$ and $R[i]$ in one pass each (overall $O(m^2)$). While substantially better, it still results in about $10^{10}$ operations at $m = 10^5$, far beyond time limits.
+
+**[THOUGHT_03_04]**
+
+Counting the number of optimal subsequences per position adds further complexity: naive backtracking to enumerate all optimal subsequences balloons exponentially in the worst case, and even storing predecessor sets leads to excessive memory. This confirms the brute-force family is not viable and motivates logarithmic-time per element strategies.
+
+---
+
+**[CHAIN_04]**
+
+Constructing the brightness array efficiently
+
+**THOUGHT_04_01**
+
+A direct method to compute brightness is to initialize $b(x) = 0$ and, for each interval $[l, r]$, increment all positions $x \in [l, r]$. This takes $O\!\left(\sum_i (r_i - l_i + 1)\right)$ time, which in the worst case is $O(nm)$ and can be $\approx 10^{10}$ operations for $n, m = 10^5$. This is too slow.
+
+
+**[THOUGHT_04_02]**
+
+We employ the difference array trick: maintain an auxiliary array $d[1 \dots m + 1]$ initialized to zero. For each interval $[l, r]$, do $d[l] \mathrel{+}= 1$ and, if $r + 1 \le m$, $d[r + 1] \mathrel{-}= 1$. Then compute prefix sums $b(x) = \sum_{i=1}^x d[i]$. This constructs all brightnesses in $O(n + m)$ time.
+
+**THOUGHT_04_03**
+
+Corner cases to handle: when $r = m$, skip the decrement at $r + 1$; make sure the difference array is sized at least $m + 1$ (or $m + 2$) to safely write $d[r + 1]$; ensure we use 1-based indexing consistently to match the problem statement.
+
+
+**[THOUGHT_04_03]**
+
+Corner cases to handle: when $r = m$, skip the decrement at $r + 1$; make sure the difference array is sized at least $m + 1$ (or $m + 2$) to safely write $d[r + 1]$; ensure we use 1-based indexing consistently to match the problem statement.
+
+
+**[THOUGHT_04_04]**
+
+The difference array approach is linear, deterministic, and memory-efficient: time $O(n + m)$, space $O(m)$. It is robust against overlapping intervals and guarantees no integer overflow under constraints since brightness never exceeds $n$ and fits in 32-bit integers.
+
+---
+
+**[CHAIN_05]**
+
+Building quadratic DP for lengths and counts to set a baseline
+
+
+**[THOUGHT_05_01]**
+
+Once $b[1 \dots m]$ is known, compute $L[i]$ and $CL[i]$ via standard $O(m^2)$ DP. For each $i$, scan all $j < i$ with $b[j] \le b[i]$. If $L[j] + 1 > L[i]$, set $L[i] = L[j] + 1$ and $CL[i] = CL[j]$. If equal, add $CL[j]$ to $CL[i]$ modulo $1000000007$. If no valid $j$ is found, start a new subsequence: $L[i] = 1$, $CL[i] = 1$.
+
+**[THOUGHT_05_02]**
+
+Similarly compute $R[i]$ and $CR[i]$ in $O(m^2)$ by scanning $k > i$ with $b[k] < b[i]$ to enforce strict decrease. If $R[k] + 1 > R[i]$, set $R[i] = R[k] + 1$ and $CR[i] = CR[k]$. If equal, add $CR[k]$. If no such $k$, set $R[i] = 1$, $CR[i] = 1$.
+
+**[THOUGHT_05_03]**
+
+Finally, compute $K = \max_i \{L[i] + R[i] - 1\}$, and $W = \sum_{i: L[i] + R[i] - 1 = K} CL[i] \cdot CR[i]$ modulo $1000000007$. This baseline clarifies the intended counting semantics and how equalities on the left and strictness on the right influence transitions.
+
+**[THOUGHT_05_04]**
+
+Despite its clarity, the $O(m^2)$ DP is impractical: at $m = 10^5$, it requires about $10^{10}$ comparisons and updates per direction. Memory is $O(m)$, but time complexity is prohibitive. This failed approach nevertheless validates the recurrence and identifies strictness handling as central for correctness.
+
+---
+
+**[CHAIN_06]**
+
+Exploring length-only patience sorting and discovering counting pitfalls
+
+**[THOUGHT_06_01]**
+
+A classic improvement for LIS-like problems is patience sorting, which computes only the length of the longest increasing or nondecreasing subsequence in $O(m \log m)$ using pile tops. Applied here, we can compute lengths $L[i]$ and $R[i]$ if we ignore counts. However, we also need per-position counts $C_L[i]$ and $C_R[i]$, not just the global best length.
+
+
+**[THOUGHT_06_02]**
+
+Augmenting patience sorting to count the number of LIS is known to be tricky, especially with ties for non-decreasing variants. Tracking counts per pile top leads to inaccuracies: equal brightness values can be placed on the same pile or subsequent piles during different choices, causing either undercounting or overcounting, depending on tie-breaking rules.
+
+**[THOUGHT_06_03]**
+
+Moreover, we need counts per index $i$ for combining at pivots. Patience sorting typically provides only global information or per-length aggregates, not the exact $L[i]$ and $CL[i]$ for every position with correct tie semantics in the non-decreasing setting and strict setting on the right. Attempting to reconstruct per-index counts from piles becomes unwieldy and error-prone.
+
+**[THOUGHT_06_04]**
+
+Given these pitfalls, patience sorting is unsuitable here as the primary engine for counts. We need a data structure that supports online queries of the best length and number of ways over prefixes of values, with precise tie handling. This motivates using Fenwick or segment trees with an appropriate merge operation and, if necessary, coordinate compression.
+
+---
+
+**[CHAIN_07]**
+
+Deploying coordinate compression with Fenwick trees to compute lengths and counts
+
+**[THOUGHT_07_01]**
+
+We compress the brightness values $b[i]$ to ranks in $[1 \dots U]$, where $U \le m$. Compression ensures a tight index range for the tree, reduces memory, and handles arbitrary integer brightnesses consistently. For the left-to-right pass (non-decreasing), at each index $i$ with compressed rank $r$, we must query the best pair $(\text{len}, \text{ways})$ among all values $\le b[i]$, i.e., prefix $[1, r]$.
+
+**[THOUGHT_07_02]**
+
+We store in each Fenwick tree node a pair $(\text{len}, \text{ways})$ representing the maximum subsequence length achievable with ending value at or below that node’s value range and the number of ways to achieve that maximum. The merge operation chooses the larger length; if lengths are equal, it sums the ways modulo $1000000007$.
+
+**[THOUGHT_07_03]**
+
+Left-to-right pass (non-decreasing): for index $i$ with compressed rank $r$, we query the prefix $[1, r]$ to obtain the best pair $(\ell, c)$ among all values $\le b[i]$. We then set $L[i] = \ell + 1$ and $CL[i] = 1$ if $\ell = 0$, otherwise $CL[i] = c$. Finally, we update the Fenwick tree at index $r$ with $(L[i], CL[i])$.
+
+**[THOUGHT_07_04]**
+
+Right-to-left pass (strictly decreasing): for index $i$ with rank $r$, we query the prefix $[1, r-1]$ to enforce $b[k] < b[i]$, obtaining $(\ell, c)$. Set $R[i] = \ell + 1$ and $CR[i] = 1$ if $\ell = 0$, otherwise $CR[i] = c$. Update the Fenwick tree at index $r$ with $(R[i], CR[i])$.
+
+**[THOUGHT_07_05]**
+
+Key invariants and tie handling: the merge operation is deterministic—if two candidates have the same length, their ways are added, i.e., $w = (w_a + w_b) \bmod 10^9 + 7$. The base case $\ell = 0$ implies exactly one way to start a subsequence at position $i$. On the right pass, excluding equal values via the prefix $[1, r-1]$ is essential to prevent non-strict transitions.
+
+**[THOUGHT_07_06]**
+
+After both passes, compute $K = \max_i \{L[i] + R[i] - 1\}$. For all indices achieving this maximum, accumulate $CL[i] \cdot CR[i]$ modulo $1000000007$ to obtain $W$. The strictness on the right guarantees each optimal wave is counted exactly once, at its unique pivot.
+
+**[THOUGHT_07_07]**
+
+Complexity:
+- Compression: sorting $m$ values and unique yields $O(m \log m)$.
+- Each Fenwick pass: $m$ updates and queries, each $O(\log m)$.
+- Total time $O((n + m) \log m)$ including brightness construction; space $O(m)$.
+This meets the constraints comfortably.
+
+**[CHAIN_08]**
+
+Establishing correctness with pivot decomposition and uniqueness
+
+**[THOUGHT_08_01]**
+
+Upper bound via decomposition: For any wave with pivot at $i$, partition it into a non-decreasing subsequence ending at $i$ and a strictly decreasing subsequence starting at $i$, overlapping at $i$. The left part has length at most $L[i]$, and the right part has length at most $R[i]$. Therefore, the total length is at most $L[i] + R[i] - 1$.
+
+**[THOUGHT_08_02]**
+
+Tightness at optima: Suppose a maximum-length wave pivots at $i$ but uses a left subsequence of length $< L[i]$ or a right subsequence of length $< R[i]$. Then its total length would be strictly less than $L[i] + R[i] - 1$, contradicting maximality. Thus, every maximum wave pivoting at $i$ must use optimal left and right parts, and the number of such waves equals $CL[i] \cdot CR[i]$.
+
+**[THOUGHT_08_03]**
+
+No double counting: The strict decrease on the right forces the pivot to be the last occurrence of its brightness in the wave. If we had allowed non-increasing on the right, a wave could be counted with different pivot choices along a plateau, causing overcounting. Using strictness ensures a unique pivot for each wave, so summing over all pivots counts each maximum wave exactly once.
+
+**[THOUGHT_08_04]**
+
+Handling equal values correctly:
+- Left pass uses $b[j] \le b[i]$ so plateaus can be formed and extended to the pivot.
+- Right pass uses $b[k] < b[i]$ to ensure immediate drop after the pivot.
+- The base case counts a subsequence of length $1$ at each position, enabling waves consisting entirely of the non-decreasing part with empty strictly decreasing part.
+
+**[THOUGHT_08_05]**
+
+The guarantee that no post is lit by all $n$ spells does not alter the algorithm but ensures brightness values lie in $[0, n - 1]$. This can justify using a fixed-size tree of $n + 1$ if desired. Our compression-based method remains valid regardless of this constraint.
+
+**[CHAIN_09]**
+
+Anticipating pitfalls, validating with unit tests, and ensuring robustness
+
+**[THOUGHT_09_01]**
+
+Pitfall: querying $\le$ on the right pass mistakenly allows equal-brightness transitions in the strictly decreasing suffix, inflating $R[i]$ and counts. Always query the prefix $[1, r-1]$ for $R[i]$.
+
+**[THOUGHT_09_02]**
+
+Pitfall: Mishandling the ways base case. When the best prior length $\ell = 0$, there is exactly one way to start a new subsequence at the current index. If we instead took $0$ ways, we would wipe out valid length-1 subsequences and wrongly count $W = 0$ in some scenarios.
+
+**[THOUGHT_09_03]**
+
+Pitfall: Tie handling in updates. Overwriting a Fenwick node instead of merging can lose alternative ways that reach the same best length. Always merge with the combine rule, preserving all ways for the optimal length.
+
+**[THOUGHT_09_04]**
+
+Unit tests to include:
+- $b = [1]$ → $K = 1$, $W = 1$.
+- $b = [1, 1, 1, 1]$ → $K = 4$, $W = 1$.
+- $b = [1, 2, 2, 2, 1]$ → $K = 5$, $W = 1$.
+- $b = [1, 3, 3, 2, 2, 2, 1]$ → $K = 5$, $W = 4$.
+- Randomized arrays with small $m$ compared against $O(m^2)$ DP to cross-check correctness of lengths and counts.
+
+**[THOUGHT_09_05]**
+
+Modular arithmetic: every addition of ways must be done modulo $10^9 + 7$. The product $C_L[i] \cdot C_R[i]$ can overflow $32$-bit integers, so compute it in $64$-bit and reduce modulo $10^9 + 7$ before accumulating into $W$.
+
+**[THOUGHT_09_06]**
+
+Memory and indexing hygiene: Use 1-based indexing for both the posts and the Fenwick tree. Reset or reinitialize the Fenwick tree between left and right passes. Ensure the compression function maps equal brightness values to equal ranks and that ranks start from $1$.
+
+
+**[THOUGHT_09_07]**
+
+Performance checks: The difference array and two Fenwick passes will complete within time limits for $n, m \le 10^5$. The tree height is $O(\log m)$, with small constants. Avoid unnecessary dynamic allocations in loops to keep performance predictable.
+
+**[CHAIN_10]**
+
+Reflecting on failed approaches and how the final method resolves them
+
+**[THOUGHT_10_01]**
+
+The brute force enumeration of subsequences is intractable due to exponential growth in the number of subsets. Even the quadratic DP is too slow at $m = 10^5$. The final method avoids enumerating transitions explicitly by aggregating optimal states by brightness value using a Fenwick tree.
+
+**[THOUGHT_10_02]**
+
+The patience sorting approach provides only lengths and does not track per-index counts correctly, especially with equal values where non-decreasing is permitted. The Fenwick method computes both lengths and counts per index consistently by using prefix queries and a well-defined merge rule over compressed values.
+
+**[THOUGHT_10_03]**
+
+Any attempt that relaxes strictness on the right (non-increasing instead of strictly decreasing) leads to double counting across plateaus since multiple pivot positions can represent the same wave. The final approach enforces strict right transitions via prefix $[1, r - 1]$ queries, guaranteeing each wave is counted exactly once.
+
+**[THOUGHT_10_04]**
+
+Constructing brightness via naive per-interval range updates is too slow. The difference array reduces this to linear time, ensuring that the main computational effort is concentrated in the two $O(m \log m)$ Fenwick passes, thus delivering an overall $O((n + m) \log m)$ solution.
+
+
+**[CHAIN_11]**
+
+Summarizing complexities and implementation assurances
+
+**[THOUGHT_11_01]**
+
+Brightness computation: $O(n + m)$ time, $O(m)$ space via difference array with a single prefix sum.
+
+**[THOUGHT_11_02]**
+
+Coordinate compression: $O(m \log m)$ time to sort and unique, $O(m)$ space to store the compressed values and reverse mapping if needed.
+
+**[THOUGHT_11_03]**
+
+Fenwick passes: For LNDS and strict LDS, each pass performs $m$ queries and updates at $O(\log m)$ each, totaling $O(m \log m)$ time and $O(m)$ space.
+
+**[THOUGHT_11_04]**
+
+Overall complexity: $O((n + m)\log m)$ time and $O(m)$ space. This comfortably meets constraints up to $10^5$ while providing exact counts modulo $10^9 + 7$.
+
+**[THOUGHT_11_05]**
+
+Code hygiene: Use clear naming (e.g., "best", "ways", "rankOf"), Doxygen for helper functions, and careful modular arithmetic. Keep the Fenwick tree generic over the "Best" pair with a concise "combine" function to ensure correctness and maintainability.
+
+**[RESPONSE]**
+
+# Crest of the Lantern Wave - Optimal Solution Analysis
+
+## Problem Understanding
+
+We are given $numIntervals$ light intervals on posts labeled $1$ to $numPosts$. Each interval $[left, right]$ illuminates every post in that range. The brightness at post $postIndex$, denoted $brightness[postIndex]$, is the number of intervals covering $postIndex$.
+
+We need to select an increasing sequence of posts $x_1 < x_2 < \dots < x_k$ that forms a "wave":
+- The brightnesses are non-decreasing up to a pivot, and then strictly decreasing after the pivot.
+- The pivot can be at the first or last post; the strictly decreasing part may be empty.
+
+We must compute:
+- $K$: the maximum possible length $k$ of such a wave.
+- $W$: the number of distinct maximum-length waves, modulo $1000000007$.
+
+### Key Observations
+
+- Define $lndsLength[postIndex]$ as the length of the longest non-decreasing subsequence ending at position $postIndex$, and $ldsLength[postIndex]$ as the length of the longest strictly decreasing subsequence starting at position $postIndex$.
+- For a pivot at $postIndex$, the best possible wave length through $postIndex$ is $lndsLength[postIndex] + ldsLength[postIndex] - 1$.
+- Let $lndsCount[postIndex]$ be the number of optimal left subsequences (achieving $lndsLength[postIndex]$) ending at $postIndex$, and $ldsCount[postIndex]$ the number of optimal right subsequences (achieving $ldsLength[postIndex]$) starting at $postIndex$.
+- The answers are:
+  - $K = \max_{postIndex} \{lndsLength[postIndex] + ldsLength[postIndex] - 1\}$.
+  - $W = \sum_{postIndex: lndsLength[postIndex] + ldsLength[postIndex] - 1 = K} \big(lndsCount[postIndex] \cdot ldsCount[postIndex]\big) \bmod 1000000007$.
+- The strictness on the right guarantees a unique pivot for each wave, avoiding double counting.
+
+## Optimal Approach
+
+We proceed in four steps:
+
+### 1) Build Brightness via Difference Array
+- Maintain an auxiliary array $differenceArray[1 \dots numPosts+1]$.
+- For each $[left, right]$, do $differenceArray[left] += 1$ and if $right+1 \le numPosts$ then $differenceArray[right+1] -= 1$.
+- Prefix sum over $differenceArray$ to obtain $brightness[1], \dots, brightness[numPosts]$.
+- **Complexity**: $O(numIntervals + numPosts)$.
+
+### 2) Coordinate Compression
+- Compress brightness values to ranks $1 \dots numRanks$ where $numRanks \le numPosts$, to index in a Fenwick tree.
+- **Complexity**: $O(numPosts \log numPosts)$.
+
+### 3) Two Fenwick Tree Passes to Compute Lengths and Counts
+- Store in each Fenwick node a pair $(maxLength, numWays)$, merged by choosing the larger $maxLength$; on ties, sum $numWays$ modulo $1000000007$.
+- **Left-to-right (non-decreasing)**:
+  - For rank $rank$ of $brightness[postIndex]$, query prefix $[1, rank]$ to get best $(\ell, c)$.
+  - Set $lndsLength[postIndex] = \ell + 1$, $lndsCount[postIndex] = 1$ if $\ell = 0$ else $c$.
+  - Update index $rank$ with $(lndsLength[postIndex], lndsCount[postIndex])$.
+- **Right-to-left (strictly decreasing)**:
+  - For rank $rank$ of $brightness[postIndex]$, query prefix $[1, rank - 1]$ to enforce strictness and get $(\ell, c)$.
+  - Set $ldsLength[postIndex] = \ell + 1$, $ldsCount[postIndex] = 1$ if $\ell = 0$ else $c$.
+  - Update index $rank$ with $(ldsLength[postIndex], ldsCount[postIndex])$.
+- **Complexity per pass**: $O(numPosts \log numPosts)$.
+
+### 4) Combine Results
+- Compute $K = \max_{postIndex} \{lndsLength[postIndex] + ldsLength[postIndex] - 1\}$.
+- Compute $W = \sum_{postIndex: lndsLength[postIndex] + ldsLength[postIndex] - 1 = K} lndsCount[postIndex] \cdot ldsCount[postIndex] \bmod 1000000007$.
+- **Complexity**: $O(numPosts)$.
+
+**Overall complexity**: $O((numIntervals + numPosts) \log numPosts)$ time and $O(numPosts)$ space.
+
+## Full Code
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstdint>
+
+/*
+ * Prime modulus for counting distinct waves.
+ * 1e9+7 is standard in programming contests due to being prime and fitting in 32-bit signed range.
+ */
+static const int MODULUS = 1000000007;
+
+/*
+ * DP state storing the best subsequence length and the number of ways to achieve it.
+ */
+struct DpState {
+    int maxLength;    // Best subsequence length
+    int numWays;      // Number of ways to achieve this length (mod MODULUS)
+};
+
+/*
+ * Merge two DP states by keeping the larger length and summing ways on ties.
+ * This is the standard combine rule when tracking (best length, count of best) over prefixes.
+ */
+DpState combineStates(const DpState& firstState, const DpState& secondState) {
+    if (firstState.maxLength > secondState.maxLength) return firstState;
+    if (secondState.maxLength > firstState.maxLength) return secondState;
+    
+    int combinedWays = firstState.numWays + secondState.numWays;
+    if (combinedWays >= MODULUS) combinedWays -= MODULUS;
+    return DpState{firstState.maxLength, combinedWays};
+}
+
+/*
+ * Fenwick tree (Binary Indexed Tree) that maintains (max length, count of ways) over prefixes.
+ *
+ * The tree supports:
+ * - update(rank, state): state = combine(state, tree[rank]) up the tree
+ * - query(rank): returns combined state over [1..rank]
+ *
+ * We use it twice:
+ * 1) Left-to-right for longest nondecreasing subsequence (LNDS) ending at each index.
+ * 2) Right-to-left for longest strictly decreasing subsequence (LDS) starting at each index.
+ *
+ * Note: This is a specialized structure; while Fenwick is often used for sums,
+ * using "max + tie-count" as the monoid is valid because combineStates is associative
+ * and we only ever extend in one direction of indices.
+ */
+class FenwickMaxCount {
+public:
+    /*
+     * Construct a Fenwick tree over indices [1..numRanks].
+     *
+     * @param numRanks Number of ranks/indices in the compressed coordinate space.
+     */
+    explicit FenwickMaxCount(int numRanks)
+        : numRanks_(numRanks), tree_(numRanks + 1, DpState{0, 0}) {}
+
+    /*
+     * Update a frequency/rank index with a new state via combine.
+     *
+     * @param rankIndex 1-based index in [1..numRanks_].
+     * @param newState The DpState to merge into the Fenwick structure.
+     */
+    void update(int rankIndex, const DpState& newState) {
+        for (; rankIndex <= numRanks_; rankIndex += rankIndex & -rankIndex) {
+            tree_[rankIndex] = combineStates(tree_[rankIndex], newState);
+        }
+    }
+
+    /*
+     * Query the combined state over prefix [1..rankIndex].
+     *
+     * @param rankIndex 1-based right endpoint of the query.
+     * @return Combined DpState for the prefix.
+     */
+    DpState query(int rankIndex) const {
+        DpState result{0, 0};
+        for (; rankIndex > 0; rankIndex -= rankIndex & -rankIndex) {
+            result = combineStates(result, tree_[rankIndex]);
+        }
+        return result;
+    }
+
+private:
+    int numRanks_;
+    std::vector<DpState> tree_;
+};
+
+/*
+ * Build the brightness array brightness[1..numPosts] from the list of intervals using a difference array.
+ *
+ * @param numPosts The number of posts.
+ * @param intervals Vector of closed intervals [left, right] (1-based) representing spells.
+ * @return Vector<int> of size numPosts+1 where brightness[postIndex] is the brightness at post postIndex for postIndex in [1..numPosts].
+ */
+std::vector<int> buildBrightness(int numPosts, const std::vector<std::pair<int,int>>& intervals) {
+    std::vector<int> differenceArray(numPosts + 2, 0);  // +2 safe for right+1
+    for (const auto& interval : intervals) {
+        int left = interval.first;
+        int right = interval.second;
+        differenceArray[left] += 1;
+        if (right + 1 <= numPosts) differenceArray[right + 1] -= 1;
+    }
+    std::vector<int> brightness(numPosts + 1, 0); // 1..numPosts used
+    int runningSum = 0;
+    for (int postIndex = 1; postIndex <= numPosts; ++postIndex) {
+        runningSum += differenceArray[postIndex];
+        brightness[postIndex] = runningSum;
+    }
+    return brightness;
+}
+
+/*
+ * Produce a sorted unique list of values for coordinate compression.
+ *
+ * @param values Input values to compress.
+ * @return A sorted vector with unique values (the compression dictionary).
+ */
+std::vector<int> makeCompressionDictionary(const std::vector<int>& values) {
+    std::vector<int> compressionDict(values.begin() + 1, values.end()); // skip index 0 (unused)
+    std::sort(compressionDict.begin(), compressionDict.end());
+    compressionDict.erase(std::unique(compressionDict.begin(), compressionDict.end()), compressionDict.end());
+    return compressionDict;
+}
+
+/*
+ * Get the 1-based rank of a value in the compression dictionary.
+ *
+ * @param compressionDict Sorted unique values (compression dictionary).
+ * @param targetValue Value to rank.
+ * @return 1-based rank of targetValue.
+ */
+int getRank(const std::vector<int>& compressionDict, int targetValue) {
+    return static_cast<int>(std::lower_bound(compressionDict.begin(), compressionDict.end(), targetValue) - compressionDict.begin()) + 1;
+}
+
+/*
+ * Compute, for each index postIndex, the length and count of the Longest Nondecreasing Subsequence (LNDS) ending at postIndex.
+ *
+ * The DP recurrence for index postIndex with brightness rank rank:
+ *   bestState = fenwick.query(rank)  // consider all previous positions with value <= brightness[postIndex]
+ *   lndsLength[postIndex]  = bestState.maxLength + 1
+ *   lndsCount[postIndex]  = (bestState.maxLength == 0 ? 1 : bestState.numWays)  // starting fresh vs extending
+ *
+ * @param brightness Brightness array brightness[1..numPosts].
+ * @param compressionDict Compression dictionary for brightness.
+ * @param lndsLength Output vector: lndsLength[postIndex] = LNDS length ending at postIndex.
+ * @param lndsCount Output vector: lndsCount[postIndex] = #ways for that LNDS at postIndex (mod MODULUS).
+ */
+void computeLeftNondecreasingDp(const std::vector<int>& brightness,
+                                const std::vector<int>& compressionDict,
+                                std::vector<int>& lndsLength,
+                                std::vector<int>& lndsCount) {
+    int numPosts = static_cast<int>(brightness.size()) - 1;
+    lndsLength.assign(numPosts + 1, 0);
+    lndsCount.assign(numPosts + 1, 0);
+
+    FenwickMaxCount fenwick(static_cast<int>(compressionDict.size()));
+
+    for (int postIndex = 1; postIndex <= numPosts; ++postIndex) {
+        int rank = getRank(compressionDict, brightness[postIndex]);
+        DpState bestState = fenwick.query(rank);  // allow equal => nondecreasing
+        int currentLength = bestState.maxLength + 1;
+        int currentWays = (bestState.maxLength == 0 ? 1 : bestState.numWays);
+        lndsLength[postIndex] = currentLength;
+        lndsCount[postIndex] = currentWays;
+        fenwick.update(rank, DpState{currentLength, currentWays});
+    }
+}
+
+/*
+ * Compute, for each index postIndex, the length and count of the Longest Strictly Decreasing Subsequence (LDS) starting at postIndex.
+ *
+ * Scanning right-to-left ensures index order increases when we later concatenate with the left part.
+ * For strict decrease we query ranks strictly below the current:
+ *   bestState = fenwick.query(rank - 1)  // consider values < brightness[postIndex]
+ *   ldsLength[postIndex] = bestState.maxLength + 1
+ *   ldsCount[postIndex] = (bestState.maxLength == 0 ? 1 : bestState.numWays)
+ *
+ * @param brightness Brightness array brightness[1..numPosts].
+ * @param compressionDict Compression dictionary for brightness.
+ * @param ldsLength Output vector: ldsLength[postIndex] = strict LDS length starting at postIndex.
+ * @param ldsCount Output vector: ldsCount[postIndex] = #ways for that LDS at postIndex (mod MODULUS).
+ */
+void computeRightStrictDecreasingDp(const std::vector<int>& brightness,
+                                    const std::vector<int>& compressionDict,
+                                    std::vector<int>& ldsLength,
+                                    std::vector<int>& ldsCount) {
+    int numPosts = static_cast<int>(brightness.size()) - 1;
+    ldsLength.assign(numPosts + 1, 0);
+    ldsCount.assign(numPosts + 1, 0);
+
+    FenwickMaxCount fenwick(static_cast<int>(compressionDict.size()));
+
+    for (int postIndex = numPosts; postIndex >= 1; --postIndex) {
+        int rank = getRank(compressionDict, brightness[postIndex]);
+        DpState bestState = fenwick.query(rank - 1);  // strictly less => strictly decreasing
+        int currentLength = bestState.maxLength + 1;
+        int currentWays = (bestState.maxLength == 0 ? 1 : bestState.numWays);
+        ldsLength[postIndex] = currentLength;
+        ldsCount[postIndex] = currentWays;
+        fenwick.update(rank, DpState{currentLength, currentWays});
+    }
+}
+
+/*
+ * Combine the left (nondecreasing) and right (strictly decreasing) DP to get the optimal wave length and count.
+ *
+ * For each pivot postIndex:
+ *   waveLength(postIndex) = lndsLength[postIndex] + ldsLength[postIndex] - 1
+ * We sum ways where waveLength(postIndex) achieves the global maximum:
+ *   totalWays = sum over pivots postIndex of (lndsCount[postIndex] * ldsCount[postIndex]) mod MODULUS.
+ *
+ * @param lndsLength LNDS lengths ending at postIndex.
+ * @param lndsCount LNDS counts at postIndex.
+ * @param ldsLength Strict LDS lengths starting at postIndex.
+ * @param ldsCount Strict LDS counts at postIndex.
+ * @return pair {maxWaveLength K, numberOfMaxWaves W mod MODULUS}.
+ */
+std::pair<int,int> computeAnswer(const std::vector<int>& lndsLength,
+                                 const std::vector<int>& lndsCount,
+                                 const std::vector<int>& ldsLength,
+                                 const std::vector<int>& ldsCount) {
+    int numPosts = static_cast<int>(lndsLength.size()) - 1;
+
+    int maxWaveLength = 0;
+    for (int postIndex = 1; postIndex <= numPosts; ++postIndex) {
+        maxWaveLength = std::max(maxWaveLength, lndsLength[postIndex] + ldsLength[postIndex] - 1);
+    }
+
+    int64_t waysSum = 0;
+    for (int postIndex = 1; postIndex <= numPosts; ++postIndex) {
+        if (lndsLength[postIndex] + ldsLength[postIndex] - 1 == maxWaveLength) {
+            waysSum = (waysSum + 1LL * lndsCount[postIndex] * ldsCount[postIndex]) % MODULUS;
+        }
+    }
+    return {maxWaveLength, static_cast<int>(waysSum)};
+}
+
+/*
+ * Entry point.
+ *
+ * Reads input, builds brightness, runs LNDS (left) and strict LDS (right) DP with counting,
+ * and prints the optimal wave length K and the number of such waves W (mod MODULUS).
+ *
+ * @return 0 on success.
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int numIntervals, numPosts;
+    if (!(std::cin >> numIntervals >> numPosts)) {
+        return 0;
+    }
+
+    std::vector<std::pair<int,int>> intervals;
+    intervals.reserve(numIntervals);
+    for (int intervalIndex = 0; intervalIndex < numIntervals; ++intervalIndex) {
+        int left, right;
+        std::cin >> left >> right;
+        intervals.emplace_back(left, right);
+    }
+
+    // 1) Build brightness brightness[1..numPosts].
+    std::vector<int> brightness = buildBrightness(numPosts, intervals);
+
+    // 2) Coordinate compress brightness values to ranks.
+    std::vector<int> compressionDict = makeCompressionDictionary(brightness);
+
+    // 3) Left LNDS and right strict LDS DP (lengths and counts).
+    std::vector<int> lndsLength, lndsCount, ldsLength, ldsCount;
+    computeLeftNondecreasingDp(brightness, compressionDict, lndsLength, lndsCount);
+    computeRightStrictDecreasingDp(brightness, compressionDict, ldsLength, ldsCount);
+
+    // 4) Combine at each pivot to get the answer.
+    auto [maxWaveLength, numberOfMaxWaves] = computeAnswer(lndsLength, lndsCount, ldsLength, ldsCount);
+    std::cout << maxWaveLength << " " << numberOfMaxWaves << "\n";
+    return 0;
+}
+```
+
+## Code Explanation
+
+### Brightness Construction
+- Use a difference array to add $+1$ at each $left$ and $-1$ at each $right+1$. The prefix sums produce brightness $brightness[1], \dots, brightness[numPosts]$ in $O(numIntervals + numPosts)$.
+
+### Coordinate Compression
+- Map each brightness value to a rank $1 \dots numRanks$. This provides a compact, ordered domain for the Fenwick tree.
+
+### Left Pass (Non-decreasing)
+- For each position $postIndex$ with rank $rank$, query the Fenwick tree over $[1, rank]$ to get the best subsequence ending with a value $\leq brightness[postIndex]$.
+- Update $lndsLength[postIndex]$ and $lndsCount[postIndex]$, then merge at $rank$.
+
+### Right Pass (Strictly Decreasing)
+- For each position $postIndex$ with rank $rank$, query over $[1, rank-1]$ to enforce strictness $< brightness[postIndex]$ for the right subsequence.
+- Update $ldsLength[postIndex]$ and $ldsCount[postIndex]$, then merge at $rank$.
+
+### Combining Results
+- The optimal wave length through $postIndex$ is $lndsLength[postIndex] + ldsLength[postIndex] - 1$.
+- The total number of maximum waves is the sum over all pivots achieving $K$ of $lndsCount[postIndex] \cdot ldsCount[postIndex]$ modulo $1000000007$.
+- The strictness on the right ensures each maximum wave is counted exactly once at its pivot.
+
+## Step-by-Step Example
+
+### Input:
+```
+2 5
+1 3
+2 4
+```
+
+### Key Intermediate Steps:
+
+**1. Input Parsing:**
+- $numIntervals = 2$, $numPosts = 5$
+- Intervals: $[(1,3), (2,4)]$
+
+**2. Build Brightness Array:**
+- $differenceArray = [0, 1, 1, 0, -1, -1, 0]$
+- $brightness = [0, 1, 2, 2, 1, 0]$ (1-indexed)
+
+**3. Coordinate Compression:**
+- $compressionDict = [0, 1, 2]$ (sorted unique values)
+- Ranks: $brightness[1]=1 \rightarrow rank=2$, $brightness[2]=2 \rightarrow rank=3$, etc.
+
+**4. Left LNDS DP (Nondecreasing):**
+- $lndsLength = [0, 1, 2, 3, 2, 1]$
+- $lndsCount = [0, 1, 1, 1, 1, 1]$
+
+**5. Right LDS DP (Strictly Decreasing):**
+- $ldsLength = [0, 1, 1, 1, 2, 1]$
+- $ldsCount = [0, 1, 1, 1, 1, 1]$
+
+**6. Combine Results:**
+- For each post: $waveLength = lndsLength + ldsLength - 1$
+- Post 1: $1 + 1 - 1 = 1$
+- Post 2: $2 + 1 - 1 = 2$
+- Post 3: $3 + 1 - 1 = 3$ ← **maximum**
+- Post 4: $2 + 2 - 1 = 3$ ← **maximum**
+- Post 5: $1 + 1 - 1 = 1$
+
+**7. Count Ways:**
+- Posts 3 and 4 achieve maximum length 3
+- $totalWays = 1 \times 1 + 1 \times 1 = 2$
+
+### Final Output:
+```
+3 2
+```
+
+## Time and Space Complexity
+
+- **Brightness construction**: $O(numIntervals + numPosts)$ time, $O(numPosts)$ space.
+- **Coordinate compression**: $O(numPosts \log numPosts)$ time, $O(numPosts)$ space.
+- **Fenwick left and right passes**: $O(numPosts \log numPosts)$ time, $O(numPosts)$ space.
+- **Combining results**: $O(numPosts)$ time.
+
+**Overall:**
+- **Time complexity**: $O((numIntervals + numPosts) \log numPosts)$.
+- **Space complexity**: $O(numPosts)$.
+
+## Conclusion
+
+By transforming the problem into computing, for each index, the longest non-decreasing subsequence to the left and the longest strictly decreasing subsequence to the right (with counts), and using coordinate compression with a Fenwick tree to achieve $O(\log numPosts)$ queries and updates, we obtain an efficient $O((numIntervals + numPosts) \log numPosts)$ solution. The strictness on the right ensures unique pivoting, enabling exact counting of maximum-length waves modulo $1000000007$.
