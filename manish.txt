@@ -1,0 +1,773 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/the_lighthouse_keepers_beacon_parade
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Stacks and Queues", "Dynamic Programming", "Basic Data Structures", "Control Structures and Loops", "Arrays and Lists", "Searching Algorithms","Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - $4$, $O(n! \cdot m)$ -> $O(m \cdot 2^n)$ -> $O(n + m)$ -> $O(n + m)$
+
+**Number of Chains:** - $9$
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**The Lighthouse Keeper’s Beacon Parade**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **32 MB**
+
+Every dusk, the lighthouse keeper logs the types of beacons flashing along the coast. The log is long and messy, and some entries are smudged beyond recognition—those cannot be used. Each beacon type is an integer from $1$ to $n$, and each type appears many times in the log.
+
+From the non-smudged entries, the keeper must engrave a ceremonial parade list: a subsequence that contains each type $1, 2, \dots, n$ exactly once, in the same order they appear in the log. The sea council provides a custom priority permutation $ord$ of $1, 2, \dots, n$ (from highest to lowest priority), which defines the lexicographic order. Among all valid subsequences, choose the lexicographically smallest according to this priority. Then, among all sets of positions that realize that exact sequence, choose the earliest possible positions (i.e., if the sequence is $s_1, s_2, \dots, s_n$, pick the smallest $p_1 < p_2 < \dots < p_n$ such that $a_{p_i} = s_i$ and each $p_i$ is not smudged). The resulting sequence and positions are guaranteed to be unique.
+
+Lexicographic order with a custom priority:
+- Let $rank[v]$ be the $1$-based index of $v$ in $ord$, so smaller $rank$ means higher priority.
+- Sequence $X$ is lexicographically smaller than $Y$ if, at the first index where they differ, the element in $X$ has a smaller $rank$ than the element in $Y$.
+
+**Input Format:-**
+- The first line contains $t$ — the number of test cases.
+- For each test case:
+  - A line with two integers $n$ and $m$.
+  - A line with $m$ integers $a_1, a_2, \dots, a_m$ where $1 \le a_i \le n$.
+  - A line with an integer $k$ — the number of smudged positions.
+  - A line with $k$ distinct integers $b_1, b_2, \dots, b_k$ where $1 \le b_j \le m$, the smudged positions. If $k = 0$, this line may be empty.
+  - A line with $n$ integers $ord_1, ord_2, \dots, ord_n$ — a permutation of $\{1, 2, \dots, n\}$ from highest to lowest priority.
+
+All indices are $1$-based.
+
+**Output Format:-**
+For each test case, print two lines:
+- Line 1: the chosen parade list — $n$ integers (the beacon types in order).
+- Line 2: the earliest positions in the original array $a$ that realize that parade list — $n$ strictly increasing indices.
+
+**Constraints:-**
+- $1 \le t \le 2 \cdot 10^5$
+- $1 \le n \le 2 \cdot 10^5$, $1 \le m \le 2 \cdot 10^5$
+- For every type $v \in \{1, 2, \dots, n\}$, there exists at least one non-smudged position $i$ with $a_i = v$ (so a solution exists).
+- The sum of $m$ over all test cases does not exceed $2 \cdot 10^5$.
+**Examples:-**
+ - **Input:**
+```
+1
+4 8
+4 3 2 1 4 3 2 1
+3
+6 1 7
+2 4 1 3
+```
+
+ - **Output:**
+```
+3 2 4 1
+2 3 5 8
+```
+
+ - **Input:**
+```
+1
+3 7
+1 2 1 2 1 2 3
+0
+
+1 3 2
+```
+
+ - **Output:**
+```
+1 2 3
+1 2 7
+```
+
+**Note:-**
+In the first example, the priority permutation $ord = [2, 4, 1, 3]$ gives ranks: $rank(2)=1$, $rank(4)=2$, $rank(1)=3$, $rank(3)=4$. Smudged positions are $\{1, 6, 7\}$, so usable entries are at positions $2:3$, $3:2$, $4:1$, $5:4$, $8:1$. The lexicographically smallest sequence according to this priority is $3$ $2$ $4$ $1$, and the earliest positions realizing it are $2$ $3$ $5$ $8$.
+
+In the second example, $ord = [1, 3, 2]$ gives ranks: $rank(1)=1$, $rank(3)=2$, $rank(2)=3$. There are no smudges $(k=0)$. The lexicographically smallest sequence is $1$ $2$ $3$, and the earliest positions are $1$ $2$ $7$.
+
+Additional clarification:
+- "Lexicographically smallest" is with respect to $ord$: at the first differing position, the sequence whose element has smaller rank in $ord$ is smaller.
+- Feasibility depends on non-smudged entries only. You must find a subsequence that contains each type exactly once, in the order they appear in the log, while respecting the priority ordering.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the problem and setting definitions
+
+
+**[THOUGHT_01_01]**
+
+For each test case, we are given $n$, $m$, an array $a$ of length $m$ with values in $\{1,\dots,n\}$, a set of smudged (forbidden) indices, and a custom priority permutation $ord$ over $\{1,\dots,n\}$. We must pick a subsequence of the un-smudged positions that contains each value $1,\dots,n$ exactly once. Among all such subsequences, we choose the one that is lexicographically smallest with respect to the custom priority $ord$, and then, for that exact sequence of values, we pick the earliest feasible positions that realize it. We must output both the chosen sequence of values and the chosen increasing positions.
+
+
+**[THOUGHT_01_02]**
+
+Let $rank[v]$ denote the $1$-based position of $v$ in permutation $ord$. A smaller $rank[v]$ means a higher priority. Compare two sequences $X$ and $Y$ lexicographically by $ord$: at the first index where they differ, the sequence whose element has smaller $rank[\cdot]$ is lexicographically smaller.
+
+
+**[THOUGHT_01_03]**
+
+Only indices not listed as smudged can be used to form the subsequence. We must respect the original order in $a$; we are allowed to delete entries but not reorder them. Every value in $\{1,\dots,n\}$ must appear exactly once in the chosen subsequence.
+
+
+**[THOUGHT_01_04]**
+
+Consider the lexicographic ordering defined by the priority permutation $ord$. Since $ord$ is a strict total order over $\{1,\dots,n\}$, any two distinct sequences of values can be compared lexicographically. If there were two different subsequences that were both lexicographically smallest, they would have to be equal at every position, which contradicts them being different. Therefore, the lexicographically smallest subsequence of distinct values is unique. After fixing that sequence of values, the greedy choice of the earliest strictly increasing positions that realize it is also unique, since we must pick the leftmost available position for each value to minimize the position sequence. The input guarantees at least one allowed occurrence of every value, ensuring feasibility.
+
+
+**[THOUGHT_01_05]**
+
+We effectively solve a constrained smallest subsequence of distinct elements problem. Two twists must be handled carefully: some indices are unusable, and lexicographic comparisons follow $ord$, not numeric order.
+
+Let's analyze the complexity requirements. With constraints $1 \le n \le 2 \cdot 10^5$, $1 \le m \le 2 \cdot 10^5$, and $\sum m \le 2 \cdot 10^5$ across all test cases, we need to consider different algorithmic approaches. Given the constraints, we need an algorithm that scales linearly with $m$ to handle the maximum input sizes efficiently.
+
+
+**[THOUGHT_01_06]**
+
+Denote the list of allowed indices for value $v$ by $pos[v]$ (sorted). The rightmost allowed occurrence of $v$ is $lastAllowed[v]$. The final sequence of values is $S$, and its realizing positions are $P$.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing thorough and adversarial test cases
+
+
+**[THOUGHT_02_01]**
+
+The simplest possible case establishes a baseline for understanding the problem requirements. A single beacon type with no smudges should produce the trivial solution, testing basic functionality without complexity. Consider $n=1, m=1, a=[1], k=0, ord=[1]$.
+
+Since there's only one beacon type and one position, the parade list must contain exactly one beacon of type $1$. The only valid subsequence is $[1]$ at position $[1]$. This test case verifies that the problem correctly handles the minimal non-empty case and ensures the solution format is understood.
+
+
+**[THOUGHT_02_02]**
+
+A test case where priority order conflicts with the natural order imposed by array structure reveals the core challenge. Consider $n=3, m=5, a=[2,2,3,2,1], k=0, ord=[1,2,3]$. Here, priority suggests $1>2>3$, but the array structure creates constraints.
+
+Build $rank$: $rank[1]=1, rank[2]=2, rank[3]=3$ (smaller rank = higher priority). Build $pos$: $pos[1]=[5], pos[2]=[1,2,4], pos[3]=[3]$. Build $lastAllowed$: $lastAllowed[1]=5, lastAllowed[2]=4, lastAllowed[3]=3$.
+
+Algorithm execution: $i=1$: $a[1]=2$, not in stack, push $2$, stack=$[2]$. $i=2$: $a[2]=2$, already in stack, skip. $i=3$: $a[3]=3$, not in stack, $rank[3]=3 > rank[2]=2$, cannot pop $2$ (lastAllowed[2]=4 > 3), push $3$, stack=$[2,3]$. $i=4$: $a[4]=2$, already in stack, skip. $i=5$: $a[5]=1$, not in stack, $rank[1]=1 < rank[3]=3$, can pop $3$ (lastAllowed[3]=3 ≤ 5), pop $3$, $rank[1]=1 < rank[2]=2$, can pop $2$ (lastAllowed[2]=4 ≤ 5), pop $2$, push $1$, stack=$[1]$.
+
+Position selection: For sequence $[2,3,1]$: pick positions $[1,3,5]$ (earliest feasible).
+
+The correct solution is $[2,3,1]$ at positions $[1,3,5]$. This demonstrates that the lexicographic ordering must be balanced with feasibility constraints - we cannot always achieve the ideal priority order due to the array's structure.
+
+
+**[THOUGHT_02_03]**
+
+Testing edge cases with smudged positions is crucial for robustness. A valid test case that constrains available positions is $n=3, m=6, a=[1,2,1,3,2,3], k=2, smudged=[1,4], ord=[1,2,3]$.
+
+Build $rank$: $rank[1]=1, rank[2]=2, rank[3]=3$ (smaller rank = higher priority). After removing smudged positions, allowed positions are $\{2,3,5,6\}$ with values $[2,1,2,3]$. Build $pos$: $pos[1]=[3], pos[2]=[2,5], pos[3]=[6]$. Build $lastAllowed$: $lastAllowed[1]=3, lastAllowed[2]=5, lastAllowed[3]=6$.
+
+Algorithm execution: $i=2$: $a[2]=2$, not in stack, push $2$, stack=$[2]$. $i=3$: $a[3]=1$, not in stack, $rank[1]=1 < rank[2]=2$, can pop $2$ (lastAllowed[2]=5 > 3), pop $2$, push $1$, stack=$[1]$. $i=5$: $a[5]=2$, not in stack, $rank[2]=2 > rank[1]=1$, cannot pop $1$, push $2$, stack=$[1,2]$. $i=6$: $a[6]=3$, not in stack, $rank[3]=3 > rank[2]=2$, cannot pop $2$, $rank[3]=3 > rank[1]=1$, cannot pop $1$, push $3$, stack=$[1,2,3]$.
+
+Position selection: For sequence $[1,2,3]$: pick positions $[3,5,6]$ (earliest feasible).
+
+The solution is $[1,2,3]$ at positions $[3,5,6]$. This demonstrates that the algorithm correctly handles smudged positions by working only with the allowed indices and still producing a valid subsequence containing all required values.
+
+
+**[THOUGHT_02_04]**
+
+A common implementation error is confusing numeric ordering with priority ranking. Testing with a non-trivial priority order that doesn't match numeric order exposes this issue. Consider $n=4, m=8, a=[4,3,2,1,4,3,2,1], k=3, smudged=[6,1,7], ord=[2,4,1,3]$.
+
+Build $rank$: $rank(2)=1, rank(4)=2, rank(1)=3, rank(3)=4$ (smaller rank = higher priority). Allowed positions are $\{2,3,4,5,8\}$ with values $[3,2,1,4,1]$. Build $pos$: $pos[1]=[4,8], pos[2]=[3], pos[3]=[2], pos[4]=[5]$. Build $lastAllowed$: $lastAllowed[1]=8, lastAllowed[2]=3, lastAllowed[3]=2, lastAllowed[4]=5$.
+
+Algorithm execution: $i=2$: $a[2]=3$, not in stack, push $3$, stack=$[3]$. $i=3$: $a[3]=2$, not in stack, $rank[2]=1 < rank[3]=4$, cannot pop $3$ (lastAllowed[3]=2 ≤ 3), push $2$, stack=$[3,2]$. $i=4$: $a[4]=1$, not in stack, $rank[1]=3 > rank[2]=1$, cannot pop $2$, $rank[1]=3 > rank[3]=4$, cannot pop $3$, push $1$, stack=$[3,2,1]$. $i=5$: $a[5]=4$, not in stack, $rank[4]=2 < rank[1]=3$, can pop $1$ (lastAllowed[1]=8 > 5), pop $1$, $rank[4]=2 > rank[2]=1$, cannot pop $2$, $rank[4]=2 > rank[3]=4$, cannot pop $3$, push $4$, stack=$[3,2,4]$. $i=8$: $a[8]=1$, not in stack, $rank[1]=3 > rank[4]=2$, cannot pop $4$, $rank[1]=3 > rank[2]=1$, cannot pop $2$, $rank[1]=3 > rank[3]=4$, cannot pop $3$, push $1$, stack=$[3,2,4,1]$.
+
+Position selection: For sequence $[3,2,4,1]$: pick positions $[2,3,5,8]$ (earliest feasible).
+
+The solution is $[3,2,4,1]$ at positions $[2,3,5,8]$. This test case is valuable because it demonstrates that the lexicographic ordering is based on the custom priority permutation, not on numeric values. The sequence $[3,2,4,1]$ is lexicographically smaller than $[2,3,4,1]$ because at the first differing position, $3$ has rank $4$ while $2$ has rank $1$, and $4 > 1$ in the priority ordering.
+
+
+**[THOUGHT_02_05]**
+
+A stress test that exercises complex priority interactions validates the robustness of the solution approach. Consider $n=4, m=10, a=[1,2,3,4,1,2,3,4,1,2], k=0, ord=[4,3,2,1]$.
+
+Build $rank$: $rank(4)=1, rank(3)=2, rank(2)=3, rank(1)=4$ (smaller rank = higher priority). Build $pos$: $pos[1]=[1,5,9], pos[2]=[2,6,10], pos[3]=[3,7], pos[4]=[4,8]$. Build $lastAllowed$: $lastAllowed[1]=9, lastAllowed[2]=10, lastAllowed[3]=7, lastAllowed[4]=8$.
+
+Algorithm execution: $i=1$: $a[1]=1$, not in stack, push $1$, stack=$[1]$. $i=2$: $a[2]=2$, not in stack, $rank[2]=3 > rank[1]=4$, cannot pop $1$, push $2$, stack=$[1,2]$. $i=3$: $a[3]=3$, not in stack, $rank[3]=2 < rank[2]=3$, can pop $2$ (lastAllowed[2]=10 > 3), pop $2$, $rank[3]=2 > rank[1]=4$, cannot pop $1$, push $3$, stack=$[1,3]$. $i=4$: $a[4]=4$, not in stack, $rank[4]=1 < rank[3]=2$, can pop $3$ (lastAllowed[3]=7 > 4), pop $3$, $rank[4]=1 < rank[1]=4$, can pop $1$ (lastAllowed[1]=9 > 4), pop $1$, push $4$, stack=$[4]$. $i=5$: $a[5]=1$, not in stack, $rank[1]=4 > rank[4]=1$, cannot pop $4$, push $1$, stack=$[4,1]$. $i=6$: $a[6]=2$, not in stack, $rank[2]=3 > rank[1]=4$, cannot pop $1$, $rank[2]=3 > rank[4]=1$, cannot pop $4$, push $2$, stack=$[4,1,2]$. $i=7$: $a[7]=3$, not in stack, $rank[3]=2 < rank[2]=3$, can pop $2$ (lastAllowed[2]=10 > 7), pop $2$, $rank[3]=2 < rank[1]=4$, can pop $1$ (lastAllowed[1]=9 > 7), pop $1$, $rank[3]=2 > rank[4]=1$, cannot pop $4$, push $3$, stack=$[4,3]$. $i=8$: $a[8]=4$, already in stack, skip. $i=9$: $a[9]=1$, not in stack, $rank[1]=4 > rank[3]=2$, cannot pop $3$, $rank[1]=4 > rank[4]=1$, cannot pop $4$, push $1$, stack=$[4,3,1]$. $i=10$: $a[10]=2$, not in stack, $rank[2]=3 > rank[1]=4$, cannot pop $1$, $rank[2]=3 > rank[3]=2$, cannot pop $3$, $rank[2]=3 > rank[4]=1$, cannot pop $4$, push $2$, stack=$[4,3,1,2]$.
+
+Position selection: For sequence $[4,3,1,2]$: pick positions $[4,7,9,10]$ (earliest feasible).
+
+The solution is $[4,3,1,2]$ at positions $[4,7,9,10]$. This test case is valuable because it demonstrates how the lexicographic ordering works when the priority order is completely reversed from the natural order. The sequence $[4,3,1,2]$ is lexicographically smallest because it starts with the highest priority value $4$, followed by the next highest priority value $3$, and so on, while still respecting the constraint that all values must appear exactly once in the order they appear in the array.
+
+
+**[THOUGHT_02_06]**
+
+Edge cases are crucial for robustness. Testing the case where no positions are smudged ($k=0$) ensures the solution handles the full array correctly. Consider $n=3, m=7, a=[1,2,1,2,1,2,3], k=0, ord=[1,3,2]$.
+
+Build $rank$: $rank(1)=1, rank(3)=2, rank(2)=3$ (smaller rank = higher priority). Build $pos$: $pos[1]=[1,3,5], pos[2]=[2,4,6], pos[3]=[7]$. Build $lastAllowed$: $lastAllowed[1]=5, lastAllowed[2]=6, lastAllowed[3]=7$.
+
+Algorithm execution: $i=1$: $a[1]=1$, not in stack, push $1$, stack=$[1]$. $i=2$: $a[2]=2$, not in stack, $rank[2]=3 > rank[1]=1$, cannot pop $1$, push $2$, stack=$[1,2]$. $i=3$: $a[3]=1$, already in stack, skip. $i=4$: $a[4]=2$, already in stack, skip. $i=5$: $a[5]=1$, already in stack, skip. $i=6$: $a[6]=2$, already in stack, skip. $i=7$: $a[7]=3$, not in stack, $rank[3]=2 < rank[2]=3$, cannot pop $2$ (lastAllowed[2]=6 ≤ 7), $rank[3]=2 > rank[1]=1$, cannot pop $1$, push $3$, stack=$[1,2,3]$.
+
+Position selection: For sequence $[1,2,3]$: pick positions $[1,2,7]$ (earliest feasible).
+
+The solution is $[1,2,3]$ at positions $[1,2,7]$. This test case demonstrates that when the priority order aligns well with the array structure, the solution can achieve the ideal lexicographic ordering. The sequence $[1,2,3]$ is lexicographically smallest because it starts with the highest priority value $1$, followed by the next available values in their natural order, while ensuring all values appear exactly once.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+
+**[THOUGHT_03_01]**
+
+Enumerate all subsequences of the allowed indices and filter those that form a permutation of $\{1,\dots,n\}$. From the filtered set, choose the lexicographically smallest by $ord$, then among those equal in values, pick the earliest positions. This requires generating all combinations of indices or all subsequences and checking constraints.
+
+
+**[THOUGHT_03_02]**
+
+Let $L$ be the number of allowed indices. The number of subsequences is $2^L$, and even restricting to those of length $n$ yields $\binom{L}{n}$. With $L$ up to $2 \cdot 10^5$, enumeration is impossible. Even with aggressive pruning, the search space is astronomically large.
+
+
+**[THOUGHT_03_03]**
+
+Trying to pre-group by value and pick one index per value still yields $\prod_{v=1}^n |pos[v]|$ combinations, which is infeasible when any group has many occurrences or when $n$ is large.
+
+
+**[THOUGHT_03_04]**
+
+Even if enumeration were possible, comparing lexicographic order by a custom $rank$ among all candidates and then finding earliest indices would add nontrivial overhead, compounding the explosion.
+
+
+**[THOUGHT_03_05]**
+
+Brute force cannot handle the input sizes. We need a polynomial-time algorithm, ideally near-linear in $m$, that directly constructs the optimal solution without exploring the combinatorial space.
+
+
+---
+
+**[CHAIN_04]**
+
+Formulating and rejecting DP over subsets and prefixes
+
+
+**[THOUGHT_04_01]**
+
+Consider $DP[i][mask]$ as true if using the first $i$ positions we can pick exactly the set of values indicated by $mask$. Transitions either skip $a_i$ or take it if allowed and not yet taken. This captures feasibility but ignores lexicographic optimality and explodes in complexity.
+
+
+**[THOUGHT_04_02]**
+
+The mask over $n$ values induces $2^n$ states per position, making $O(m \cdot 2^n)$ time and $O(2^n)$ space, which is completely impractical for $n$ up to $2 \cdot 10^5$.
+
+
+**[THOUGHT_04_03]**
+
+Trying to encode lexicographic minimality by tracking the constructed prefix within the DP worsens the state size. Keeping even a compact representation of the prefix (e.g., last chosen value or rank counts) is insufficient to enforce lexicographic optimality without full history.
+
+
+**[THOUGHT_04_04]**
+
+Reducing the mask to counts or ordering constraints sacrifices the distinctness constraint (each value exactly once) or loses the ability to compare two DP paths lexicographically at the first differing position.
+
+
+**[THOUGHT_04_05]**
+
+DP by subsets or compressed variants does not scale to the problem constraints and fails to encode the lexicographic tie-breaking cleanly. We need a greedy structure that inherently enforces both feasibility and lexicographic minimality.
+
+
+---
+
+**[CHAIN_05]**
+
+Attempting priority-first selection and diagnosing failures
+
+
+**[THOUGHT_05_01]**
+
+A tempting approach is to iterate $v$ in the order $ord$ and, for each $v$, choose its earliest allowed occurrence after the last chosen position. This guarantees a subsequence only if each $v$ appears after the previous pick.
+
+
+**[THOUGHT_05_02]**
+
+The approach can fail to find any position for some $v$ because a higher-priority $v$ might only appear after all positions of a lower-priority value, making it impossible to pick in strict $ord$ sequence. Example: $ord=[1,2,3]$, $a=[2,2,3,2,1]$ allowed all. Picking value $1$ first forces position $5$, leaving no $2$ after it.
+
+
+**[THOUGHT_05_03]**
+
+Even if picking in $ord$ order is feasible, it can be non-optimal. Array constraints can force some lower-priority values to appear earlier; the lexicographically smallest feasible sequence must respect the array's order and availability, not blindly enforce $ord$.
+
+
+**[THOUGHT_05_04]**
+
+A mechanism that can reconsider earlier tentative choices when a better-ranked value appears later would be needed, provided we can still pick the displaced value afterward. This replace-and-still-feasible logic suggests we need some way to track future availability of values.
+
+
+**[THOUGHT_05_05]**
+
+Fixed priority-first selection is too rigid. The solution requires an adaptive greedy process that can delete previously chosen values if it improves lexicographic order without breaking the possibility to include all values exactly once.
+
+
+---
+
+**[CHAIN_06]**
+
+Exploring a greedy approach with future availability tracking
+
+
+**[THOUGHT_06_01]**
+
+One approach is to scan the array left to right over allowed indices and maintain a data structure of chosen values (no duplicates). When encountering a new value $x$ not yet chosen, we could try to replace previously chosen values while ensuring we can still pick the displaced values later. This suggests maintaining some kind of ordered structure that allows both insertion and removal based on priority comparisons.
+
+
+**[THOUGHT_06_02]**
+
+Build $pos[v]$: sorted list of allowed indices where $a_i = v$. Define $lastAllowed[v] = \max pos[v]$, the rightmost allowed index for $v$ (guaranteed to exist). Create $rank[v]$ from $ord$. Track membership $in[v]$ to know if $v$ is currently in the stack.
+
+
+**[THOUGHT_06_03]**
+
+While the stack is non-empty, let $y$ be its top. Pop $y$ if and only if both conditions hold: $rank[y] > rank[x]$ (replacing $y$ with $x$ improves lexicographic order) and $lastAllowed[y] > i$ (we can still take $y$ later at an allowed index after the current position $i$). If either condition fails, do not pop $y$.
+
+
+**[THOUGHT_06_04]**
+
+Skip smudged indices during the scan. Because $pos[v]$ and $lastAllowed[v]$ are built only from allowed indices, availability checks and future feasibility reasoning automatically ignore smudged positions.
+
+
+**[THOUGHT_06_05]**
+
+Popping $y$ when $rank[y] > rank[x]$ strictly improves the sequence at the earliest differing position and is safe because $y$ can be reinserted later (due to $lastAllowed[y] > i$). We never pop a value whose last allowed occurrence is at or before the current index, preserving feasibility. Once a value is processed at its last allowed occurrence and pushed, it will not be popped again.
+
+
+**[THOUGHT_06_06]**
+
+The greedy pop rule is deterministic under a strict total order $ord$. Any deviation from this rule would either miss a lexicographic improvement or would pop a value that cannot be recovered later, violating feasibility. Hence the produced sequence of values is unique.
+
+
+**[THOUGHT_06_07]**
+
+Each allowed index is processed once, and each distinct value can be pushed and popped at most once. Building $pos$ and $lastAllowed$ is $O(m)$. Building $rank$ from $ord$ is $O(n)$. The scan is $O(m + n)$ since we process at most $m$ allowed positions and each of the $n$ values can be pushed/popped at most once. Total time is $O(n + m)$ per test case and $O(\sum (n + m))$ across all cases. Memory usage is $O(n + m)$.
+
+This $O(n + m)$ time complexity represents a dramatic improvement over the previous approaches.
+
+
+**[THOUGHT_06_08]**
+
+The condition $lastAllowed[y] > i$ can be replaced with a remaining-count check that there is at least one allowed occurrence of $y$ after $i$. Both are equivalent here because we precomputed the rightmost occurrence, which is simpler and faster to query.
+
+
+---
+
+**[CHAIN_07]**
+
+Selecting earliest positions for the fixed type sequence
+
+
+**[THOUGHT_07_01]**
+
+After determining the sequence of distinct values $S = [s_1,\dots,s_n]$, choose the earliest strictly increasing positions $P = [p_1 < \dots < p_n]$ from allowed indices so that $a_{p_i} = s_i$ for all $i$. This step does not change $S$; it only realizes $S$ with positions.
+
+
+**[THOUGHT_07_02]**
+
+For each value $v$, reuse the sorted list $pos[v]$ of allowed positions. Maintain a pointer $idx[v]$ starting at $0$ to the first not-yet-used occurrence in $pos[v]$.
+
+
+**[THOUGHT_07_03]**
+
+Traverse $S$ left to right, maintaining $lastPos$ (initially $0$). For each $v$ in $S$, advance $idx[v]$ until $pos[v][idx[v]] > lastPos$. Choose that position as $p_i$, update $lastPos = p_i$, and increment $idx[v]$.
+
+
+**[THOUGHT_07_04]**
+
+Picking the earliest feasible occurrence for each $s_i$ ensures that no earlier choice exists without violating the increasing order or the value requirement. Any later choice would shift $p_i$ to the right, never enabling an earlier $p_{i+1}$, so the greedy choice is optimal and unique.
+
+
+**[THOUGHT_07_05]**
+
+Each pointer $idx[v]$ moves forward at most $|pos[v]|$ times. Across all $v$, pointers advance at most $m$ times. The sweep is $O(m)$, with $O(n + m)$ memory already provisioned by earlier steps.
+
+This position selection step maintains the $O(n + m)$ time complexity achieved by the greedy approach, avoiding the exponential complexity of brute force enumeration and the polynomial complexity of DP approaches.
+
+
+---
+
+**[CHAIN_08]**
+
+Proving correctness and uniqueness
+
+
+**[THOUGHT_08_01]**
+
+At any scan position $i$, the stack $st$ contains a prefix of the optimal sequence, and every value in $st$ can still be completed into a full solution. The invariant holds because we only push values at allowed indices and only pop when the popped value still appears later.
+
+
+**[THOUGHT_08_02]**
+
+Suppose we keep $y$ on top when $rank[y] > rank[x]$ and $y$ appears later. By pushing $x$ now and popping $y$, we strictly improve the earliest differing index of the sequence. Any solution that keeps $y$ and delays $x$ can be transformed by swapping their order without losing feasibility, yielding a lexicographically smaller sequence. Hence not popping is suboptimal.
+
+
+**[THOUGHT_08_03]**
+
+If $lastAllowed[y] \le i$, then popping $y$ removes the only possible chance to include $y$ later, breaking feasibility. The algorithm forbids such a pop, preserving the invariant that completion to a full permutation remains possible.
+
+
+**[THOUGHT_08_04]**
+
+Any value not in $st$ by the end must either have been included and later replaced safely or was never a lex-improving candidate at a time when it was safe to insert. Including it would only worsen the lexicographic order. Therefore $st$ is the lexicographically smallest feasible sequence.
+
+
+**[THOUGHT_08_05]**
+
+For a fixed $S$, the earliest feasible positions are uniquely determined by repeated first-greater-than searches in $pos[s_i]$. Any deviation at index $i$ to a later position cannot enable an earlier choice at any later step due to monotonicity, so the greedy picks are uniquely minimal.
+
+The correctness proof demonstrates that the greedy approach not only achieves optimal time complexity but also guarantees the correct solution, unlike the brute force approach which would be too slow and the DP approach which would be infeasible for the given constraints.
+
+
+---
+
+**[CHAIN_09]**
+
+Outlining implementation details and avoiding pitfalls
+
+
+**[THOUGHT_09_01]**
+
+The input is $1$-based. Store $a$ consistently (either $1$-based or convert) and ensure smudge indices are checked within $[1,m]$. All loops over positions must skip smudged indices. Avoid off-by-one errors when forming $pos[v]$ and reading $ord$.
+
+
+**[THOUGHT_09_02]**
+
+Build $rank$ such that $rank[ord[i]] = i$. Never compare values by numeric value; always compare by $rank$. This avoids subtle bugs when $ord$ is nontrivial.
+
+
+**[THOUGHT_09_03]**
+
+Initialize $pos[v]$ as empty vectors for $v \in [1,n]$. While scanning $a$, if index $i$ is allowed, push $i$ into $pos[a[i]]$. Afterward, set $lastAllowed[v] = pos[v].back()$ for all $v$; feasibility guarantees non-emptiness.
+
+
+**[THOUGHT_09_04]**
+
+Maintain a vector as the stack and a boolean array $in[v]$. On pushing $x$, set $in[x]=true$; on popping $y$, set $in[y]=false$. Skip processing a value $x$ at index $i$ if $in[x]=true$ to ensure each value appears at most once.
+
+
+**[THOUGHT_09_05]**
+
+Reuse $pos[v]$ and maintain per-value pointers $idx[v]$. Keep a global $lastPos$ and for each $v$ in $S$, advance $idx[v]$ to the first entry greater than $lastPos$. Record it, update $lastPos$, and increment $idx[v]$.
+
+
+**[THOUGHT_09_06]**
+
+Use fast I/O. Clear or reinitialize all per-test structures. The total memory across vectors $pos$, the stack, and arrays $rank$, $lastAllowed$, $in$, and $idx$ must be $O(n + m)$. Ensure no per-test memory leaks or accidental carryover.
+
+The implementation details ensure that the $O(n + m)$ greedy approach can be correctly implemented, avoiding the pitfalls that would make the brute force or DP approaches fail, and maintaining the efficiency advantage over previous approaches.
+
+
+**[THOUGHT_09_07]**
+
+The solution can be organized into two main functions. The first function builds the lexicographically smallest sequence of distinct values under the custom priority by implementing the greedy algorithm we developed. It takes the input array, allowed indices flags, rank mapping, and precomputed position lists as parameters, returning the optimal sequence of values. The second function picks the earliest strictly increasing positions that realize the fixed sequence by performing a greedy sweep through the precomputed position lists, maintaining pointers to track the next available occurrence of each value and ensuring strictly increasing position selection.
+
+
+**[THOUGHT_09_08]**
+
+Forgetting to skip smudged indices during the main scan corrupts feasibility checks. Comparing by numeric value instead of $rank$ yields wrong ordering. Popping when $lastAllowed[y] \le i$ destroys feasibility. Not handling $k=0$ correctly when reading input might misread $ord$. Not resetting arrays per test leads to cross-test contamination.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given $t$ test cases. In each, there are $n$ beacon types labeled $1,\dots,n$ and a log array $a$ of length $m$ listing many occurrences of these types. Some positions are smudged (forbidden) and cannot be used. We must form a subsequence using only non-smudged indices such that:
+- The subsequence contains each value in $\{1,\dots,n\}$ exactly once.
+- The order follows the original sequence $a$ (i.e., subsequence constraints).
+
+A custom priority permutation $ord$ defines lexicographic order: define $rank[v]$ as the 1-based index of $v$ in $ord$, so smaller $rank[v]$ means higher priority. Among all valid subsequences, we need the lexicographically smallest sequence by this custom order. After fixing this sequence, we must choose the earliest possible positions in $a$ (still using only allowed positions) that realize this sequence. The problem guarantees each value appears at least once at a non-smudged position, ensuring feasibility and uniqueness of the final sequence and positions.
+
+
+**2. Optimal Approach**
+
+Observations:
+- This is a “smallest subsequence of distinct elements” task with two twists: forbidden indices and a custom lexicographic order.
+- The lexicographically smallest distinct subsequence under a strict total order is unique.
+- Once the sequence of values is fixed, the earliest realizing positions are unique via a greedy selection.
+
+Algorithm:
+1) Preprocess allowed occurrences and priorities.
+- Build a boolean array allowed over indices $1..m$, marking smudged positions as false.
+- For each value $v$, collect $pos[v]$: sorted list of allowed indices where $a[i] = v$.
+- For each $v$, compute $lastAllowed[v]$ as the last element of $pos[v]$.
+- Construct $rank[v]$ from $ord$.
+
+2) Build the smallest sequence using a monotonic stack.
+- Scan $i = 1$ to $m$, skipping smudged indices.
+- Let $x = a[i]$. If $x$ is already in the stack, continue.
+- While the stack is not empty and the top $y$ satisfies $rank[y] > rank[x]$ and $lastAllowed[y] > i$, pop $y$.
+- Push $x$.
+- This enforces lexicographic improvements when safe and preserves feasibility by never popping a value that cannot be placed later. The result is the lexicographically smallest distinct sequence.
+
+3) Pick the earliest realizing positions for the chosen sequence.
+- Let $S$ be the sequence from the stack.
+- For each $v$, use $pos[v]$ and maintain a pointer.
+- Sweep $S$ left to right, maintaining the last chosen index $lastPos$.
+- For each $v \in S$, choose the first $pos[v][\cdot] > lastPos$ and update $lastPos$.
+- This constructs the earliest strictly increasing indices realizing $S$.
+
+Correctness follows from standard greedy exchange arguments; uniqueness follows from the strict total order and earliest-choice property.
+
+
+**3. Code**
+```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
+    
+    /**
+     * @brief Builds the lexicographically smallest sequence of distinct values under a custom priority.
+     *
+     * The function scans allowed indices left to right and maintains a monotonic stack of chosen values.
+     * It pops a worse-priority value if it still appears later, then pushes the current value.
+     *
+     * @param beacons The input array of values (1-based indexing, length logLength + 1).
+     * @param allowed Boolean flags for allowed indices (1-based indexing, length logLength + 1).
+     * @param valuePriorityRank The rank mapping where smaller rank means higher priority (length numTypes + 1).
+     * @param positionsByValue For each value v in [1..numTypes], the sorted list of allowed positions where beacons[i] == v.
+     * @return The sequence S (values) in order of the minimal subsequence.
+     */
+    std::vector<int> buildSmallestSequence(const std::vector<int> &beacons,
+                                           const std::vector<char> &allowed,
+                                           const std::vector<int> &valuePriorityRank,
+                                           const std::vector<std::vector<int>> &positionsByValue) {
+        int logLength = static_cast<int>(beacons.size()) - 1;
+        int numTypes = static_cast<int>(positionsByValue.size()) - 1;
+    
+        // Compute lastAllowed[v] as the rightmost allowed index for v.
+        std::vector<int> lastAllowed(numTypes + 1, -1);
+        for (int v = 1; v <= numTypes; ++v) {
+            // Feasibility guarantees positionsByValue[v] is non-empty.
+            lastAllowed[v] = positionsByValue[v].back();
+        }
+    
+        std::vector<int> stackValues;
+        stackValues.reserve(numTypes);
+        std::vector<char> inStack(numTypes + 1, 0);
+    
+        // Scan indices i = 1 to logLength, skipping smudged ones.
+        for (int i = 1; i <= logLength; ++i) {
+            if (!allowed[i]) {
+                continue;
+            }
+            int value = beacons[i];
+            if (inStack[value]) {
+                continue;
+            }
+            /* Let value = beacons[i]. If value is not yet chosen, pop from the stack while
+            the top y has valuePriorityRank[y] > valuePriorityRank[value] and lastAllowed[y] > i. Push value. */
+            while (!stackValues.empty()) {
+                int y = stackValues.back();
+                if (valuePriorityRank[y] > valuePriorityRank[value] && lastAllowed[y] > i) {
+                    inStack[y] = 0;
+                    stackValues.pop_back();
+                } else {
+                    break;
+                }
+            }
+            stackValues.push_back(value);
+            inStack[value] = 1;
+        }
+    
+        return stackValues;
+    }
+    
+    /**
+     * @brief Picks the earliest strictly increasing positions that realize a fixed sequence S.
+     *
+     * The function walks the sequence S and, for each value, chooses the first allowed position
+     * greater than the last chosen index, ensuring earliest realization.
+     *
+     * @param sequence The chosen sequence of values.
+     * @param positionsByValue For each value v, the sorted list of allowed positions where beacons[i] == v.
+     * @return The list of earliest positions P realizing the sequence.
+     */
+    std::vector<int> pickEarliestPositions(const std::vector<int> &sequence,
+                                           const std::vector<std::vector<int>> &positionsByValue) {
+        int numTypes = static_cast<int>(positionsByValue.size()) - 1;
+        std::vector<int> indexPerValue(numTypes + 1, 0);
+        std::vector<int> picks;
+        picks.reserve(sequence.size());
+    
+        /* For the final sequence S, traverse from left to right and, for each value v,
+         choose the earliest allowed position strictly greater than the last chosen index. */
+        int lastPos = 0;
+        for (int value : sequence) {
+            const std::vector<int> &positionsForValue = positionsByValue[value];
+            while (indexPerValue[value] < static_cast<int>(positionsForValue.size()) && positionsForValue[indexPerValue[value]] <= lastPos) {
+                ++indexPerValue[value];
+            }
+            int pick = positionsForValue[indexPerValue[value]];
+            picks.push_back(pick);
+            lastPos = pick;
+            ++indexPerValue[value];
+        }
+        return picks;
+    }
+    
+    /**
+     * @brief Main function that solves the lighthouse keeper's beacon parade problem.
+     *
+     * Reads test cases from standard input and for each test case:
+     * 1. Parses the beacon log, smudged positions, and priority order
+     * 2. Builds the lexicographically smallest sequence using greedy approach
+     * 3. Finds the earliest positions that realize this sequence
+     * 4. Outputs both the sequence and positions
+     *
+     * @return 0 on successful completion
+     */
+    int main() {
+        std::ios::sync_with_stdio(false);
+        std::cin.tie(nullptr);
+    
+        int numTestCases;
+        if (!(std::cin >> numTestCases)) {
+            return 0;
+        }
+        while (numTestCases--) {
+            /* Preprocessing:
+             * - Build allowed flags from the smudged positions.
+             * - Construct valuePriorityRank[v] from priorityOrder, where smaller rank means higher priority.
+             * - Build positionsByValue[v], the sorted list of allowed indices where beacons[i] = v. */
+            int numTypes, logLength;
+            std::cin >> numTypes >> logLength;
+    
+            std::vector<int> beacons(logLength + 1);
+            for (int i = 1; i <= logLength; ++i) {
+                std::cin >> beacons[i];
+            }
+    
+            int numSmudged;
+            std::cin >> numSmudged;
+            std::vector<char> allowed(logLength + 1, 1);
+            for (int i = 0; i < numSmudged; ++i) {
+                int b;
+                std::cin >> b;
+                if (1 <= b && b <= logLength) {
+                    allowed[b] = 0;
+                }
+            }
+    
+            std::vector<int> priorityOrder(numTypes + 1), valuePriorityRank(numTypes + 1);
+            for (int i = 1; i <= numTypes; ++i) {
+                int value;
+                std::cin >> value;
+                priorityOrder[i] = value;
+                valuePriorityRank[value] = i;
+            }
+    
+            // Build positionsByValue[v], the sorted list of allowed indices where beacons[i] = v.
+            std::vector<std::vector<int>> positionsByValue(numTypes + 1);
+            for (int i = 1; i <= logLength; ++i) {
+                if (allowed[i]) {
+                    positionsByValue[beacons[i]].push_back(i);
+                }
+            }
+    
+            /* Building the smallest sequence:
+             * - Compute lastAllowed[v] as the rightmost allowed index for v.
+             * - Scan indices i = 1 to logLength, skipping smudged ones.
+             * - Let value = beacons[i]. If value is not yet chosen, pop from the stack while
+             *   the top y has valuePriorityRank[y] > valuePriorityRank[value] and lastAllowed[y] > i. Push value.
+             * - This ensures lexicographic improvement when safe and preserves feasibility by not popping values that cannot be taken later. */
+            std::vector<int> sequence = buildSmallestSequence(beacons, allowed, valuePriorityRank, positionsByValue);
+    
+            /* Picking earliest positions:
+             * - For the final sequence S, traverse from left to right and, for each value v,
+             *   choose the earliest allowed position strictly greater than the last chosen index.
+             * - This yields the earliest strictly increasing realization. */
+            std::vector<int> picks = pickEarliestPositions(sequence, positionsByValue);
+    
+            // Output the sequence of values.
+            for (int i = 0; i < static_cast<int>(sequence.size()); ++i) {
+                if (i) {
+                    std::cout << ' ';
+                }
+                std::cout << sequence[i];
+            }
+            std::cout << '\n';
+    
+            // Output the positions.
+            for (int i = 0; i < static_cast<int>(picks.size()); ++i) {
+                if (i) {
+                    std::cout << ' ';
+                }
+                std::cout << picks[i];
+            }
+            std::cout << '\n';
+        }
+        return 0;
+    }
+```
+
+**4. Code Explanation**
+
+- Preprocessing:
+  - Build allowed flags from the smudged positions.
+  - Construct $rank[v]$ from $ord$, where smaller rank means higher priority.
+  - Build $pos[v]$, the sorted list of allowed indices where $a[i] = v$.
+
+- Building the smallest sequence:
+  - Compute $lastAllowed[v]$ as the rightmost allowed index for $v$.
+  - Scan indices $i = 1$ to $m$, skipping smudged ones.
+  - Let $x = a[i]$. If $x$ is not yet chosen, pop from the stack while the top $y$ has $rank[y] > rank[x]$ and $lastAllowed[y] > i$. Push $x$.
+  - This ensures lexicographic improvement when safe and preserves feasibility by not popping values that cannot be taken later.
+
+- Picking earliest positions:
+  - For the final sequence $S$, traverse from left to right and, for each value $v$, choose the earliest allowed position strictly greater than the last chosen index. This yields the earliest strictly increasing realization.
+
+- Detailed Example Walkthrough:
+  - Input: $n=4, m=8, a=[4,3,2,1,4,3,2,1], k=3, smudged=[6,1,7], ord=[2,4,1,3]$
+  - Preprocessing: $allowed = [F,T,T,T,T,F,F,T]$, $rank[2]=1, rank[4]=2, rank[1]=3, rank[3]=4$
+  - Position lists: $pos[1] = [4,8], pos[2] = [3], pos[3] = [2], pos[4] = [5]$
+  - Last allowed: $lastAllowed[1] = 8, lastAllowed[2] = 3, lastAllowed[3] = 2, lastAllowed[4] = 5$
+  - Monotonic stack scan:
+    * $i=1$: smudged → skip
+    * $i=2$: $a[2]=3$, stack empty → push 3, $stack=[3]$
+    * $i=3$: $a[3]=2$, $rank[3]=4 > rank[2]=1$ but $lastAllowed[3]=2 \not> 3$ → cannot pop, push 2, $stack=[3,2]$
+    * $i=4$: $a[4]=1$, $rank[2]=1 \not> rank[1]=3$ → cannot pop, push 1, $stack=[3,2,1]$
+    * $i=5$: $a[5]=4$, $rank[1]=3 > rank[4]=2$ and $lastAllowed[1]=8 > 5$ → pop 1, push 4, $stack=[3,2,4]$
+    * $i=6,7$: smudged → skip
+    * $i=8$: $a[8]=1$, $rank[4]=2 \not> rank[1]=3$ → cannot pop, push 1, $stack=[3,2,4,1]$
+  - Final sequence: $S = [3,2,4,1]$
+  - Position selection: For each value in $S$, pick earliest position $> lastPos$ → $P = [2,3,5,8]$
+  - Output matches expected: sequence $[3,2,4,1]$ at positions $[2,3,5,8]$
+
+**5. Time and Space Complexity**
+
+- Time:
+  - Building $pos$ and $lastAllowed$: $O(m)$.
+  - Building $rank$ from $ord$: $O(n)$.
+  - Monotonic stack scan: $O(m + n)$ (each index processed once; each value pushed/popped at most once).
+  - Selecting earliest positions: $O(n + m)$ across all values via per-value pointers.
+  - Overall per test case: $O(n + m)$. Across all test cases: $O(\sum (n + m))$.
+
+- Space:
+  - Arrays and vectors $a$, allowed, pos, rankV, lastAllowed, inStack, indexPerValue, outputs: $O(n + m)$.
+
+**6. Conclusion**
+
+The problem reduces to constructing the lexicographically smallest subsequence of distinct elements under a custom order while ignoring forbidden indices. A greedy monotonic stack yields the unique optimal sequence by safely replacing worse-priority values that still appear later. With the sequence fixed, a simple greedy pass selects the earliest strictly increasing positions that realize it. The approach runs in linear time relative to the input size and uses linear space, satisfying the constraints and guaranteeing a unique answer.

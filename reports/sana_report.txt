@@ -1,0 +1,1120 @@
+📋 COMPLETE EXECUTION LOG
+======================================================================
+
+🔍 Running complete review (AI + GitHub)...
+======================================================================
+🚀 Starting 33 AI reviews...
+🔄 1. Unique Solution Validation - Starting...
+🔄 2. Time Complexity Authenticity Check - Starting...
+🔄 3. Style Guide Compliance - Starting...
+🔄 4. Naming Conventions - Starting...
+🔄 5. Documentation Standards - Starting...
+🔄 6. Response Relevance to Problem - Starting...
+🔄 7. Mathematical Equations Correctness - Starting...
+🔄 8. Problem Constraints Consistency - Starting...
+🔄 9. Missing Approaches in Steps - Starting...
+🔄 10. Code Elements Existence - Starting...
+🔄 11. Example Walkthrough with Optimal Algorithm - Starting...
+🔄 12. Time and Space Complexity Correctness - Starting...
+🔄 13. Conclusion Quality - Starting...
+🔄 14. Problem Statement Consistency - Starting...
+🔄 15. Solution Passability According to Limits - Starting...
+🔄 16. Metadata Correctness - Starting...
+🔄 17. Test Case Validation - Starting...
+🔄 18. Sample Test Case Dry Run Validation - Starting...
+🔄 19. Note Section Explanation Approach - Starting...
+🔄 20. Inefficient Approaches Limitations - Starting...
+🔄 21. Final Approach Discussion - Starting...
+🔄 22. No Code in Reasoning Chains - Starting...
+🔄 23. Subtopic Taxonomy Validation - Starting...
+🔄 24. Time Limit Validation - Starting...
+🔄 25. Memory Limit Validation - Starting...
+🔄 26. Typo and Spelling Check - Starting...
+🔄 27. Subtopic Relevance - Starting...
+🔄 28. Missing Relevant Subtopics - Starting...
+🔄 29. No Predictive Headings in Thoughts - Starting...
+🔄 30. Chain Test Case Analysis Validation - Starting...
+🔄 31. Thought Heading Violations Check - Starting...
+🔄 32. Mathematical Variables and Expressions Formatting - Starting...
+🔄 33. Comprehensive Reasoning Thoughts Review - Starting...
+✅ 5. Documentation Standards - ✅ PASS (37.0s)
+✅ 8. Problem Constraints Consistency - ✅ PASS (37.2s)
+✅ 1. Unique Solution Validation - ✅ PASS (43.5s)
+✅ 2. Time Complexity Authenticity Check - ✅ PASS (44.3s)
+✅ 6. Response Relevance to Problem - ✅ PASS (50.9s)
+✅ 4. Naming Conventions - ✅ PASS (57.5s)
+❌ 3. Style Guide Compliance - ❌ FAIL (72.9s)
+✅ 7. Mathematical Equations Correctness - ✅ PASS (73.8s)
+✅ 12. Time and Space Complexity Correctness - ✅ PASS (31.6s)
+✅ 9. Missing Approaches in Steps - ✅ PASS (51.0s)
+✅ 11. Example Walkthrough with Optimal Algorithm - ✅ PASS (48.7s)
+✅ 10. Code Elements Existence - ✅ PASS (57.8s)
+✅ 13. Conclusion Quality - ✅ PASS (50.1s)
+✅ 14. Problem Statement Consistency - ✅ PASS (56.2s)
+❌ 16. Metadata Correctness - ❌ FAIL (47.2s)
+✅ 15. Solution Passability According to Limits - ✅ PASS (50.5s)
+✅ 17. Test Case Validation - ✅ PASS (61.6s)
+✅ 23. Subtopic Taxonomy Validation - ✅ PASS (20.6s)
+✅ 19. Note Section Explanation Approach - ✅ PASS (52.3s)
+✅ 24. Time Limit Validation - ✅ PASS (23.0s)
+✅ 25. Memory Limit Validation - ✅ PASS (14.9s)
+✅ 20. Inefficient Approaches Limitations - ✅ PASS (57.9s)
+✅ 22. No Code in Reasoning Chains - ✅ PASS (44.8s)
+✅ 21. Final Approach Discussion - ✅ PASS (57.7s)
+✅ 18. Sample Test Case Dry Run Validation - ✅ PASS (73.4s)
+✅ 26. Typo and Spelling Check - ✅ PASS (28.5s)
+✅ 27. Subtopic Relevance - ✅ PASS (38.5s)
+✅ 28. Missing Relevant Subtopics - ✅ PASS (48.1s)
+❌ 31. Thought Heading Violations Check - ❌ FAIL (47.1s)
+❌ 32. Mathematical Variables and Expressions Formatting - ❌ FAIL (48.0s)
+❌ 30. Chain Test Case Analysis Validation - ❌ FAIL (61.3s)
+✅ 29. No Predictive Headings in Thoughts - ✅ PASS (82.0s)
+✅ 33. Comprehensive Reasoning Thoughts Review - ✅ PASS (135.5s)
+✅ AI reviews completed: 28 passed, 5 failed
+🔄 Running GitHub validation...
+✅ GitHub validation: 5/8 passed
+
+
+📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS
+======================================================================
+
+📊 SUMMARY: GitHub: 5/8 passed | AI: 28/33 passed
+⚠️  8 review(s) failed (GitHub: 3, AI: 5)
+
+⚠️  OVERALL STATUS: SOME REVIEWS FAILED
+
+======================================================================
+
+📝 1. DOCUMENTATION STANDARDS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 2. PROBLEM CONSTRAINTS CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 3. UNIQUE SOLUTION VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 4. TIME COMPLEXITY AUTHENTICITY CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 5. RESPONSE RELEVANCE TO PROBLEM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 6. NAMING CONVENTIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 7. STYLE GUIDE COMPLIANCE
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Variable Naming Convention - Multiple locations throughout the code
+  - Variable `n` does not follow lowerCamelCase convention
+  - Line 41: `const int n = static_cast<int>(positions.size());`
+  - Line 88: `int n;`
+  - Lines 89-112: Multiple uses of variable `n`
+  - Fix: Should be renamed to `numberOfPosts` or `postCount`
+
+• Comment Capitalization - Inside `computeTotalLoudness` function
+  - Comments starting with dashes don't properly capitalize the first letter after the comment delimiter
+  - Line 48: `// ---------- WEST (left side) ----------`
+  - Line 63: `// ---------- EAST (right side) ----------`
+  - Line 79: `// ---------- TOTAL ----------`
+  - Fix: Should start with capital letter like `// West (left side) ----------` or be reformatted to `// West side calculations`
+
+--------------------------------------------------
+
+📝 8. MATHEMATICAL EQUATIONS CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 9. TIME AND SPACE COMPLEXITY CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 10. MISSING APPROACHES IN STEPS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 11. EXAMPLE WALKTHROUGH WITH OPTIMAL ALGORITHM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 12. CODE ELEMENTS EXISTENCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 13. CONCLUSION QUALITY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 14. PROBLEM STATEMENT CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 15. METADATA CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Subtopic Field - JSON array malformed: "[ Arrays and Lists,"Searching Algorithms", "Algorithm Complexity and Big O Notation" ]" - First element "Arrays and Lists" missing quotation marks, violates requirement for valid JSON array format with proper quotes
+
+• Should be: ["Arrays and Lists", "Searching Algorithms", "Algorithm Complexity and Big O Notation"]
+
+--------------------------------------------------
+
+📝 16. SOLUTION PASSABILITY ACCORDING TO LIMITS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 17. TEST CASE VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 18. SUBTOPIC TAXONOMY VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 19. NOTE SECTION EXPLANATION APPROACH
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 20. TIME LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 21. MEMORY LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 22. INEFFICIENT APPROACHES LIMITATIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 23. NO CODE IN REASONING CHAINS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 24. FINAL APPROACH DISCUSSION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 25. SAMPLE TEST CASE DRY RUN VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 26. TYPO AND SPELLING CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 27. SUBTOPIC RELEVANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 28. MISSING RELEVANT SUBTOPICS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 29. THOUGHT HEADING VIOLATIONS CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_05_05: Contains heading-like text "Combining results for each post" at the start, violating the rule that thoughts should contain only analysis content without descriptive headings
+
+--------------------------------------------------
+
+📝 30. MATHEMATICAL VARIABLES AND EXPRESSIONS FORMATTING
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Metadata section violation: "3, (O(n²) → O(n²) → O(n log n))" should be "3, ($O(n^2)$ → $O(n^2)$ → $O(n \log n)$)"
+
+• CHAIN_05, THOUGHT_05_06 violation: "memory requirement proportional to n" should be "memory requirement proportional to $n$"
+
+--------------------------------------------------
+
+📝 31. CHAIN TEST CASE ANALYSIS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_02 THOUGHT_02_01: States results without showing step-by-step calculation process: "For three equally spaced posts located at positions -$10^9$, $0$, and +$10^9$, we calculate directly: - Post 1 contributes $10^9$ west and $10^9$ east → total $2 \times 10^9$" - jumps directly to final answer without showing HOW these values were computed
+
+• CHAIN_02 THOUGHT_02_02: Describes conceptual scenario without executing it: "Now imagine a sequence of posts located at several irregular positions along the track, with different loudness caps for each direction."
+
+• CHAIN_02 THOUGHT_02_03: Makes general observations without working through specific examples: "If a post has a very small right-side cap but a moderate left-side cap, it will primarily contribute loudness to the west."
+
+• CHAIN_02 THOUGHT_02_04: Suggests considering scenario but doesn't analyze it: "Consider posts that are unevenly spaced along the track, where some gaps are much larger than others."
+
+• CHAIN_02 THOUGHT_02_05: Describes special case conceptually without executing it: "A special case occurs when another post lies exactly at the distance equal to the loudness cap."
+
+• CHAIN_02 THOUGHT_02_07: Mentions testing but doesn't perform actual tests: "Testing on a few small and random configurations helps confirm correctness."
+
+• CHAIN_02 THOUGHT_02_08: References boundary test without executing it: "When only two posts exist, and one or both have a zero cap, the loudness simply becomes zero in the capped direction."
+
+• CHAIN_02 THOUGHT_02_09: Describes scenario without analysis: "If all caps are significantly larger than any actual distance between posts, every post effectively contributes the true distance..."
+
+• CHAIN_02: NO actual step-by-step execution, NO detailed walkthroughs showing algorithm behavior, NO manual tracing through algorithm steps, NO concrete examples with detailed computation process
+
+--------------------------------------------------
+
+📝 32. NO PREDICTIVE HEADINGS IN THOUGHTS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 33. COMPREHENSIVE REASONING THOUGHTS REVIEW
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 34. GITHUB URL EXTRACTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 35. GITHUB URL PARSING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 36. REPOSITORY CLONING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 37. OVERALL.MD FILE DETECTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 38. HUNYUAN CPP FILES CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 39. OVERALL.MD FORMAT VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+overall.md format validation failed: Missing required sections: ### Model: `hunyuan-t1-dev-20250822`, ### Model: `standard.cpp`
+
+--------------------------------------------------
+
+📝 40. SOLUTION.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+solution.md validation failed: solution.md content mismatch: Content diff violations found: Disallowed diff: 'Clarifying the objective and understanding the problem'; Disallowed diff: 'Clarifying the objective and problem understanding'; Disallowed diff: 'We are given a line of whistleposts, each positioned at a unique coordinate along a straight track.'; Disallowed diff: 'Every post emits sound toward both directions, but the sound level diminishes depending on distance and is limited by a maximum value, called the loudness cap.'; Disallowed diff: 'For each post, there are two separate caps: one for the west side and one for the east side.'
+
+Full diff output:
+--- 
++++ 
+@@ -0,0 +1,2 @@
++**[COT]**
++
+@@ -3 +5 @@
+-Clarifying the objective and understanding the problem
++Clarifying the objective and problem understanding
+@@ -7,4 +9,4 @@
+-We are given a line of whistleposts, each positioned at a unique coordinate along a straight track.
+-Every post emits sound toward both directions, but the sound level diminishes depending on distance and is limited by a maximum value, called the loudness cap.
+-For each post, there are two separate caps: one for the west side and one for the east side.
+-The perceived loudness at another post equals the smaller of the physical distance between them and the appropriate directional cap.
++We restate the setting: there are $n$ whistleposts positioned at strictly increasing coordinates $p_1 < p_2 < \cdots < p_n$. For each post $i$, its sound toward the west (indices $j < i$) is capped by $L_i$, and toward the east (indices $j > i$) is capped by $R_i$. The loudness from post $i$ perceived at post $j$ is
++$$
++\min(p_i - p_j, L_i) \quad \text{if } j < i, \quad \min(p_j - p_i, R_i) \quad \text{if } j > i.
++$$
+@@ -14,2 +16 @@
+-Our goal is to determine, for each whistlepost, the total loudness that all other posts would receive if only that specific post made a sound.
+-In other words, we want the total sum of the loudness contributions from that one post to all others along the track.
++The task is to compute, for every post $i$, the total loudness received by all other posts when only $i$ greets. In other words, the output for each $i$ is the sum of the loudness values from $i$ to all other posts.
+@@ -19,2 +20 @@
+-Because the post positions are arranged in strictly increasing order, distances to the left of any post increase as we move farther left, and distances to the right increase as we move farther right.
+-Therefore, the set of neighboring posts that lie within any cap value always forms one contiguous group on either side of that post.
++Because the positions are strictly increasing, distances to the left of a post, $d_{ij} = p_i - p_j$ for $j < i$, grow larger as we move further left. Distances to the right, $d_{ij} = p_j - p_i$ for $j > i$, also grow larger as we move further right. For any cap $L_i$ or $R_i$, the posts within the cap always form a contiguous block next to $i$.
+@@ -24,2 +24 @@
+-The problem specifies a limited number of whistleposts, each with integer positions and loudness caps.
+-These limits guarantee that the overall magnitude of the numbers involved will not exceed what can safely be processed using standard integer arithmetic.
++The input also specifies constraints on the number of posts and the ranges of positions and caps. These constraints determine how large the problem instances can be and ensure that the definition of loudness remains consistent across all posts.
+@@ -29,5 +28 @@
+-The total number of whistleposts lies between two and two hundred thousand.
+-Each position value is an integer whose magnitude does not exceed one billion, and each loudness cap lies between zero and one billion as well.
+-Positions are always provided in strictly increasing order, ensuring that no two posts occupy the same location.
+-
+----
++The problem input consists of up to $n = 2 \cdot 10^5$ whistleposts, with positions $p_i$ given as strictly increasing integers bounded by $|p_i| \le 10^9$, and with individual loudness caps $L_i, R_i$ each constrained to the range $0 \le L_i, R_i \le 10^9$.
+@@ -37 +32 @@
+-Building examples and testing early understanding
++Designing thorough tests and Example analysis
+@@ -41,5 +36 @@
+-For three equally spaced posts located at positions -$10^9$, $0$, and +$10^9$, we calculate directly:
+-- Post 1 contributes $10^9$ west and $10^9$ east → total $2 \times 10^9$
+-- Post 2 receives $10^9$ from each neighbor → total $2 \times 10^9$
+-- Post 3 mirrors Post 1 with total $2 \times 10^9$
+-
++In the first example with three posts at −1e9, 0, and 1e9, all damping limits are 1e9. Any distance beyond that is clipped, so every interaction contributes exactly 1e9. Each post collects two such contributions, giving totals of 2e9 for all three.
+@@ -49,4 +40 @@
+-Now imagine a sequence of posts located at several irregular positions along the track, with different loudness caps for each direction.
+-For instance, one post might have a very small limit toward the west but a large one toward the east.
+-When computing loudness totals, we examine one post at a time, measure how far each neighbor lies, and then limit that contribution by whichever directional cap applies.
+-This setup highlights that asymmetry in cap values leads to noticeably different total loudness outcomes.
++In the second example with seven posts, the limits vary per post. For instance, post 3 (position 4) gathers 6 from the left and 34 from the right, giving 40; post 6 (position 17) is capped heavily to the left (all 1’s) and clipped on the right (20), giving 25. This variation across posts explains the diverse output sequence 6, 1, 40, 3, 50, 25, 30.
+@@ -56,3 +44,3 @@
+-If a post has a very small right-side cap but a moderate left-side cap, it will primarily contribute loudness to the west.
+-Conversely, if a post’s left-side cap is nearly zero, its influence stops immediately on that side.
+-By working through a few explicit examples, we can verify that these rules behave exactly as described, producing totals that align with the minimum of distance and cap.
++Test asymmetric extremes:
++- Mix $L_i = 0$ with large $R_i$ and vice versa across posts.
++- Ensure west-only or east-only contributions are handled correctly, particularly at boundary indices $i = 1$ and $i = n$.
+@@ -62,3 +50,2 @@
+-Consider posts that are unevenly spaced along the track, where some gaps are much larger than others.
+-If every post shares the same modest cap value, the effective loudness region for each will extend only a few neighbors to either side.
+-Thus, even large gaps between distant posts will not matter, because those posts fall outside every other’s capped range.
++Test non-uniform spacing:
++- Positions like $p = [-4, 0, 3, 10, 13]$ create uneven distance gaps; pair with varied caps to ensure boundary detection works in the presence of clustered and far-apart neighbors.
+@@ -68,3 +55,2 @@
+-A special case occurs when another post lies exactly at the distance equal to the loudness cap.
+-In this situation, the loudness is taken as exactly the cap value itself.
+-This confirms that equality conditions are inclusive and do not cause discontinuities in loudness totals.
++Test boundary equalities:
++- Construct cases where $p_i - p_j = L_i$ for some $j < i$, and $p_k - p_i = R_i$ for some $k > i$. These check the correct use of lower_bound versus upper_bound and correct inclusion of equal distances within the cap.
+@@ -74,4 +60,2 @@
+-When the input reaches its largest possible scale, positions can be as large as one billion in magnitude and the number of posts can reach two hundred thousand.
+-Even if every post were to contribute the full maximum loudness to every other post, the resulting sum per post would stay well below the limit that a sixty-four-bit integer can safely represent.
+-This ensures that no overflow will occur during computation.
+-
++Test scalability and overflow control:
++- Large $n$ (e.g., $n = 200000$) with worst-case positions and caps to ensure 64-bit accumulation suffices and performance is within limits. For instance, arithmetic bounds on total sums should not exceed $\approx 10^{14}$ to $10^{15}$, well within int64.
+@@ -81,2 +65,2 @@
+-Testing on a few small and random configurations helps confirm correctness.
+-We can manually sum up contributions for each post by comparing distances and caps to ensure that our interpretation of the loudness rule remains consistent.
++Test randomness and cross-validation:
++- For small $n$ (e.g., $n \le 2000$), compare the optimized method against the brute force for many random seeds of positions and caps, verifying equality within exact arithmetic.
+@@ -86,2 +70,3 @@
+-When only two posts exist, and one or both have a zero cap, the loudness simply becomes zero in the capped direction.
+-This serves as an easy boundary test for logic correctness.
++Test minimality and zeros:
++- $n = 2$, with various combinations of zero and nonzero caps. For example:
++  - $p = [-3, 4]$, $L = [0, 0]$, $R = [5, 7]$. Confirms that a zero cap nullifies contribution on one side and verifies handling across signs.
+@@ -91,4 +76,2 @@
+-If all caps are significantly larger than any actual distance between posts, every post effectively contributes the true distance to each other without clipping.
+-This forms a baseline case where no cap limits are active.
+-
+----
++Test uniform large caps that dominate all distances:
++- $p = [-10^9, 0, 10^9]$, $L = [10^{12}, 10^{12}, 10^{12}]$, $R = [10^{12}, 10^{12}, 10^{12}]$. All contributions should equal the true distances since caps are never reached. This validates distance summation logic.
+@@ -98 +81 @@
+-Developing the brute-force baseline
++Implementing brute force
+@@ -102,3 +85 @@
+-The most direct method follows the problem definition literally.
+-For each post, we examine every other post, determine the distance between them, apply the correct cap for that direction, and add the result to that post’s total loudness.
+-This guarantees perfect correctness but requires many pairwise comparisons.
++Basic idea: for every index $i$, iterate over all $j \ne i$, compute the distance $d = |p_i - p_j|$, apply the directional cap $L_i$ if $j < i$ or $R_i$ if $j > i$, and add $ \min(d, \text{cap}) $ to the running sum for $i$. This directly matches the definition.
+@@ -108,2 +89 @@
+-Because this approach implements the problem statement exactly, it will always produce the correct answer for any input.
+-It serves as a reliable reference for testing more advanced methods later.
++Correctness is straightforward because we compute exactly what the problem states without any abstraction or optimization. No special data structures are needed beyond basic loops and 64-bit accumulation.
+@@ -113 +93 @@
+-For two hundred thousand posts, the quadratic algorithm performs roughly forty billion pair evaluations, which already exceeds practical time limits.
++Time complexity analysis: two nested loops produce $O(n^2)$ operations. With $n = 200000$, this is $4 \cdot 10^{10}$ pair evaluations, which is not tractable in typical time limits. Space complexity is $O(1)$ aside from input storage.
+@@ -117,2 +97 @@
+-Even with highly optimized loops or compiled code, this quadratic runtime is unmanageable.
+-Moreover, this method ignores helpful properties of the data, such as sorted positions and contiguous regions of influence, which could be exploited to accelerate the computation.
++Practical limitations: even with aggressive micro-optimizations, $O(n^2)$ is multiple orders of magnitude too slow. Furthermore, this approach provides no immediate insight into structural properties like contiguity or monotonicity that could reduce work per $i$.
+@@ -122,4 +101 @@
+-The brute-force algorithm is excellent for verifying correctness on small datasets but fails to meet time constraints for large inputs.
+-We will therefore need to introduce more structure-aware optimizations such as binary search and prefix-sum techniques.
+-
+----
++Conclusion: while the brute force is a reliable correctness oracle for small $n$, it fails to meet the performance requirements for the given constraints. We must leverage the sorted nature of positions and contiguous cap regions.
+@@ -129 +105 @@
+-Introducing prefix sum and limitations of naive scanning
++Using prefix sums and linearly scanning per index
+@@ -133,2 +109 @@
+-We can create an auxiliary array that holds cumulative sums of post positions or any derived quantity.
+-This allows us to compute totals across any continuous range of posts in constant time by subtracting two entries in the prefix-sum array.
++Initial refinement attempt: precompute prefix sums of positions to speed up distance sums over contiguous ranges. For each $i$, we would still find the cap boundary on each side by scanning outward from $i$, then use prefix sums to compute the exact-distance totals in $O(1)$ once the boundary is known.
+@@ -138,2 +113 @@
+-To know where a post’s influence begins and ends, we need to find which neighboring posts lie within its cap distances.
+-Binary search is an ideal tool for identifying those boundary positions efficiently in the sorted list of post coordinates.
++Why this underperforms: although prefix sums accelerate the sum calculation itself, discovering the boundary by walking from $i-1$ leftward until $p_i - p_j \le L_i$ fails in worst-case scenarios. If many $L_i$ are small across all $i$, each scan can take $O(i)$, leading still to $O(n^2)$ total runtime.
+@@ -143,2 +117 @@
+-Even if we try to reuse information from previous iterations, the left and right boundaries for each post can shift unpredictably.
+-In extreme cases, a naive scanning approach might still need to inspect nearly every post for each iteration, which leads back to quadratic behavior.
++Even attempting to reuse scan positions within an iteration of $i$ is not sufficient. When moving to the right side, a similar outward scan to locate where $p_j - p_i \le R_i$ also degenerates to $O(n)$ per $i$ in pathological configurations, such as caps that place the boundary at one end for most $i$.
+@@ -148,2 +121 @@
+-By combining both directional scans, the total work can still reach the square of the number of posts in unfavorable inputs.
+-This makes scanning alone insufficient as an optimization strategy, even when aided by prefix sums.
++Thus, combining both sides, the total work can reach quadratic scale: each post potentially scanning across nearly all others. This results in $O(n^2)$ operations in the worst case and it require $O(n)$ space.
+@@ -153,4 +125 @@
+-While prefix sums simplify summation over contiguous ranges, they do not solve the boundary identification problem.
+-To achieve efficiency, we must combine prefix sums with logarithmic-time boundary detection using binary search — an approach that balances speed with clarity.
+-
+----
++Conclusion: prefix sums help with summation but do not on their own fix boundary detection. We need an $O(\log n)$ method per index to locate the split points, capitalizing on the sorted positions and monotonic distances.
+@@ -160 +129 @@
+-Introducing binary searches over cap boundaries and combining with prefix sum
++Introducing binary searches over cap boundaries and combining with prefix sums
+@@ -164,5 +133 @@
+-When we look to the west of a given post, the distances between that post and all earlier ones grow steadily as we move leftward.
+-All posts whose distance does not exceed the left-side cap form one continuous block next to the current post.
+-The first post in that block can be located efficiently using a binary search that looks for the earliest position not smaller than the current post’s position minus its left-side limit.
+-The same logic applies to the east: we search for the earliest position that exceeds the current post’s position plus its right-side limit.
+-Each of these binary searches takes logarithmic time.
++Rationale for binary search: to the west of $i$, distances $p_i - p_j$ strictly increase as $j$ decreases. The set of indices where $p_i - p_j \le L_i$ is a contiguous suffix of $[0, i-1]$. Thus, the first index $L$ satisfying $p_L \ge p_i - L_i$ can be found via lower_bound in $O(\log n)$. Symmetrically to the east, the set where $p_j - p_i \le R_i$ is a contiguous prefix of $[i+1, n-1]$, and the first index $R$ with $p_R > p_i + R_i$ can be found via upper_bound in $O(\log n)$.
+@@ -172,4 +137 @@
+-We create a cumulative array that stores the running total of all post positions.
+-The first entry is zero, and each subsequent entry adds the next position value.
+-This structure lets us instantly find the total position value between any two indices by subtracting the prefix-sum value at the start from the prefix-sum value just past the end.
+-It transforms multiple additions into a constant-time difference operation.
++Prefix sums setup: define $S[t] = \sum_{u=0}^{t-1} p_u$ with $S[0] = 0$. Then for any contiguous block $[l, r]$, the sum $\sum_{u=l}^{r} p_u = S[r+1] - S[l]$. This lets us express sums of distances to a fixed $p_i$ as linear combinations of $p_i$ and a contiguous sum of positions.
+@@ -179,7 +141,5 @@
+-For the west side of a post, the indices within range form a continuous block that ends immediately before the current post.
+-The total loudness from these posts can be broken down into two parts:
+-
+-The contribution from posts still within the left-side cap, which depends on the difference between the current position and each earlier position.
+-
+-The contribution from posts lying farther away, which each contribute the full left-side cap value.
+-The count of in-cap and out-of-cap posts is derived directly from the binary search results and the index of the current post.
++West side computation details:
++- Let $L$ be the first index such that $p_L \ge p_i - L_i$ via lower_bound.
++- In-cap indices are $[L, i-1]$, with count $c_w = i - L$.
++- Exact-distance sum to in-cap posts: $ \sum_{j=L}^{i-1} (p_i - p_j) = c_w \cdot p_i - (S[i] - S[L]) $.
++- Out-of-cap indices are $[0, L-1]$, count $o_w = L$, each contributes $L_i$: total $o_w \cdot L_i$.
+@@ -189,5 +149,5 @@
+-On the east side, the logic mirrors that of the west.
+-The posts within the right-side cap form a contiguous block that begins immediately after the current post.
+-Their contribution depends on the difference between each of their positions and the current one.
+-Posts that fall outside the cap contribute a fixed value equal to the right-side limit.
+-Again, prefix-sum subtraction allows us to compute the total contribution in constant time once the range boundaries are known.
++East side computation details:
++- Let $R$ be the first index such that $p_R > p_i + R_i$ via upper_bound.
++- In-cap indices are $[i+1, R-1]$, with count $c_e = R - i - 1$.
++- Exact-distance sum to in-cap posts: $ \sum_{j=i+1}^{R-1} (p_j - p_i) = (S[R] - S[i+1]) - c_e \cdot p_i $.
++- Out-of-cap indices are $[R, n-1]$, count $o_e = (n - 1 - i) - c_e$, each contributes $R_i$: total $o_e \cdot R_i$.
+@@ -197,14 +157,3 @@
+-Combining results for each post
+-
+-The total loudness for any post is obtained by adding four components:
+-
+-The in-cap contribution from the west
+-
+-The out-of-cap contribution from the west
+-
+-The in-cap contribution from the east
+-
+-The out-of-cap contribution from the east
+-
+-Each component can be expressed using counts and prefix-sum differences, all computable in constant time once the two binary searches have been performed.
+-Thus, the loudness for one post can be derived efficiently without scanning all others.
++Total for index $i$ is the sum of the four parts:
++$ \text{total}_i = \big(c_w \cdot p_i - (S[i] - S[L])\big) + (o_w \cdot L_i) + \big((S[R] - S[i+1]) - c_e \cdot p_i\big) + (o_e \cdot R_i) $.
++Each term is computable in $O(1)$ after two binary searches and uses only prefix sums and counts.
+@@ -214,4 +163,14 @@
+-For each post, only two binary searches are needed, each taking logarithmic time.
+-The arithmetic per post involves a fixed number of additions and multiplications.
+-This results in an overall runtime proportional to $n \log n$ and a memory requirement proportional to n, which is perfectly manageable for the problem’s constraints.
+-Since all calculations follow directly from the problem’s definitions and use mathematically equivalent transformations, correctness is preserved.
++Complexity and correctness:
++- For each $i$, two binary searches contribute $O(\log n)$, and arithmetic is $O(1)$, so the total runtime is $O(n \log n)$.
++- Memory is $O(n)$ for positions, caps, and the prefix sum array.
++
++Time and space summary:
++
++$$
++\text{Time complexity: } O(n \log n) \quad (\text{two binary searches per index})
++$$
++$$
++\text{Space complexity: } O(n) \quad (\text{positions, caps, prefix sum array})
++$$
++
++This confirms the method is efficient for $n \le 2 \cdot 10^5$ and safely handles 64-bit sums.
+@@ -221,5 +180,3 @@
+-When searching for the western limit, we include the post whose position exactly matches the current position minus the left cap.
+-Similarly, for the eastern limit, we include the post that exactly matches the current position plus the right cap.
+-These conventions ensure that equality cases are handled consistently and that no posts are skipped or double-counted.
+-
+----
++Boundary handling:
++- West uses lower_bound on $p_i - L_i$, so indices with $p_j \ge p_i - L_i$ are treated as in-cap, correctly including the equality case $p_i - p_j = L_i$.
++- East uses upper_bound on $p_i + R_i$, so indices with $p_j \le p_i + R_i$ are in-cap, again including equality. This resolves off-by-one concerns cleanly.
+@@ -229 +186 @@
+-Exploring the limits of global two-pointer optimization
++Attempting a global two-pointer sweep across i and recognizing its pitfalls
+@@ -233,3 +190 @@
+-It may appear possible to use a pair of moving pointers to track the valid range of posts as we progress from left to right.
+-This works well when the limits grow or shrink monotonically.
+-However, in this particular problem, the boundaries are not guaranteed to move in only one direction.
++Temptation to optimize further: as $i$ increases from left to right, it is natural to try maintaining two global pointers for the west and east boundaries
+@@ -239,3 +194 @@
+-The left boundary for a post depends on its position minus its left cap, and the right boundary depends on its position plus its right cap.
+-While positions always increase, the cap values vary independently for each post.
+-This independence allows the boundaries to shift forward or backward arbitrarily, destroying the consistent trend that two-pointer algorithms depend on.
++Why monotonicity fails: the boundary for the west depends on $p_i - L_i$, and for the east on $p_i + R_i$. While $p_i$ increases with $i$, the caps $L_i$ and $R_i$ are arbitrary per-index values. This means the thresholds can move both left and right in the coordinate sense, causing corresponding boundary indices to move non-monotonically across $i$.
+@@ -245,3 +198,3 @@
+-Imagine three posts arranged from left to right, with their left caps set as zero, a large number, and zero respectively.
+-As we move from one post to the next, the west boundary first jumps to include nearly all earlier posts, then instantly excludes them all.
+-This behavior shows that there is no predictable pattern we can exploit for continuous sweeping.
++Concrete counterexample:
++- Suppose $p = [0, 10, 20]$, $L = [0, 100, 0]$.
++- For $i = 1$ (position 10), the west threshold is $p_1 - L_1 = -90$, so all west posts are in-cap. For $i = 2$ (position 20), the west threshold is $p_2 - L_2 = 20$, so none are in-cap. The west boundary jumps left-to-right drastically with no monotonic trend that can be exploited in a single sweep.
+@@ -251,3 +204 @@
+-Even sorting the posts by adjusted thresholds such as “position minus left limit” or “position plus right limit” does not resolve the issue.
+-The total loudness depends directly on the current post’s position within those ranges, so the results cannot be combined across multiple posts without recomputing the relevant boundaries.
+-As a result, any global sweeping method still requires recalculation for each post.
++Even sorting by thresholds like $p_i - L_i$ or $p_i + R_i$ does not decouple the computation. The sums depend on the center $p_i$ multiplicatively through terms like $c_w \cdot p_i$ and $c_e \cdot p_i$, making it difficult to aggregate contributions for multiple $i$ simultaneously without revisiting the boundary determination per $i$.Final Time Complexity is $O(n\log n)$
+@@ -257,4 +208 @@
+-While the two-pointer approach is a powerful tool for problems with consistently expanding or contracting windows, this problem’s per-post variability breaks that assumption.
+-Therefore, a per-post binary search combined with prefix-sum arithmetic remains the correct and efficient solution.
+-
+----
++Conclusion: while two-pointers are powerful for problems with globally monotone windows, the per-index cap variability here breaks the required monotonicity.
+@@ -264 +212 @@
+-Verifying indexing rules and boundary correctness
++Verifying summation identities and resolving off-by-one indexing
+@@ -268,5 +216,3 @@
+-The west-side block includes all posts from the identified left boundary up to just before the current one.
+-If the left boundary coincides with the current post, the range is empty.
+-If it is one step earlier, only a single neighbor is considered.
+-When the boundary extends to the very start, all earlier posts are included.
+-These checks ensure the indices are aligned correctly and prevent off-by-one mistakes.
++West-side identity derivation: for in-cap indices $j \in [L, i-1]$,
++$ \sum_{j=L}^{i-1} (p_i - p_j) = \sum_{j=L}^{i-1} p_i - \sum_{j=L}^{i-1} p_j = (i - L) \cdot p_i - (S[i] - S[L]) $.
++This relies on the contiguous nature of indices and the definition of the prefix sums.
+@@ -276,5 +222,3 @@
+-On the east, the valid range begins immediately after the current post and ends just before the identified right boundary.
+-If that boundary immediately follows the current post, the range is empty.
+-If it extends by one position, only the nearest neighbor contributes.
+-If it reaches the end of the list, all later posts are included.
+-This mirrors the inclusion and exclusion pattern established on the west.
++East-side identity derivation: for in-cap indices $j \in [i+1, R-1]$,
++$ \sum_{j=i+1}^{R-1} (p_j - p_i) = \sum_{j=i+1}^{R-1} p_j - \sum_{j=i+1}^{R-1} p_i = (S[R] - S[i+1]) - (R - i - 1) \cdot p_i $.
++The inclusive-exclusive bounds match the upper_bound convention for $R$.
+@@ -284,2 +228,5 @@
+-We confirm that when the left or right boundaries coincide with the post itself, the counts of in-range posts become zero, and when the boundaries reach the dataset limits, the out-of-range counts vanish.
+-This guarantees that every situation is covered, and no negative counts can occur.
++Edge cases:
++- If $L = i$, then $c_w = 0$ and the in-cap west sum is zero; all west posts are out-of-cap.
++- If $L = 0$, then $o_w = 0$; no west posts are out-of-cap.
++- If $R = i+1$, then $c_e = 0$ and the in-cap east sum is zero.
++- If $R = n$, then $o_e = 0$ and there are no out-of-cap posts on the east. These ensure counts never go negative.
+@@ -289,2 +236,3 @@
+-When a neighboring post lies exactly at the distance specified by the cap, it is treated as part of the capped region and contributes its capped value.
+-This applies symmetrically to both sides, ensuring that equality conditions produce consistent results.
++Equality at thresholds:
++- West uses $p_j \ge p_i - L_i$ as in-cap. When $p_j = p_i - L_i$, the distance equals $L_i$, which correctly goes into the in-cap exact-distance sum.
++- East uses $p_j \le p_i + R_i$ as in-cap. When $p_j = p_i + R_i$, the distance equals $R_i$, also in-cap. This eliminates double-counting or missing boundary elements.
+@@ -294,5 +242,2 @@
+-To ensure numerical safety, we perform subtractions and additions in an order that avoids temporary values growing unnecessarily large.
+-All arithmetic uses 64-bit integers, which are easily sufficient for the problem’s bounds.
+-This ordering also improves clarity in code but, more importantly, guarantees mathematical stability in reasoning.
+-
+----
++Overflow safety:
++- Each component like $c_w \cdot p_i$ is bounded by $n \cdot 10^9 \approx 2 \cdot 10^{14}$, and prefix sums of positions are bounded similarly. Summing a constant number of such terms yields results within approximately $10^{15}$, well within 64-bit signed integer range.
+@@ -302 +247 @@
+-Implementation verification and testing strategy
++Implementing and validating the final method with clean code practices
+@@ -306,2 +251,4 @@
+-We store positions and cap values in standard arrays or lists, and maintain an additional prefix-sum array that starts at zero and accumulates each position value.
+-Every calculation is performed using a numeric type that supports large integers to eliminate any chance of overflow.
++Data representation choices:
++- Use std::vector<long long> for positions and caps.
++- Build a prefix sum array $S$ of size $n + 1$ with $S[0] = 0$ and $S[i+1] = S[i] + p[i]$.
++- Ensure all arithmetic uses 64-bit to avoid overflow.
+@@ -311,4 +258,4 @@
+-To determine how far the sound reaches on each side, we apply binary searches to the sorted list of positions.
+-On the west, the search identifies the first post whose position is not less than the current position minus its left-side limit.
+-On the east, the search finds the first post whose position exceeds the current position plus its right-side limit.
+-These two boundaries mark exactly where the capped influence begins and ends.
++Binary searches:
++- For west, compute $L = \text{lower\_bound}(p.begin(), p.end(), p[i] - L_i) - p.begin()$.
++- For east, compute $R = \text{upper\_bound}(p.begin(), p.end(), p[i] + R_i) - p.begin()$.
++This exactly encodes the inclusive boundary on the left and exclusive boundary on the right derived earlier.
+@@ -318,3 +265,4 @@
+-We validate the implementation by comparing its results with those of the brute-force version on small datasets.
+-Specific tests are constructed to cover zero caps, equality at threshold values, extremely large positions, and random configurations.
+-We also include large-scale tests with the maximum number of posts to ensure that the optimized approach runs efficiently within time limits.
++Testing strategy:
++- Cross-validate against the brute-force solution for small $n$ and many random seeds.
++- Include targeted unit tests for zero caps, equality thresholds, and extreme positions.
++- For performance, test with $n = 200000$, evenly spaced positions, and random caps to ensure the $O(n \log n)$ implementation runs efficiently.
+@@ -324,3 +272 @@
+-For each test, the optimized algorithm produces the same total loudness values as the brute-force reference.
+-This confirms the correctness of the binary search boundaries, the prefix-sum usage, and the overall arithmetic.
+-The matching results across all scenarios validate the reasoning structure.
++A small, focused code excerpt demonstrates how a single index $i$ is processed. It adheres to naming conventions, includes, indentation, and comment style. The full program would loop over all $i$ and print the result per line.
+@@ -330,5 +276,41 @@
+-The combined approach of binary searches and prefix-sum calculations yields a solution that is both correct and efficient.
+-All edge cases, equality conditions, and data limits have been examined.
+-The final method achieves logarithmic scaling per post and is suitable for all problem constraints.
+-
+----
++```cpp
++#include <vector>
++#include <algorithm>
++
++/**
++ * @brief Computes total loudness emitted by a single post toward all others.
++ *
++ * @param positions Strictly increasing positions of posts.
++ * @param leftCaps Westward caps L[i] for each post.
++ * @param rightCaps Eastward caps R[i] for each post.
++ * @param prefixSums Prefix sums S where S[t] = sum of positions[0..t-1].
++ * @param index The post index i to evaluate.
++ * @return The total loudness for post i as a 64-bit integer.
++ */
++long long computeTotalForIndex(const std::vector<long long> &positions,
++                               const std::vector<long long> &leftCaps,
++                               const std::vector<long long> &rightCaps,
++                               const std::vector<long long> &prefixSums,
++                               int index) {
++    const int n = static_cast<int>(positions.size());
++    const long long xi = positions[index];
++    const long long li = leftCaps[index];
++    const long long ri = rightCaps[index];
++
++    // West side: [0..index-1]
++    int L = static_cast<int>(std::lower_bound(positions.begin(), positions.end(), xi - li) - positions.begin());
++    long long cw = index - L;
++    long long sumW = cw * xi - (prefixSums[index] - prefixSums[L]);
++    long long ow = L;
++    long long leftCost = sumW + ow * li;
++
++    // East side: [index+1..n-1]
++    int R = static_cast<int>(std::upper_bound(positions.begin(), positions.end(), xi + ri) - positions.begin());
++    long long ce = R - index - 1;
++    long long sumE = (prefixSums[R] - prefixSums[index + 1]) - ce * xi;
++    long long oe = (n - 1 - index) - ce;
++    long long rightCost = sumE + oe * ri;
++
++    return leftCost + rightCost;
++}
++```
+@@ -342 +324 @@
+-The final approach consolidates the prefix sums and binary searches to efficiently compute total loudness per post.
++Alternative data structures like segment trees or Fenwick trees were considered for range sum queries. However, because the summand is a linear function of positions and counts over contiguous ranges adjacent to index $i$, a simple prefix sum suffices. There is no need for dynamic updates or arbitrary range queries.
+@@ -346 +328 @@
+-We rely primarily on arrays for positions, left and right caps, and prefix sums.
++Sweep-line or divide-and-conquer approaches do not naturally fit because contributions couple to $p_i$ for each $i$ in a way that resists aggregation across indices without re-evaluating cap-dependent boundaries. This coupling undermines attempts to amortize work across $i$ beyond binary searches.
+@@ -350 +332 @@
+-Compared with brute-force attempts, this method reduces runtime from $O(n^2)$ to $O(n \log n)$ by exploiting contiguity and efficient boundary location.
++Preprocessing precomputed nearest indices at certain distance thresholds would either be too coarse (losing exactness for specific $L_i$, $R_i$) or too large (requiring per-index tables), giving no scalable advantage over on-demand binary searches.
+@@ -358,8 +340 @@
+-We verified correctness through:
+-- Brute-force checks on small $n$
+-- Validation of both sample inputs
+-- Boundary tests for $L_i$, $R_i$, and large coordinates
+-The $O(n \log n)$ method matches direct $O(n^2)$ results and stays within $10^{15}$ bounds, confirming correctness and efficiency.
+-
+-
+----
++Given these considerations, the prefix sums plus binary searches approach is the most suitable: it is fast, memory-light, and straightforward to verify through algebraic identities and targeted tests.
+@@ -381 +356 @@
+-- Distances over contiguous ranges can be summed efficiently using prefix sum of positions.
++- Distances over contiguous ranges can be summed efficiently using prefix sums of positions.
+@@ -384,5 +358,0 @@
+-Constraints:
+-- $2 \le n \le 2 \cdot 10^5$.
+-- Positions are strictly increasing: $p_1 < p_2 < \cdots < p_n$ and $|p_i| \le 10^9$.
+-- Caps are bounded: $0 \le L_i, R_i \le 10^9$.
+-
+@@ -393 +363 @@
+-1. Precompute prefix sum of positions:
++1. Precompute prefix sums of positions:
+@@ -410 +380 @@
+-- Prefix sum convert a sum of distances over a contiguous block into $O(1)$.
++- Prefix sums convert a sum of distances over a contiguous block into $O(1)$.
+@@ -416 +385,0 @@
+-#include <algorithm>
+@@ -418,0 +388 @@
++#include <algorithm>
+@@ -421 +391 @@
+- * @brief Compute total loudness emitted by one whistlepost toward all others.
++ * @brief Computes total loudness emitted by a single whistlepost toward all others.
+@@ -423,9 +393,6 @@
+- * Uses prefix sums and binary search to calculate the total loudness
+- * contributed by a single post considering directional loudness caps.
+- *
+- * @param positions Sorted positions of all whistleposts.
+- * @param leftCaps Westward (left) loudness caps for each post.
+- * @param rightCaps Eastward (right) loudness caps for each post.
+- * @param prefixSum Prefix sum of positions, where prefixSum[t] = sum of positions[0..t-1].
+- * @param index Index of the post currently being processed.
+- * @return The total loudness emitted by the given post (64-bit integer).
++ * @param whistlePositions Strictly increasing positions of whistleposts.
++ * @param westCaps Westward loudness caps for each post.
++ * @param eastCaps Eastward loudness caps for each post.
++ * @param positionPrefixSum Prefix sums of positions: positionPrefixSum[t] = sum of whistlePositions[0..t-1].
++ * @param postIndex The index of the post to evaluate.
++ * @return Total loudness for the given post as a 64-bit integer.
+@@ -433,44 +400,33 @@
+-long long computeTotalLoudness(
+-    const std::vector<long long>& positions,
+-    const std::vector<long long>& leftCaps,
+-    const std::vector<long long>& rightCaps,
+-    const std::vector<long long>& prefixSum,
+-    int index) {
+-
+-    const int n = static_cast<int>(positions.size());
+-    const long long currentPosition = positions[index];
+-    const long long currentLeftCap = leftCaps[index];
+-    const long long currentRightCap = rightCaps[index];
+-
+-    // ---------- WEST (left side) ----------
+-    int leftIndex = static_cast<int>(
+-        std::lower_bound(positions.begin(), positions.end(),
+-                         currentPosition - currentLeftCap) - positions.begin());
+-
+-    long long inCapWest = index - leftIndex;
+-    long long outCapWest = leftIndex;
+-    if (inCapWest < 0) inCapWest = 0;
+-    if (outCapWest < 0) outCapWest = 0;
+-
+-    // Sum of (p_i - p_j) for j in [leftIndex, index - 1]
+-    long long westSumInCap =
+-        inCapWest * currentPosition - (prefixSum[index] - prefixSum[leftIndex]);
+-    long long totalWest = westSumInCap + outCapWest * currentLeftCap;
+-
+-    // ---------- EAST (right side) ----------
+-    int rightIndex = static_cast<int>(
+-        std::upper_bound(positions.begin(), positions.end(),
+-                         currentPosition + currentRightCap) - positions.begin());
+-
+-    long long inCapEast = rightIndex - (index + 1);
+-    long long outCapEast = (n - 1 - index) - inCapEast;
+-    if (inCapEast < 0) inCapEast = 0;
+-    if (outCapEast < 0) outCapEast = 0;
+-
+-    // Sum of (p_j - p_i) for j in [index + 1, rightIndex - 1]
+-    long long eastSumInCap =
+-        (prefixSum[rightIndex] - prefixSum[index + 1]) - inCapEast * currentPosition;
+-    long long totalEast = eastSumInCap + outCapEast * currentRightCap;
+-
+-    // ---------- TOTAL ----------
+-    return totalWest + totalEast;
++long long computeTotalLoudnessForPost(
++    const std::vector<long long>& whistlePositions,
++    const std::vector<long long>& westCaps,
++    const std::vector<long long>& eastCaps,
++    const std::vector<long long>& positionPrefixSum,
++    int postIndex
++) {
++    const int numPosts = static_cast<int>(whistlePositions.size());
++    const long long currentPosition = whistlePositions[postIndex];
++    const long long currWestCap = westCaps[postIndex];
++    const long long currEastCap = eastCaps[postIndex];
++
++    // West side: [0..postIndex-1]
++    int westBoundaryIndex = static_cast<int>(
++        std::lower_bound(whistlePositions.begin(), whistlePositions.end(), currentPosition - currWestCap)
++        - whistlePositions.begin()
++    );
++    long long inCapWestCount = postIndex - westBoundaryIndex;
++    long long sumInCapWest = inCapWestCount * currentPosition - (positionPrefixSum[postIndex] - positionPrefixSum[westBoundaryIndex]);
++    long long outCapWestCount = westBoundaryIndex;
++    long long totalWestLoudness = sumInCapWest + outCapWestCount * currWestCap;
++
++    // East side: [postIndex+1..numPosts-1]
++    int eastBoundaryIndex = static_cast<int>(
++        std::upper_bound(whistlePositions.begin(), whistlePositions.end(), currentPosition + currEastCap)
++        - whistlePositions.begin()
++    );
++    long long inCapEastCount = eastBoundaryIndex - postIndex - 1;
++    long long sumInCapEast = (positionPrefixSum[eastBoundaryIndex] - positionPrefixSum[postIndex + 1]) - inCapEastCount * currentPosition;
++    long long outCapEastCount = (numPosts - 1 - postIndex) - inCapEastCount;
++    long long totalEastLoudness = sumInCapEast + outCapEastCount * currEastCap;
++
++    return totalWestLoudness + totalEastLoudness;
+@@ -479,16 +434,0 @@
+-/**
+- * @brief Program entry point.
+- *
+- * Reads input for whistlepost positions and caps, computes total loudness for
+- * each post, and outputs results. Runs in O(n log n) using prefix sums and
+- * binary search for efficient range processing.
+- *
+- * Input format:
+- *  n
+- *  p1 p2 ... pn
+- *  L1 L2 ... Ln
+- *  R1 R2 ... Rn
+- *
+- * Output format:
+- *  One line per post containing its total loudness.
+- */
+@@ -499,2 +439,2 @@
+-    int n;
+-    if (!(std::cin >> n)) {
++    int numPosts;
++    if (!(std::cin >> numPosts)) {
+@@ -504,12 +444,3 @@
+-    std::vector<long long> positions(n);
+-    std::vector<long long> leftCaps(n);
+-    std::vector<long long> rightCaps(n);
+-
+-    for (int i = 0; i < n; ++i) std::cin >> positions[i];
+-    for (int i = 0; i < n; ++i) std::cin >> leftCaps[i];
+-    for (int i = 0; i < n; ++i) std::cin >> rightCaps[i];
+-
+-    // Prefix sum of positions
+-    std::vector<long long> prefixSum(n + 1, 0);
+-    for (int i = 0; i < n; ++i) {
+-        prefixSum[i + 1] = prefixSum[i] + positions[i];
++    std::vector<long long> whistlePositions(numPosts), westCaps(numPosts), eastCaps(numPosts);
++    for (int postIdx = 0; postIdx < numPosts; ++postIdx) {
++        std::cin >> whistlePositions[postIdx];
+@@ -517,6 +448,18 @@
+-
+-    // Compute total loudness per post
+-    for (int i = 0; i < n; ++i) {
+-        long long result =
+-            computeTotalLoudness(positions, leftCaps, rightCaps, prefixSum, i);
+-        std::cout << result << '\n';
++    for (int postIdx = 0; postIdx < numPosts; ++postIdx) {
++        std::cin >> westCaps[postIdx];
++    }
++    for (int postIdx = 0; postIdx < numPosts; ++postIdx) {
++        std::cin >> eastCaps[postIdx];
++    }
++
++    // Build prefix sums: positionPrefixSum[t] = sum of whistlePositions[0..t-1], positionPrefixSum[0] = 0
++    std::vector<long long> positionPrefixSum(numPosts + 1, 0);
++    for (int sumIdx = 0; sumIdx < numPosts; ++sumIdx) {
++        positionPrefixSum[sumIdx + 1] = positionPrefixSum[sumIdx] + whistlePositions[sumIdx];
++    }
++
++    for (int postIdx = 0; postIdx < numPosts; ++postIdx) {
++        long long totalLoudness = computeTotalLoudnessForPost(
++            whistlePositions, westCaps, eastCaps, positionPrefixSum, postIdx
++        );
++        std::cout << totalLoudness << "\n";
+@@ -532 +475 @@
+-- We precompute prefix sum of positions to allow constant-time range sum queries of positions.
++- We precompute prefix sums of positions to allow constant-time range sum queries of positions.
+@@ -536 +479 @@
+-- Exact-distance sums are computed via prefix sum:
++- Exact-distance sums are computed via prefix sums:
+@@ -542,45 +485,3 @@
+-Example walkthrough (detailed, using the optimal algorithm):
+-
+-- Example A (from the statement): $n = 3$, $p = [-10^9, 0, 10^9]$, $L = [10^9,10^9,10^9]$, $R = [10^9,10^9,10^9]$.
+-  - Build prefix sum $S$: $S = [0, -10^9, -10^9, 0]$.
+-  - Index $i = 1$ (0-based), $p_i = 0$, $L_i = R_i = 10^9$:
+-    - West: threshold $p_i - L_i = -10^9$, $L = \text{lower\_bound}(p, -10^9) = 0$.
+-      - $c_w = i - L = 1$, $o_w = L = 0$.
+-      - $\text{sumInCapWest} = c_w\,p_i - (S[i] - S[L]) = 1\cdot 0 - (S[1]-S[0]) = 10^9$.
+-    - East: threshold $p_i + R_i = 10^9$, $R = \text{upper\_bound}(p, 10^9) = 3$.
+-      - $c_e = R - i - 1 = 1$, $o_e = (n-1-i) - c_e = 1 - 1 = 0$.
+-      - $\text{sumInCapEast} = (S[R] - S[i+1]) - c_e\,p_i = (S[3]-S[2]) - 1\cdot 0 = 10^9$.
+-    - Total $= 10^9 + 0\cdot 10^9 + 10^9 + 0\cdot 10^9 = 2\cdot 10^9$.
+-  - Index $i = 0$ (endpoint), $p_i = -10^9$, $L_i = R_i = 10^9$:
+-    - West: none ($L = 0$, $c_w = 0$, $o_w = 0$), $\text{sumInCapWest} = 0$.
+-    - East: $R = \text{upper\_bound}(p, 0) = 2$, $c_e = 1$, $o_e = 1$.
+-      - $\text{sumInCapEast} = (S[2]-S[1]) - 1\cdot p_i = 0 - (-10^9) = 10^9$.
+-    - Total $= 0 + 0 + 10^9 + 1\cdot 10^9 = 2\cdot 10^9$ (symmetric for $i=2$). Matches expected outputs (all $2\cdot 10^9$).
+-
+-- Example B (from the statement):
+-  $p = [0,2,4,8,16,17,40]$, $L = [0,1,10,0,20,1,5]$, $R = [1,0,10,1,0,20,0]$.
+-  - Prefix sum $S$: $S=[0,0,2,6,14,30,47,87]$.
+-  - Index $i = 2$ ($p_i = 4$, $L_i = R_i = 10$):
+-    - West: threshold $p_i - L_i = -6$, $L = 0$.
+-      - $c_w = 2$, $o_w = 0$.
+-      - $\text{sumInCapWest} = 2\cdot 4 - (S[2]-S[0]) = 8 - 2 = 6$.
+-    - East: threshold $p_i + R_i = 14$, $R = 4$ (first index with $p_R > 14$ is $p_4 = 16$).
+-      - $c_e = 4 - 2 - 1 = 1$, $o_e = (6 - 2) - 1 = 3$.
+-      - $\text{sumInCapEast} = (S[4]-S[3]) - 1\cdot 4 = (14 - 6) - 4 = 4$.
+-    - Total $= 6 + 0\cdot 10 + 4 + 3\cdot 10 = 40$ (matches expected for the 3rd post).
+-  - Index $i = 5$ ($p_i = 17$, $L_i = 1$, $R_i = 20$):
+-    - West: threshold $p_i - L_i = 16$, $L = 4$.
+-      - $c_w = 5 - 4 = 1$, $o_w = 4$.
+-      - $\text{sumInCapWest} = 1\cdot 17 - (S[5]-S[4]) = 17 - (30 - 14) = 1$.
+-    - East: threshold $p_i + R_i = 37$, $R = 6$ (first $>37$ is $p_6 = 40$).
+-      - $c_e = 6 - 5 - 1 = 0$, $o_e = (6 - 5) - 0 = 1$.
+-      - $\text{sumInCapEast} = 0$.
+-    - Total $= 1 + 4\cdot 1 + 0 + 1\cdot 20 = 25$ (matches expected for the 6th post).
+-  - Index $i = 0$ ($p_i = 0$, $L_i = 0$, $R_i = 1$):
+-    - West: none ($L = 0$, $c_w = 0$, $o_w = 0$).
+-    - East: $R = \text{upper\_bound}(p, 1) = 1$.
+-      - $c_e = 1 - 0 - 1 = 0$, $o_e = (6 - 0) - 0 = 6$.
+-      - $\text{sumInCapEast} = 0$.
+-    - Total $= 0 + 0 + 0 + 6\cdot 1 = 6$ (matches expected for the 1st post).
+-
+-These step-by-step computations demonstrate prefix-sum construction, boundary discovery via lower_bound/upper_bound, in-cap vs out-of-cap splits, counts $(c_w, o_w, c_e, o_e)$, and the final arithmetic matching the expected outputs.
++Example walkthrough (brief):
++- Suppose $p = [0, 5, 9, 11]$, $L = [2, 6, 0, 100]$, $R = [3, 1, 10, 0]$.
++- For $i = 0$ at $p_0 = 0$: west has no elements. East uses upper_bound with $0 + 3 = 3$, so no in-cap east indices. Out-of-cap east are all posts and each contributes $3$, total $3 \cdot 3 = 9$. This matches the sample output.
+@@ -591 +492 @@
+-  - Building prefix sum: $O(n)$.
++  - Building prefix sums: $O(n)$.
+@@ -595 +496 @@
+-  - Arrays for positions, caps, and prefix sum: $O(n)$.
++  - Arrays for positions, caps, and prefix sums: $O(n)$.
+@@ -599 +500 @@
+-By leveraging sorted positions, binary searches to find cap boundaries, and prefix sum to aggregate distances over contiguous ranges, we compute each post’s total loudness in $O(\log n)$ time per post. The method is simple, robust to edge cases, and efficient for $n \le 200000$, while adhering to 64-bit arithmetic requirements for correctness.
++By leveraging sorted positions, binary searches to find cap boundaries, and prefix sums to aggregate distances over contiguous ranges, we compute each post’s total loudness in $O(\log n)$ time per post. The method is simple, robust to edge cases, and efficient for $n \le 200000$, while adhering to 64-bit arithmetic requirements for correctness.
+
+--------------------------------------------------
+
+📝 41. PROBLEM STATEMENT.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+problem_statement.md validation failed: problem_statement.md content mismatch: Content diff violations found: Disallowed diff: '**Emberline Whistleposts**'; Disallowed diff: '# Emberline Whistleposts'; Disallowed diff: 'Along the ancient Emberline railway, whistleposts stand at distinct kilometer markers. When a post $i$ greets the line, the perceived loudness at another post $j$ is directional and capped:'; Disallowed diff: '- If $j$ is west of $i$ ($j < i$), the loudness is $ \min(p_i - p_j, L_i) $.'; Disallowed diff: '- If $j$ is east of $i$ ($j > i$), the loudness is $ \min(p_j - p_i, R_i) $.'
+
+Full diff output:
+--- 
++++ 
+@@ -1,2 +1 @@
+-
+-**Emberline Whistleposts**
++# Emberline Whistleposts
+@@ -8,3 +7,3 @@
+-Along the ancient Emberline railway, whistleposts stand at distinct kilometer markers. When a post $i$ greets the line, the perceived loudness at another post $j$ is directional and capped:
+-- If $j$ is west of $i$ ($j < i$), the loudness is $ \min(p_i - p_j, L_i) $.
+-- If $j$ is east of $i$ ($j > i$), the loudness is $ \min(p_j - p_i, R_i) $.
++Along the ancient Emberline railway, whistleposts stand at distinct kilometer markers. When a post i greets the line, the perceived loudness at another post j is directional and capped:
++- If j is west of i ($j < i$), the loudness is $ \min(p_i - p_j, L_i) $.
++- If j is east of i ($j > i$), the loudness is $ \min(p_j - p_i, R_i) $.
+@@ -12 +11 @@
+-For each post $i$, compute the total loudness heard by all other posts when only post $i$ greets, that is:
++For each post i, compute the total loudness heard by all other posts when only post i greets, that is:
+@@ -19,4 +18,4 @@
+-- The first line contains an integer $n$ ($2 \leq n \leq 200000$) — the number of whistleposts.
+-- The second line contains $n$ strictly increasing integers $p_1, p_2, \ldots, p_n$ ($-10^9 \leq p_i \leq 10^9$) — the positions of the posts.
+-- The third line contains $n$ integers $L_1, L_2, \ldots, L_n$ ($0 \leq L_i \leq 10^9$) — the westward (left) damper limits.
+-- The fourth line contains $n$ integers $R_1, R_2, \ldots, R_n$ ($0 \leq R_i \leq 10^9$) — the eastward (right) damper limits.
++- The first line contains an integer $n$ ($2 \le n \le 200000$) — the number of whistleposts.
++- The second line contains $n$ strictly increasing integers $p_1, p_2, \ldots, p_n$ ($-10^9 \le p_i \le 10^9$) — the positions of the posts.
++- The third line contains $n$ integers $L_1, L_2, \ldots, L_n$ ($0 \le L_i \le 10^9$) — the westward (left) damper limits.
++- The fourth line contains $n$ integers $R_1, R_2, \ldots, R_n$ ($0 \le R_i \le 10^9$) — the eastward (right) damper limits.
+@@ -47 +46 @@
+-In the first example, all caps are $10^9$ and positions are at $-10^9, 0, 10^9$. Each post’s total is $2 \times 10^9$:
++In the first example, all caps are 1e9 and positions are at −1e9, 0, 1e9. Each post’s total is 2e9:
+@@ -49 +48 @@
+-For the middle post ($i = 2$), both neighbors are at distance $10^9$, so $10^9 + 10^9 = 2 \times 10^9$.
++For the middle post (i = 2), both neighbors are at distance 1e9, so 1e9 + 1e9 = 2e9.
+@@ -51 +50 @@
+-For an endpoint (e.g., $i = 1$), distances are $10^9$ (to 0) and $2 \times 10^9$ (to $10^9$). The $2 \times 10^9$ distance is capped to $10^9$, so $10^9 + 10^9 = 2 \times 10^9$. The same holds for $i = 3$.
++For an endpoint (e.g., i = 1), distances are 1e9 (to 0) and 2e9 (to 1e9). The 2e9 distance is capped to 1e9, so 1e9 + 1e9 = 2e9. The same holds for i = 3.
+@@ -74 +73 @@
+-In the second example, left and right contributions use $L_i$ and $R_i$ of the speaking post $i$, respectively. A post $j$ contributes its exact distance if it lies within the cap range on that side; otherwise its contribution is the cap on that side.
++In the second example, left and right contributions use L_i and R_i of the speaking post i, respectively. A post j contributes its exact distance if it lies within the cap range on that side; otherwise its contribution is the cap on that side.
+@@ -76 +75 @@
+-For $i = 3$ $(p = 4, L_3 = R_3 = 10)$: left gives $(4-0) + (4-2) = 4 + 2 = 6$; right gives $(8-4) + \min(16-4,10) + \min(17-4,10) + \min(40-4,10) = 4 + 10 + 10 + 10 = 34$; total $40$.
++For i = 3 (p = 4, L_3 = R_3 = 10): left gives (4−0) + (4−2) = 4 + 2 = 6; right gives (8−4) + min(16−4,10) + min(17−4,10) + min(40−4,10) = 4 + 10 + 10 + 10 = 34; total 40.
+@@ -78 +77 @@
+-For $i = 6$ $(p = 17, L_6 = 1, R_6 = 20)$: left has five posts, each contributing $\min(\text{distance},1) = 1 \to 5$; right has one post at distance $23$ capped to $20 \to$ total $25$.
++For i = 6 (p = 17, L_6 = 1, R_6 = 20): left has five posts, each contributing min(distance,1) = 1 → 5; right has one post at distance 23 capped to 20 → total 25.
+@@ -80,3 +79 @@
+-For $i = 1$ $(p = 0, L_1 = 0, R_1 = 1)$: only the right side counts; all six distances are $\geq 1$, each contributes $1 \to$ total $6$.
+-
+----
++For i = 1 (p = 0, L_1 = 0, R_1 = 1): only the right side counts; all six distances are ≥ 1, each contributes 1 → total 6.
+
+--------------------------------------------------

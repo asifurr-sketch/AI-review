@@ -1,0 +1,666 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/transmuters_ledger
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Graph Algorithms", "Searching Algorithms", "Greedy Algorithms", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 3, $O(3^n) \to O(n) \to O(1)$
+
+**Number of Chains:** - 7
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+# Transmuter’s Ledger
+
+Time Limit: **2 seconds**
+
+Memory Limit: **32 MB**
+
+In the vaults of the Guild of Transmuters lie three kinds of reactive shards: alpha, beta, and gamma. When a technician bridges two unlike shards, energy flashes, one shard is consumed, and the other mutates into the third kind not involved in the bridge:
+- alpha with beta yields gamma
+- beta with gamma yields alpha
+- gamma with alpha yields beta
+
+Bridging two shards of the same kind is never performed. Each bridge reduces the total number of shards by exactly 1.
+
+For safety, the Guild imposes budgets on how many bridges of each unlike pair may be made:
+- at most $L_{ab}$ bridges between alpha and beta
+- at most $L_{bc}$ bridges between beta and gamma
+- at most $L_{ca}$ bridges between gamma and alpha
+
+You are given the starting numbers $A$, $B$, $C$ of alpha, beta, and gamma shards. Determine whether it is possible to end with a uniform rack (all remaining shards of a single kind) without exceeding any budget, and if so, compute the minimum number of bridges needed. If it is impossible, output $-1$.
+
+**Input Format:-**
+- First line: three integers $A$ $B$ $C$
+- Second line: three integers $L_{ab}$ $L_{bc}$ $L_{ca}$
+
+**Output Format:-**
+- One integer: the minimum number of bridges to reach a uniform rack without exceeding any budget, or $-1$ if it cannot be done.
+
+**Constraints:-**
+- $0 \le A, B, C \le 2^{31}$
+- $A + B + C > 0$
+- $0 \le L_{ab}, L_{bc}, L_{ca} \le 2^{31}$
+**Examples:-**
+ - **Input:**
+```
+1 2 0
+1 1 0
+```
+
+ - **Output:**
+```
+2
+```
+
+**Explanation:**
+In the first example, starting from $(A,B,C) = (1,2,0)$ with budgets $L_{ab}=1$, $L_{bc}=1$, $L_{ca}=0$, perform:
+- Bridge alpha–beta once → $(0,1,1)$.
+- Bridge beta–gamma once → $(1,0,0)$, uniform in alpha.
+This uses exactly the available AB and BC budgets. One bridge cannot suffice (the only possible first move AB leaves two different types), so 2 is minimal.
+
+ - **Input:**
+```
+1 2 1
+0 2 0
+```
+
+ - **Output:**
+```
+-1
+```
+
+**Explanation:**
+In the second example, only beta–gamma bridges are allowed $(L_{ab}=0, L_{ca}=0)$. Check each possible final type:
+- All alpha would require exactly $(B+C)/2 = 1.5$ beta–gamma bridges (not an integer) → impossible by parity.
+- All beta would require $(A+C)/2 = 1$ gamma–alpha bridge, but $L_{ca}=0$ → impossible.
+- All gamma would require $(A+B)/2 = 1.5$ alpha–beta bridges (non-integer and $L_{ab}=0$) → impossible.
+Hence no sequence can reach a uniform rack, so the answer is −1.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+**Problem Understanding and Analysis**
+
+
+
+**THOUGHT_01_01**
+
+We have three types of shards: alpha, beta, and gamma, with initial counts $A, B, C$. The problem involves bridge operations between different shard types that consume one shard and transform the other into the third type. Each bridge operation reduces the total shard count by exactly 1. The three possible bridge operations are:
+- alpha–beta bridge: consumes one alpha and one beta, produces one gamma
+- beta–gamma bridge: consumes one beta and one gamma, produces one alpha  
+- gamma–alpha bridge: consumes one gamma and one alpha, produces one beta
+
+**THOUGHT_01_02**
+
+Each bridge operation type has a budget limit: $L_{ab}$ for alpha–beta bridges, $L_{bc}$ for beta–gamma bridges, and $L_{ca}$ for gamma–alpha bridges. The goal is to determine if we can make all remaining shards of the same type (uniform state) while respecting these budget constraints, and if so, find the minimum number of operations required. If impossible, we output $-1$.
+
+**THOUGHT_01_03**
+
+Each bridge operation changes the shard counts in a predictable way. If we perform $p$ alpha–beta bridges, $q$ beta–gamma bridges, and $r$ gamma–alpha bridges, the final counts become:
+- $A' = A + q - p - r$
+- $B' = B - p - q + r$  
+- $C' = C + p - q - r$
+
+**THOUGHT_01_04**
+
+Input values can be as large as $2^{31}$, making any simulation-based approach infeasible. We need a mathematical approach that can determine feasibility and optimality in constant time.
+
+
+---
+
+**[CHAIN_02]**
+
+**Test Cases and Edge Cases Analysis**
+
+**THOUGHT_02_01**
+
+Inputs like $A=1, B=0, C=0$ with any budgets must yield $0$. This checks the no-op path and ensures we don't force unnecessary operations when the rack is already uniform.
+
+**THOUGHT_02_02**
+
+For each target type, specific parity conditions must be met:
+- To end with all alpha: $B+C$ must be even
+- To end with all beta: $A+C$ must be even  
+- To end with all gamma: $A+B$ must be even
+These conditions are necessary for feasibility.
+
+**THOUGHT_02_03**
+
+Example: A=0, B=1, C=1 with L_ab=L_bc=L_ca=0 should return -1. Although two types exist, no operations can be performed due to zero budgets.
+
+
+**THOUGHT_02_04**
+
+Example: $A=0, B=2, C=2$ with $L_{ab}=1, L_{bc}=2, L_{ca}=1$. This should be feasible with minimal $T=2$, validating that the boundary equals required counts per pair.
+
+**THOUGHT_02_05**
+
+Example: $A=2, B=2, C=0$ with large budgets. All three targets are feasible with the same minimal $T=2$. The solver should output $2$.
+
+**THOUGHT_02_06**
+
+Use $A=2^{31}, B=2^{31}, C=1$ with large budgets to check for overflow in arithmetic operations. This enforces 64-bit integer usage.
+
+---
+
+**[CHAIN_03]**
+
+**Brute Force Approach and Its Limitations**
+
+**[THOUGHT_03_01]**
+
+A brute force approach would model each state as a tuple $(A, B, C, l_{ab}, l_{bc}, l_{ca})$ where $l_{\cdot}$ are remaining budgets. From any state, try all three applicable bridge operations if both types exist and the corresponding budget remains. BFS would guarantee the minimal number of steps to reach a uniform state.
+
+
+**[THOUGHT_03_02]**
+
+Counts can be as large as $2^{31}$. Even though each operation reduces the total count by 1, the number of distinct states can be astronomically large. Tracking budgets multiplies the state space by up to $(L_{ab}+1)(L_{bc}+1)(L_{ca}+1)$, making it completely infeasible.
+
+
+**[THOUGHT_03_03]**
+
+The branching factor can be up to 3 at each step, and the depth can be on the order of $A+B+C$. The worst-case time is exponential in the number of steps, making it not computable for our input limits.
+
+**[THOUGHT_03_04]**
+
+BFS would need to store all frontier states. Even with aggressive pruning, memory requirements explode far beyond practical limits due to input magnitude.
+
+
+**[THOUGHT_03_05]**
+
+While BFS is optimal in step count on small inputs, it's not viable here. We need a non-enumerative, closed-form approach leveraging mathematical invariants.
+
+
+---
+
+**[CHAIN_04]**
+
+**Greedy Approach and Its Failures**
+
+**[THOUGHT_04_01]**
+
+A greedy approach would repeatedly bridge the two largest counts to reduce disparity, hoping to accelerate convergence to a single type. Alternatively, try to steer directly toward the desired target type by favoring operations that create that type.
+
+
+**[THOUGHT_04_02]**
+
+Budget constraints derail heuristic: Greedy choices may demand a forbidden pair type (budget exhausted or zero), causing the process to stall when a different sequence would have worked, or concluding impossibility prematurely.
+
+
+**[THOUGHT_04_03]**
+
+Greedy doesn't account for parity conditions such as $A+B$ even for gamma. It may perform operations that lead to dead-ends where the final two zeros cannot be achieved simultaneously due to parity.
+
+
+**[THOUGHT_04_04]**
+
+Consider $A=1, B=2, C=3$ with $L_{bc}=0$. Greedy that prefers bridging the largest two (beta–gamma) is outright illegal. Even variants that defer illegal moves can circulate among suboptimal choices or require extra operations beyond minimal.
+
+**[THOUGHT_04_05]**
+
+Even without budgets, greedily minimizing immediate disparity doesn't imply minimal total operations. The minimal $T$ depends on global equations, not local differences, and a greedy sequence can unnecessarily engage two pair types when one suffices.
+
+**THOUGHT_04_06**
+
+Greedy lacks rigorous constraints and fails under budgets and parity. It's unsuitable as a general solution.
+
+
+---
+
+**[CHAIN_05]**
+
+** Mathematical Modeling and Algebraic Approach**
+
+**[THOUGHT_05_01]**
+
+Introduce aggregated decision variables: Let $p, q, r$ denote the total number of bridges of pairs alpha–beta, beta–gamma, gamma–alpha, respectively. Budgets impose $0 \le p \le L_{ab}$, $0 \le q \le L_{bc}$, $0 \le r \le L_{ca}$. The total number of bridges is $T = p + q + r$. This mathematical formulation transforms the problem from sequential decision-making to a constrained optimization problem with clear objective and constraints.
+
+**[THOUGHT_05_02]**
+
+Derive final counts after $(p, q, r)$: Using the per-operation effects,
+- alpha–beta decreases alpha by 1 and beta by 1, increases gamma by 1,
+- beta–gamma decreases beta by 1 and gamma by 1, increases alpha by 1,
+- gamma–alpha decreases gamma by 1 and alpha by 1, increases beta by 1.
+Summing these, the final counts are:
+$A' = A + q - p - r$,
+$B' = B - p - q + r$,
+$C' = C + p - q - r$.
+
+
+**[THOUGHT_05_03]**
+
+Set uniformity constraints per target: To end with all alpha, enforce $B' = 0$ and $C' = 0$. Similarly for all beta, enforce $A' = 0$ and $C' = 0$. For all gamma, enforce $A' = 0$ and $B' = 0$. Each target yields a small linear system in $(p, q, r)$.
+
+
+**[THOUGHT_05_04]**
+
+Extract parity conditions: For all alpha, adding the two equations yields $2q = B + C$, hence $B + C$ must be even and $q = (B + C)/2$. For all beta, $2r = A + C$, so $A + C$ must be even and $r = (A + C)/2$. For all gamma, $2p = A + B$, so $A + B$ must be even and $p = (A + B)/2$.
+
+
+**[THOUGHT_05_05]**
+
+Express remaining degrees of freedom: For all alpha, subtracting the two equations gives $p - r = (B - C)/2$. Similarly, for beta: $p - q = (A - C)/2$. For gamma: $q - r = (B - A)/2$. Each target leaves exactly one degree of freedom along an affine line.
+
+
+**[THOUGHT_05_06]**
+
+Highlight objective structure: Minimizing $T = p + q + r$ given the target constraints reduces to choosing the minimal nonnegative combination that satisfies the difference equation, which leads to setting one of the two variables to zero depending on the sign of the difference. This produces a closed-form minimum for $T$ per target.
+
+
+---
+
+**[CHAIN_06]**
+
+**Optimal Solution Derivation**
+
+**[THOUGHT_06_01]**
+
+From $q = (B + C)/2$ and $p - r = (B - C)/2$, choose the minimal nonnegative pair $(p, r)$ satisfying the difference:
+- If $B \ge C$, set $p = (B - C)/2$, $r = 0$
+- If $C > B$, set $p = 0$, $r = (C - B)/2$
+Then $T_{\alpha} = p + q + r = \max(B, C)$. Feasibility requires $B + C$ even.
+
+
+**[THOUGHT_06_02]**
+
+From $r = (A + C)/2$ and $p - q = (A - C)/2$, choose:
+- If $A \ge C$, set $p = (A - C)/2$, $q = 0$
+- If $C > A$, set $p = 0$, $q = (C - A)/2$
+Then $T_{\beta} = \max(A, C)$. Feasibility requires $A + C$ even.
+
+**[THOUGHT_06_03]**
+
+From $p = (A + B)/2$ and $q - r = (B - A)/2$, choose:
+- If $A \ge B$, set $r = (A - B)/2$, $q = 0$
+- If $B > A$, set $r = 0$, $q = (B - A)/2$
+Then $T_{\gamma} = \max(A, B)$. Feasibility requires $A + B$ even.
+
+
+**[THOUGHT_06_04]**
+
+The minimal number of bridges to make all shards a given target type equals the larger of the other two initial counts. Intuitively, we must eliminate the two non-target types entirely, and each operation removes exactly one shard total, so the larger pile among the two dictates the minimum steps.
+
+**[THOUGHT_06_05]**
+
+For a fixed target, any other solution along the affine line increases both of the two variables whose difference is fixed by the target equations, hence increases $T$. Therefore, the derived $T$ values are globally minimal given parity feasibility.
+
+
+**[THOUGHT_06_06]**
+
+Without budgets, the answer is the minimum among feasible $T_{\alpha}, T_{\beta}, T_{\gamma}$. If the initial state is already uniform, the corresponding target produces $T=0$, which is necessarily optimal.
+
+---
+
+**[CHAIN_07]**
+
+**Budget Enforcement and Final Algorithm**
+
+**[THOUGHT_07_01]**
+
+For each target, we already fixed one variable exactly and minimized the other two by setting one to zero according to the sign of the difference. The resulting specific nonnegative tuple $(p, q, r)$ must satisfy $p \le L_{ab}$, $q \le L_{bc}$, $r \le L_{ca}$.
+
+**[THOUGHT_07_02]**
+
+For the all alpha case, with $q$ fixed and $p - r$ fixed, all solutions have the form $p = \max((B - C)/2, 0) + t$, $r = \max((C - B)/2, 0) + t$ for $t \ge 0$. Increasing $t$ increases both $p$ and $r$, and thus increases $T$.
+
+
+**[THOUGHT_07_03]**
+
+Since budgets are upper bounds, increasing $t$ cannot help satisfy them. Either the minimal solution at $t=0$ respects all budgets, or no feasible solution exists for that target. The same argument applies for the beta and gamma targets.
+
+**[THOUGHT_07_04]**
+
+Per-target budget checks: Summarize the checks:
+- All alpha: require $B + C$ even, $q = (B + C)/2 \le L_{bc}$, and either $p = (B - C)/2 \le L_{ab}$ if $B \ge C$ or $r = (C - B)/2 \le L_{ca}$ if $C > B$.
+- All beta: require $A + C$ even, $r = (A + C)/2 \le L_{ca}$, and either $p = (A - C)/2 \le L_{ab}$ if $A \ge C$ or $q = (C - A)/2 \le L_{bc}$ if $C > A$.
+- All gamma: require $A + B$ even, $p = (A + B)/2 \le L_{ab}$, and either $r = (A - B)/2 \le L_{ca}$ if $A \ge B$ or $q = (B - A)/2 \le L_{bc}$ if $B > A$.
+
+
+**[THOUGHT_07_05]**
+
+Each target is checked in $O(1)$ time with constant memory. We then minimize over up to three feasible answers. The overall solution is $O(1)$ time, $O(1)$ space.
+
+
+**[THOUGHT_07_06]**
+
+Handling simultaneity and ordering: The aggregated plan does not require us to construct an explicit sequence. If the minimal tuple passes budgets for a target, there exists an execution order to realize it when at least two types are present or the target is already achieved. If the rack is already uniform, we output 0 and ignore other targets even if algebraically feasible, because 0 is minimal.
+
+
+---
+
+**1. Problem Understanding**
+
+We have three types of shards: alpha, beta, gamma, with initial counts $A, B, C$. A bridge operation between two different types consumes one shard and converts the other into the third type not involved in the bridge:
+- alpha–beta produces gamma,
+- beta–gamma produces alpha,
+- gamma–alpha produces beta.
+
+Each bridge reduces the total number of shards by exactly 1. We also have independent upper bounds on how many bridges of each unlike pair can be performed: $L_{ab}$ for alpha–beta, $L_{bc}$ for beta–gamma, and $L_{ca}$ for gamma–alpha. The goal is to determine whether it is possible to end with all remaining shards of a single type without exceeding the budgets, and if so, minimize the number of bridges used.
+
+Key observations:
+- Let $p, q, r$ be the total counts of bridges for pairs alpha–beta, beta–gamma, gamma–alpha, respectively. Then the final shard counts are:
+  - $A' = A + q - p - r$,
+  - $B' = B - p - q + r$,
+  - $C' = C + p - q - r$.
+- To end with all alpha, enforce $B' = 0$ and $C' = 0$. Similarly for all beta or all gamma.
+- Necessary parity conditions emerge for each target:
+  - All alpha requires $B + C$ even with $q = (B + C)/2$,
+  - All beta requires $A + C$ even with $r = (A + C)/2$,
+  - All gamma requires $A + B$ even with $p = (A + B)/2$.
+- For each target, the minimal number of bridges equals the larger of the two non-target initial counts:
+  - $T_{\alpha} = \max(B, C)$,
+  - $T_{\beta} = \max(A, C)$,
+  - $T_{\gamma} = \max(A, B)$,
+  provided budgets allow the required pair counts.
+
+**2. Optimal Approach**
+
+We solve independently for each target type and pick the minimal feasible result.
+
+Steps:
+1. Model totals by pair types:
+   - Use $p, q, r$ for alpha–beta, beta–gamma, gamma–alpha bridges.
+   - Total bridges $T = p + q + r$.
+
+2. Enforce target-specific equations and parity:
+   - All alpha:
+     - $q = (B + C)/2$, requires $B + C$ even.
+     - $p - r = (B - C)/2$.
+     - Minimal nonnegative solution:
+       - If $B \ge C$: $p = (B - C)/2$, $r = 0$.
+       - If $C > B$: $p = 0$, $r = (C - B)/2$.
+     - $T_{\alpha} = \max(B, C)$.
+   - All beta:
+     - $r = (A + C)/2$, requires $A + C$ even.
+     - $p - q = (A - C)/2$.
+     - Minimal nonnegative solution:
+       - If $A \ge C$: $p = (A - C)/2$, $q = 0$.
+       - If $C > A$: $p = 0$, $q = (C - A)/2$.
+     - $T_{\beta} = \max(A, C)$.
+   - All gamma:
+     - $p = (A + B)/2$, requires $A + B$ even.
+     - $q - r = (B - A)/2$.
+     - Minimal nonnegative solution:
+       - If $A \ge B$: $r = (A - B)/2$, $q = 0$.
+       - If $B > A$: $r = 0$, $q = (B - A)/2$.
+     - $T_{\gamma} = \max(A, B)$.
+
+3. Enforce budgets:
+   - Validate $p \le L_{ab}$, $q \le L_{bc}$, $r \le L_{ca}$ for the minimal tuple of each target.
+   - Important: For each target, all other solutions form an affine line that increases both relevant variables and thus increases $T$. Since budgets are upper bounds, only the minimal tuple can be feasible.
+
+4. Return the minimum $T$ among all feasible targets. If none are feasible, return $-1$.
+
+5. Implementation details:
+   - Use 64-bit integers to avoid overflow since $A, B, C$ and budgets can be as large as $2^{31}$.
+   - If the rack is already uniform (only one positive among $A, B, C$), the answer is 0.
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+using int64 = long long;
+const long long INFINITE = (1LL << 62);
+
+/*
+ * Shard Transformation Problem Solver
+ *
+ * This program solves the shard transformation problem where we have three types
+ * of shards (alpha, beta, gamma) and can perform bridge operations between them.
+ * Each bridge operation consumes one shard and transforms the other into the
+ * third type, reducing the total count by 1.
+ *
+ * The goal is to find the minimum number of operations to make all remaining
+ * shards of the same type, while respecting budget constraints on each operation type.
+ */
+
+/**
+ * @brief Checks feasibility and minimal steps to end with all alpha shards.
+ *
+ * @param initialAlpha Initial alpha count.
+ * @param initialBeta Initial beta count.
+ * @param initialGamma Initial gamma count.
+ * @param alphaBetaBudget Budget for alpha–beta bridges.
+ * @param betaGammaBudget Budget for beta–gamma bridges.
+ * @param gammaAlphaBudget Budget for gamma–alpha bridges.
+ * @param minimalSteps Receives minimal steps if feasible.
+ * @return True if feasible within budgets, false otherwise.
+ */
+bool canConvertToAllAlpha(long long initialAlpha, long long initialBeta, long long initialGamma,
+                         long long alphaBetaBudget, long long betaGammaBudget, long long gammaAlphaBudget,
+                         long long &minimalSteps) {
+    // Check if total non-alpha shards is even (required for pairing)
+    if ((initialBeta + initialGamma) % 2 != 0) return false;
+    
+    // Calculate required beta-gamma bridges to balance beta and gamma
+    long long requiredBetaGammaBridges = (initialBeta + initialGamma) / 2;
+    if (requiredBetaGammaBridges > betaGammaBudget) return false;
+    
+    // Handle the difference between beta and gamma counts
+    if (initialBeta >= initialGamma) {
+        // Need alpha-beta bridges to balance excess beta
+        long long requiredAlphaBetaBridges = (initialBeta - initialGamma) / 2;
+        if (requiredAlphaBetaBridges > alphaBetaBudget) return false;
+    } else {
+        // Need gamma-alpha bridges to balance excess gamma
+        long long requiredGammaAlphaBridges = (initialGamma - initialBeta) / 2;
+        if (requiredGammaAlphaBridges > gammaAlphaBudget) return false;
+    }
+    
+    // Steps needed equals the maximum of beta or gamma (whichever is larger)
+    minimalSteps = max(initialBeta, initialGamma);
+    return true;
+}
+
+/**
+ * @brief Checks feasibility and minimal steps to end with all beta shards.
+ *
+ * @param initialAlpha Initial alpha count.
+ * @param initialBeta Initial beta count.
+ * @param initialGamma Initial gamma count.
+ * @param alphaBetaBudget Budget for alpha–beta bridges.
+ * @param betaGammaBudget Budget for beta–gamma bridges.
+ * @param gammaAlphaBudget Budget for gamma–alpha bridges.
+ * @param minimalSteps Receives minimal steps if feasible.
+ * @return True if feasible within budgets, false otherwise.
+ */
+bool canConvertToAllBeta(long long initialAlpha, long long initialBeta, long long initialGamma,
+                        long long alphaBetaBudget, long long betaGammaBudget, long long gammaAlphaBudget,
+                        long long &minimalSteps) {
+    // Check if total non-beta shards is even (required for pairing)
+    if ((initialAlpha + initialGamma) % 2 != 0) return false;
+    
+    // Calculate required gamma-alpha bridges to balance alpha and gamma
+    long long requiredGammaAlphaBridges = (initialAlpha + initialGamma) / 2;
+    if (requiredGammaAlphaBridges > gammaAlphaBudget) return false;
+    
+    // Handle the difference between alpha and gamma counts
+    if (initialAlpha >= initialGamma) {
+        // Need alpha-beta bridges to balance excess alpha
+        long long requiredAlphaBetaBridges = (initialAlpha - initialGamma) / 2;
+        if (requiredAlphaBetaBridges > alphaBetaBudget) return false;
+    } else {
+        // Need beta-gamma bridges to balance excess gamma
+        long long requiredBetaGammaBridges = (initialGamma - initialAlpha) / 2;
+        if (requiredBetaGammaBridges > betaGammaBudget) return false;
+    }
+    
+    // Steps needed equals the maximum of alpha or gamma (whichever is larger)
+    minimalSteps = max(initialAlpha, initialGamma);
+    return true;
+}
+
+/**
+ * @brief Checks feasibility and minimal steps to end with all gamma shards.
+ *
+ * @param initialAlpha Initial alpha count.
+ * @param initialBeta Initial beta count.
+ * @param initialGamma Initial gamma count.
+ * @param alphaBetaBudget Budget for alpha–beta bridges.
+ * @param betaGammaBudget Budget for beta–gamma bridges.
+ * @param gammaAlphaBudget Budget for gamma–alpha bridges.
+ * @param minimalSteps Receives minimal steps if feasible.
+ * @return True if feasible within budgets, false otherwise.
+ */
+bool canConvertToAllGamma(long long initialAlpha, long long initialBeta, long long initialGamma,
+                         long long alphaBetaBudget, long long betaGammaBudget, long long gammaAlphaBudget,
+                         long long &minimalSteps) {
+    // Check if total non-gamma shards is even (required for pairing)
+    if ((initialAlpha + initialBeta) % 2 != 0) return false;
+    
+    // Calculate required alpha-beta bridges to balance alpha and beta
+    long long requiredAlphaBetaBridges = (initialAlpha + initialBeta) / 2;
+    if (requiredAlphaBetaBridges > alphaBetaBudget) return false;
+    
+    // Handle the difference between alpha and beta counts
+    if (initialAlpha >= initialBeta) {
+        // Need gamma-alpha bridges to balance excess alpha
+        long long requiredGammaAlphaBridges = (initialAlpha - initialBeta) / 2;
+        if (requiredGammaAlphaBridges > gammaAlphaBudget) return false;
+    } else {
+        // Need beta-gamma bridges to balance excess beta
+        long long requiredBetaGammaBridges = (initialBeta - initialAlpha) / 2;
+        if (requiredBetaGammaBridges > betaGammaBudget) return false;
+    }
+    
+    // Steps needed equals the maximum of alpha or beta (whichever is larger)
+    minimalSteps = max(initialAlpha, initialBeta);
+    return true;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    // Read initial shard counts
+    long long initialAlpha, initialBeta, initialGamma;
+    long long alphaBetaBudget, betaGammaBudget, gammaAlphaBudget;
+    
+    if (!(cin >> initialAlpha >> initialBeta >> initialGamma)) return 0;
+    if (!(cin >> alphaBetaBudget >> betaGammaBudget >> gammaAlphaBudget)) return 0;
+
+    // Check if already uniform (only one type has positive count) - requires zero steps
+    if ((initialAlpha > 0) + (initialBeta > 0) + (initialGamma > 0) == 1) {
+        cout << 0 << "\n";
+        return 0;
+    }
+
+    // Try all three conversion strategies and find the minimum cost
+    long long bestResult = INFINITE;
+    long long currentSteps;
+
+    // Try converting everything to alpha shards
+    if (canConvertToAllAlpha(initialAlpha, initialBeta, initialGamma, alphaBetaBudget, betaGammaBudget, gammaAlphaBudget, currentSteps)) {
+        bestResult = min(bestResult, currentSteps);
+    }
+    
+    // Try converting everything to beta shards
+    if (canConvertToAllBeta(initialAlpha, initialBeta, initialGamma, alphaBetaBudget, betaGammaBudget, gammaAlphaBudget, currentSteps)) {
+        bestResult = min(bestResult, currentSteps);
+    }
+    
+    // Try converting everything to gamma shards
+    if (canConvertToAllGamma(initialAlpha, initialBeta, initialGamma, alphaBetaBudget, betaGammaBudget, gammaAlphaBudget, currentSteps)) {
+        bestResult = min(bestResult, currentSteps);
+    }
+
+    // Output result: -1 if impossible, otherwise the minimum steps required
+    cout << (bestResult == INFINITE ? -1 : bestResult) << "\n";
+    return 0;
+}
+
+/*
+ * STEP-BY-STEP EXAMPLE:
+ *
+ * Input: A=1, B=2, C=0, L_ab=1, L_bc=1, L_ca=0
+ *
+ * Step 1: Check if already uniform
+ * - We have alpha=1, beta=2, gamma=0 (not uniform)
+ *
+ * Step 2: Try converting to all alpha
+ * - Need to eliminate beta and gamma
+ * - Beta+Gamma = 2+0 = 2 (even, so possible)
+ * - Required beta-gamma bridges = (2+0)/2 = 1
+ * - Beta >= Gamma, so need alpha-beta bridges = (2-0)/2 = 1
+ * - Check budgets: 1 <= 1 (alpha-beta), 1 <= 1 (beta-gamma), 0 <= 0 (gamma-alpha)
+ * - Steps needed = max(2, 0) = 2
+ *
+ * Step 3: Try converting to all beta
+ * - Need to eliminate alpha and gamma
+ * - Alpha+Gamma = 1+0 = 1 (odd, so impossible)
+ *
+ * Step 4: Try converting to all gamma
+ * - Need to eliminate alpha and beta
+ * - Alpha+Beta = 1+2 = 3 (odd, so impossible)
+ *
+ * Result: Only alpha conversion is feasible with 2 steps
+ * Output: 2
+ *
+ * COMPLEXITY ANALYSIS:
+ * - Time Complexity: O(1) - constant time operations
+ * - Space Complexity: O(1) - constant space usage
+ * - The solution uses mathematical formulas instead of simulation
+ */
+```
+
+**4. Code Explanation**
+
+- We summarize the effect of operations by totals per pair: $p$ for alpha–beta, $q$ for beta–gamma, $r$ for gamma–alpha.
+- For each target type, we solve a tiny linear system that enforces two final counts to be zero, which yields:
+  - A fixed value for one of $p, q, r$ (based on parity), and
+  - A fixed difference between the other two.
+- The minimal nonnegative solution sets one of the two to zero depending on the sign of the difference, yielding:
+  - $T_{\alpha} = \max(B, C)$,
+  - $T_{\beta} = \max(A, C)$,
+  - $T_{\gamma} = \max(A, B)$,
+  provided the parity holds.
+- Budgets are upper bounds, so only the minimal tuple can possibly fit. We check it directly for each target. If feasible, we collect the corresponding $T$ and finally output the minimum among feasible targets.
+- An early check returns 0 when the rack is already uniform.
+
+Example execution for input:
+1) $A = 1, B = 1, C = 1$, budgets all large
+- All alpha: $B + C$ even, $q = 1$, $p = r = 0$, $T = 1$.
+- All beta: $A + C$ even, $r = 1$, $p = q = 0$, $T = 1$.
+- All gamma: $A + B$ even, $p = 1$, $q = r = 0$, $T = 1$.
+Answer: 1.
+
+2) $A = 0, B = 1, C = 1$, budgets all zero
+- All alpha: needs $q = 1$ but $L_{bc} = 0$, infeasible.
+- All beta: $A + C$ odd, infeasible.
+- All gamma: $A + B$ odd, infeasible.
+Answer: -1.
+
+**5. Time and Space Complexity**
+
+- Time complexity: $O(1)$, since we perform a constant number of arithmetic operations and comparisons for at most three targets.
+- Space complexity: $O(1)$, using a fixed amount of extra memory.
+
+**6. Conclusion**
+
+By modeling the process with aggregate counts per pair of types and leveraging parity constraints, we obtain closed-form minimal bridge counts for each target type. Simple upper-bound checks against budgets determine feasibility. This yields a constant-time, constant-space solution that is both exact and efficient for the full input range.

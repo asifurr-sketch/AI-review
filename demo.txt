@@ -1,0 +1,626 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/twin_resonance_domes
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Algorithm Complexity and Big O Notation","Computational Complexity Theory","Control Structures and Loops"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - $2$, $O(N_A\cdot M_B)$ -> $O(1)$
+
+**Number of Chains:** - $7$
+
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Twin Resonance Domes**
+
+Time Limit: **1 seconds**  
+Memory Limit: **32 MB**  
+
+On the plains of Asteron, two beacons at positions $(p, 0, 0)$ and $(q, 0, 0)$ with $p \neq q$ emit families of perfectly spherical, infinitely thin "resonance skins" (spherical shells). Beacon A emits $N_A$ concentric shells of radii $1, 2, ..., N_A$ centered at $(p, 0, 0)$. Beacon B emits $M_B$ concentric shells of radii $1, 2, ..., M_B$ centered at $(q, 0, 0)$. These shells partition three-dimensional space into finitely many regions. Determine the total number of regions.
+
+Two shells are considered to intersect if they meet along a circle; tangency at a single point does not split regions. The distance between centers is $d = \lvert p - q \rvert$.
+
+**Input Format:-**
+A single line containing four integers:
+$N_A$, $p$, $M_B$, $q$
+
+**Output Format:-**
+Print a single integer — the total number of $3D$ regions formed by all shells.
+
+**Constraints:-**  
+- $1 \le N_A, M_B \le 10^{12}$  
+- $-10^{12} \le p, q \le 10^{12}$
+- $p \ne q$  
+
+**Examples:-**
+ - **Input:**
+```
+1 0 1 1
+```
+
+ - **Output:**
+```
+4
+```
+
+ - **Input:**
+```
+1 0 1 2
+```
+
+ - **Output:**
+```
+3
+```
+
+## Note
+
+- Example $1$ (input: $1$ $0$ $1$ $1$): Two unit spheres centered at $0$ and $1$ have center distance $d=1$. Since $|1-1|<d<1+1$ (i.e., $0<d<2$), the spheres intersect along a circle, which splits space into four regions: inside only A, inside only B, inside both (their lens-shaped overlap), and outside both. Hence $4$.
+- Example $2$ (input: $1$ $0$ $1$ $2$): Two unit spheres with centers $2$ units apart have $d=2=1+1$, i.e., they are externally tangent at a single point. Tangency does not split regions, so there are only three regions: inside A, inside B, and outside both. Hence $3$.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the Twin Resonance Domes problem
+
+**[THOUGHT_01_01]**
+
+Two beacons on the x-axis at positions $p$ and $q$ ($p \ne q$) emit concentric, infinitely thin spherical shells. Beacon $A$ emits radii $1\ldots N_A$ centered at $(p,0,0)$. Beacon $B$ emits radii $1\ldots M_B$ centered at $(q,0,0)$. These shells partition $\mathbb{R}^3$ into finitely many regions. Count the total regions. Note: tangency at a single point does not split regions.
+
+**[THOUGHT_01_02]**
+
+ Inputs are integers $N_A, p, M_B, q$. Let $d = |p - q|$ for reference.
+ Output is one integer — the number of resulting $3D$ regions formed by all shells.
+
+
+**[THOUGHT_01_03]**
+
+ $1 \le N_A, M_B \le 10^{12};\; -10^{12} \le p, q \le 10^{12};\; p \ne q$.
+ The final count can be very large; robust integer handling is required.
+
+
+**[THOUGHT_01_04]**
+
+ Need to provide a correct, efficient, and numerically safe implementation that respects input bounds and edge cases, and validate results on curated tests.
+
+
+ **[THOUGHT_01_05]**
+
+ Large magnitudes and boundary distances must be handled without overflow; adhere strictly to the problem’s definition of tangency vs. region splits without discussing specific solution mechanics here.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing thorough and adversarial test cases
+
+
+**[THOUGHT_02_01]**
+
+Let's start with the simplest possible case to understand the basic mechanics. Consider $N_A = 1, p = 0, M_B = 1, q = 1$, so we have just one sphere from each beacon.
+
+The distance between centers is $d = |0 - 1| = 1$. We have only one pair to check: $(r=1, s=1)$. For the spheres to intersect, we need $|r - s| < d < r + s$. Substituting our values: $|1 - 1| < 1 < 1 + 1$ becomes $0 < 1 < 2$, which is true.
+
+So the spheres intersect, creating one circular intersection. The total regions are: initial space $(1)$ + sphere from $A$ $(1)$ + sphere from $B$ $(1)$ + intersection $(1) = 4$ regions.
+
+This gives us our first test case with output $4$.
+
+
+**[THOUGHT_02_02]**
+
+Now let's test what happens when the spheres are too far apart to intersect. With $N_A = 1, p = 0, M_B = 1, q = 2$, the distance is $d = |0 - 2| = 2$.
+
+Checking the intersection condition: $|1 - 1| < 2 < 1 + 1$ becomes $0 < 2 < 2$, which is false because $2$ is not strictly less than $2$. The spheres are externally tangent - they touch at exactly one point but don't intersect.
+
+Since tangency doesn't create new regions, we have: initial space $(1)$ + sphere from $A$ $(1)$ + sphere from $B$ $(1)$ + no intersections $(0) = 3$ regions.
+
+This confirms that tangency cases should be excluded from our intersection count.
+
+
+**[THOUGHT_02_03]**
+
+Let's test a case where the beacons are so far apart that no intersections are possible. With $N_A = 100, p = 0, M_B = 100, q = 300$, we have $d = 300$.
+
+For two spheres to intersect, we need $|r - s| < d < r + s$. Given our constraints: $r \in [1, 100]$ from beacon A, $s \in [1, 100]$ from beacon B, and $d = 300$. The maximum possible value of $r + s$ occurs when $r = 100$ and $s = 100$, giving $r + s = 200$.
+
+Checking the intersection condition, we need $d < r + s$, i.e., $300 < r + s$. But $r + s \leq 200 < 300$, so the condition $d < r + s$ can never be satisfied. Therefore, no spheres can intersect because they are all too far apart.
+
+The total regions are simply: initial space $(1)$ + all spheres from $A$ $(100)$ + all spheres from $B$ $(100)$ + no intersections $(0) = 201$ regions.
+
+
+**[THOUGHT_02_04]**
+
+Let's test a case with internal tangency where one sphere is completely inside another. With $N_A = 2, p = 0, M_B = 1, q = 1$, we have $d = 1$.
+
+The base regions are $1 + N_A + M_B = 1 + 2 + 1 = 4$.
+
+Now let's check each possible pair $(r, s)$ where $r \in [1, 2]$ and $s \in [1, 1]$:
+
+For $(r=1, s=1)$: Intersection condition is $|1-1| < 1 < 1+1$, which becomes $0 < 1 < 2$. This is true, so we have one intersection.
+
+For $(r=2, s=1)$: Intersection condition is $|2-1| < 1 < 2+1$, which becomes $1 < 1 < 3$. This is false because $1$ is not strictly less than $1$.
+
+Total intersections: $1$.
+
+The total regions are $4 + 1 = 5$.
+
+
+**[THOUGHT_02_05]**
+
+Let's test a case with very close beacons where many intersections occur. With $N_A = 2, p = 0, M_B = 2, q = 1$, we have $d = 1$.
+
+The base regions are $1 + N_A + M_B = 1 + 2 + 2 = 5$.
+
+Now let's check each possible pair $(r, s)$ where $r \in [1, 2]$ and $s \in [1, 2]$:
+
+For $(r=1, s=1)$: Intersection condition is $|1-1| < 1 < 1+1$, which becomes $0 < 1 < 2$. This is true, so we have one intersection.
+
+For $(r=1, s=2)$: Intersection condition is $|1-2| < 1 < 1+2$, which becomes $1 < 1 < 3$. This is false because $1$ is not strictly less than $1$.
+
+For $(r=2, s=1)$: Intersection condition is $|2-1| < 1 < 2+1$, which becomes $1 < 1 < 3$. This is false because $1$ is not strictly less than $1$.
+
+For $(r=2, s=2)$: Intersection condition is $|2-2| < 1 < 2+2$, which becomes $0 < 1 < 4$. This is true, so we have one intersection.
+
+Total intersections: $1 + 1 = 2$.
+
+The total regions are $5 + 2 = 7$.
+
+
+---
+
+**[CHAIN_03]**
+
+Brute-force baseline to ground correctness
+
+
+**[THOUGHT_03_01]**
+
+To validate our understanding, let's consider a direct approach: for each possible radius $r$ from beacon $A$ and each possible radius $s$ from beacon $B$, we need to determine if their spheres intersect. The intersection condition from geometry is that two spheres intersect if and only if the distance between their centers is strictly between $|r - s|$ and $r + s$. This gives us a way to count all intersecting pairs.
+
+
+**[THOUGHT_03_02]**
+
+Mirrors the geometric rule directly, counting precisely those pairs whose spheres meet along a circle.
+
+
+**[THOUGHT_03_03]**
+
+$O(N_A \cdot M_B)$ time, $O(1)$ space. Infeasible for constraints up to $10^{12}$.
+
+
+**[THOUGHT_03_04]**
+
+Cannot scale; used only to validate the optimized formula on small inputs and as a reference implementation.
+
+
+---
+
+**[CHAIN_04]**
+
+Region-count identity and why intersections add exactly one each
+
+
+**[THOUGHT_04_01]**
+
+Let's think about how regions are created. Initially, we have empty $3D$ space, which forms exactly one region. When we add the first sphere, it divides space into two regions: inside the sphere and outside the sphere. So adding one sphere increases the region count by $1$.
+
+
+**[THOUGHT_04_02]**
+
+If a new sphere intersects $k$ existing spheres along $k$ disjoint circles on its surface, those circles partition the new sphere's surface into $k+1$ patches. Each patch contributes exactly one new region inside the sphere, so the region count increases by $k$. With two families of concentric spheres around distinct centers, circles induced by different previously-present spheres are disjoint on the newcomer.
+
+
+**[THOUGHT_04_03]**
+
+Now let's consider what happens when spheres intersect. When two spheres intersect, they meet along a circle on each sphere's surface. This circle creates a boundary that splits the interior of each sphere into additional regions.
+
+If a new sphere intersects with $k$ existing spheres, those $k$ circles on the new sphere's surface partition it into $k+1$ distinct patches. Each patch contributes one new region inside the sphere.
+
+Since we have two families of concentric spheres around different centers, the circles from different existing spheres don't interfere with each other on the new sphere's surface. This means each intersection adds exactly one new region.
+
+So the total regions $=$ initial space $+$ all spheres $+$ all pairwise intersections. The key insight is that we need to count pairs $(r, s)$ where the spheres actually intersect (not just touch tangentially).
+
+
+**[THOUGHT_04_04]**
+
+Contacts at a single point (when $d$ equals $r + s$ or $|r - s|$) do not create new regions and must be excluded. If $d \ge N_A + M_B$, there are no circular intersections at all.
+
+
+**[THOUGHT_04_05]**
+
+The "$1$ per sphere + $1$ per circle" invariant justifies the counting goal. Results should be checked against small brute-force cases and provided examples to validate edge handling.
+
+
+---
+
+**[CHAIN_05]**
+
+Characterizing intersecting pairs and interval lengths
+
+
+**[THOUGHT_05_01]**
+
+Let's analyze the intersection condition more carefully. For a sphere of radius $r$ from beacon $A$ to intersect with a sphere of radius $s$ from beacon $B$, we need $|r - s| < d < r + s$.
+
+This gives us two conditions:
+1. $d > |r - s|$ (spheres don't contain each other)
+2. $d < r + s$ (spheres aren't too far apart)
+
+For a fixed $r$, let's see what values of $s$ satisfy both conditions. From condition 1: if $r \geq s$, then $d > r - s$, so $s > r - d$. If $r < s$, then $d > s - r$, so $s < r + d$. From condition 2: $s > d - r$.
+
+Combining these, we get $s \in (d - r, d + r)$. Since we're working with integer radii, this becomes $s \in [d - r + 1, d + r - 1]$, but we also need $s \in [1, M_B]$.
+
+
+**[THOUGHT_05_02]**
+
+Let's analyze the length of the valid interval for $s$ given a fixed $r$. The unclamped interval is $(d - r, d + r)$, which has length $2r$ over the reals, but since we need integer values, the length is $2r - 1$.
+
+However, this assumes both endpoints are valid. Let's consider two cases:
+- If $r \leq d$, then $d - r \geq 0$, so the interval starts at a positive value
+- If $r > d$, then $d - r < 0$, so the interval starts at a negative value
+
+When $r \geq d + 1$, the interval $(d - r, d + r)$ has length $2r$ over the reals, or $2r - 1$ for integer values, which varies with $r$ and is not constant.
+
+
+**[THOUGHT_05_03]**
+
+Now we need to account for the constraint that $s \in [1, M_B]$. The interval $(d - r, d + r)$ might extend beyond these bounds.
+
+Let's think about when the left endpoint $d - r$ becomes greater than 1. This happens when $d - r > 1$, or equivalently $r < d - 1$. The left endpoint $d - r$ equals 1 when $r = d - 1$.
+
+Similarly, the right endpoint $d + r$ might exceed $M_B$ when $r > M_B - d$.
+
+This suggests there might be different cases to handle based on how the interval $(d - r, d + r)$ relates to the bounds $[1, M_B]$.
+
+
+**[THOUGHT_05_04]**
+
+Let's organize our analysis by considering when the intersection condition can be satisfied. We have two main cases based on the relationship between $r$ and $d$:
+
+Case A: When $r \leq d$, the interval $(d - r, d + r)$ has its left endpoint at $d - r \geq 0$. For this to be viable, we need the interval to overlap with $[1, M_B]$.
+
+Case B: When $r \geq d + 1$, the interval $(d - r, d + r)$ has its left endpoint at $d - r \leq -1$, but the right endpoint is at $d + r \geq 2d + 1$.
+
+We need to determine the valid ranges of $r$ for each case, considering the constraints $r \in [1, N_A]$ and ensuring the interval $(d - r, d + r)$ actually intersects with $[1, M_B]$.
+
+
+**[THOUGHT_05_05]**
+
+Within each case, we need to handle how the interval $(d - r, d + r)$ gets clipped by the bounds $[1, M_B]$. The key insight is that there's a critical point where the left endpoint of the interval crosses the lower bound of 1.
+
+Let's define $rZero = M_B - d + 1$ as the value of $r$ where the right endpoint $d + r$ reaches $M_B + 1$.
+
+For Case A ($r \leq d$):
+- When $r \leq rZero$, the interval $(d - r, d + r)$ starts above 1, so we get the full length $2r - 1$
+- When $r > rZero$, the interval starts below 1, so it gets clipped to start at 1, giving length $M_B - d + r$
+
+For Case B ($r \geq d + 1$):
+- When $r \leq rZero$, the interval gets clipped to start at 1, giving length $d + r - 1$
+- When $r > rZero$, the interval gets clipped on both ends, giving length $M_B - r + d$
+
+This gives us four subcases to handle in our counting formula.
+
+
+---
+
+**[CHAIN_06]**
+
+Summing in closed form ($O(1)$)
+
+
+**[THOUGHT_06_01]**
+
+Each subrange above is an arithmetic progression or a constant; sum with formulas, $\sum_{r=L}^{R} r = \dfrac{(L + R)(R - L + 1)}{2}$, and sum of a constant $c$ over $n$ terms is $c\,n$.
+
+
+**[THOUGHT_06_02]**
+
+Define helpers as $rZero = M_B - d + 1$; clamp ranges for A1/A2/B1/B2. Add their contributions to get pairs.
+
+
+**[THOUGHT_06_03]**
+
+$\text{regions} = 1 + N_A + M_B + \text{pairs}$.
+
+
+**[THOUGHT_06_04]**
+
+Use $128$-bit integers for all intermediate sums and products; convert to string for output.
+
+
+**[THOUGHT_06_05]**
+
+$O(1)$ time and $O(1)$ space, independent of $N_A, M_B$ magnitudes.
+
+
+**[THOUGHT_06_06]**
+
+Direct double loops are infeasible at scale. The interval-length view collapses the count into at most four clamped arithmetic progressions, enabling constant-time summation with robust integer arithmetic.
+
+
+---
+
+**[CHAIN_07]**
+
+Numerical considerations and computational requirements
+
+
+**[THOUGHT_07_01]**
+
+For Input processing, parse four integers $N_A, p, M_B, q$ and compute the distance $d = |p - q|$ as the fundamental geometric parameter.
+
+
+**[THOUGHT_07_02]**
+
+The constraint bounds allow $N_A, M_B \approx 10^{12}$, which means intermediate products in the closed-form sums can exceed $64$-bit integer limits. Wide integer arithmetic is essential for correctness.
+
+
+**[THOUGHT_07_03]**
+
+Carefully guard empty subranges before summing; check $L \le R$ before applying formulas to avoid negative counts.
+
+
+**[THOUGHT_07_04]**
+
+If Case A or Case B is empty after clamping, skip. $rZero$ can be $\le 0$ or $> N_A$; treat comparisons in $128$-bit.
+
+
+**[THOUGHT_07_05]**
+
+Avoid floating-point; no need for geometry primitives beyond the inequality check.
+
+
+**[THOUGHT_07_06]**
+
+Read $N_A, p, M_B, q$; compute $d = |p - q|$. Promote to wide integers; derive $rZero$ and clamped subranges. Sum A1/A2/B1/B2 contributions using arithmetic-progression formulas. Output $\text{regions} = 1 + N_A + M_B + \text{total\_pairs}$ with safe integer-to-string conversion.
+
+
+**[THOUGHT_07_07]**
+
+$\text{sumRange}(L, R) = \dfrac{(L + R)(R - L + 1)}{2}$ (apply only when $L \le R$); constants sum as $c\,n$.
+
+
+**[THOUGHT_07_08]**
+
+$O(1)$ time, $O(1)$ space; use $128$-bit intermediates to prevent overflow when $N_A, M_B \approx 10^{12}$.
+
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We have two beacons on the x-axis at positions $centerAInput$ and $centerBInput$ (with $centerAInput \ne centerBInput$). Beacon A emits $numShellsAInput$ concentric, infinitely thin spherical shells of radii $1, 2, \ldots, numShellsAInput$ centered at $(centerAInput, 0, 0)$. Beacon B emits $numShellsBInput$ concentric shells of radii $1, 2, \ldots, numShellsBInput$ centered at $(centerBInput, 0, 0)$.
+
+These shells partition three-dimensional space into a finite number of regions. Two shells are considered to intersect if they meet along a circle; tangency at a single point does not split regions. Let $distance = |centerAInput - centerBInput|$ denote the distance between the centers.
+
+Input: four integers $numShellsAInput, centerAInput, numShellsBInput, centerBInput$.
+
+Output: a single integer — the total number of 3D regions formed by all shells subject to the above rules.
+
+Constraints allow $numShellsAInput$ and $numShellsBInput$ up to $10^{12}$ and $centerAInput, centerBInput$ in $[-10^{12}, 10^{12}]$ with $centerAInput \ne centerBInput$.
+
+
+**2. Optimal Approach**
+
+We evaluate pairs by splitting $radiusA$ into a constant number of contiguous ranges where the clamped length is an arithmetic progression:
+
+- Define $clampThreshold = numShellsB - distance + 1$. This is where the right endpoint starts exceeding $numShellsB$.
+- Case A: $radiusA \in [\max(1, distance - numShellsB + 1),\; \min(numShellsA, distance)]$
+    - A1: $radiusA \in [caseALowerBound, \min(caseAUpperBound, clampThreshold)]$ contributes length $2 \cdot radiusA - 1$.
+    - A2: $radiusA \in [\max(caseALowerBound, clampThreshold + 1), caseAUpperBound]$ contributes length $numShellsB - distance + radiusA$.
+- Case B: $radiusA \in [distance + 1, \min(numShellsA, numShellsB + distance - 1)]$
+    - B1: $radiusA \in [caseBLowerBound, \min(caseBUpperBoundClamped, clampThreshold)]$ contributes constant $2 \cdot distance - 1$.
+    - B2: $radiusA \in [\max(caseBLowerBound, clampThreshold + 1), caseBUpperBoundClamped]$ contributes length $numShellsB - radiusA + distance$.
+
+Each subrange sums to either a constant times a count or a sum over $r$, which we compute with closed-form sums of arithmetic progressions. This yields $O(1)$ time overall.
+
+We must use 128-bit intermediates to avoid overflow when $numShellsA, numShellsB$ are large, so we compute with i128 ($\_\_int128\_t$) and only convert to string when printing.
+
+
+**3. Code**
+```cpp
+/**
+ * @file standard.cpp
+ * @brief Optimal solution for Twin Resonance Domes problem using closed-form intersection counting
+ * @details This solution counts intersecting spherical shell pairs in O(1) time using
+ *          arithmetic progression formulas and 128-bit integer arithmetic.
+ * @author Competitive Programming Solution
+ * @date 2024
+ */
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <cstdlib>
+
+using int64 = long long;
+using i128 = __int128_t;
+
+/**
+ * @brief Converts a 128-bit integer to its decimal string representation
+ * @param x The 128-bit integer to convert (can be negative)
+ * @return String representation of the integer in decimal format
+ * @note Handles negative numbers and zero correctly
+ */
+std::string toString(i128 x) {
+    if (x == 0) return "0";
+    bool neg = false;
+    if (x < 0) { neg = true; x = -x; }
+    std::string s;
+    while (x > 0) {
+        int digit = (int)(x % 10);
+        s.push_back('0' + digit);
+        x /= 10;
+    }
+    if (neg) s.push_back('-');
+    std::reverse(s.begin(), s.end());
+    return s;
+}
+
+/**
+ * @brief Calculates the sum of integers from left to right inclusive using arithmetic progression formula
+ * @param left The starting value (inclusive)
+ * @param right The ending value (inclusive)
+ * @return Sum of integers from left to right, or 0 if right < left
+ * @note Uses the formula: sum = (left + right) * n / 2 where n = right - left + 1
+ */
+i128 sumRange(i128 left, i128 right) {
+    if (right < left) return (i128)0;
+    const i128 n = (right - left + 1);
+    return (left + right) * n / 2;
+}
+
+/**
+ * @brief Main function that solves the Twin Resonance Domes problem
+ * @details Reads input parameters and computes the total number of 3D regions
+ *          formed by intersecting spherical shells using closed-form intersection counting.
+ * @return 0 on successful execution
+ *
+ * Input format: N_A p M_B q (four space-separated integers)
+ * Output: Single integer representing total number of regions
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    long long numShellsAInput, centerAInput, numShellsBInput, centerBInput;
+    if (!(std::cin >> numShellsAInput >> centerAInput >> numShellsBInput >> centerBInput)) return 0;
+
+    const i128 numShellsA = (i128)numShellsAInput;
+    const i128 numShellsB = (i128)numShellsBInput;
+    const long long distanceRaw = std::llabs(centerAInput - centerBInput);
+    const i128 distance = (i128)distanceRaw;
+
+    i128 pairs = 0;
+
+    // Precompute clampThreshold = numShellsB - distance + 1 for splits (can be negative)
+    const i128 clampThreshold = numShellsB - distance + 1;
+
+    /*
+     * Case A: radiusA in [1 .. min(numShellsA, distance)]
+     * A necessary condition for any intersection when radiusA <= distance is:
+     *    radiusB_min = distance - radiusA + 1 <= numShellsB  <=> radiusA >= distance - numShellsB + 1
+     */
+    const i128 caseALowerBound = (distance - numShellsB + 1 < 1) ? 1 : (distance - numShellsB + 1);
+    const i128 caseAUpperBound = (numShellsA < distance ? numShellsA : distance);   // min(numShellsA, distance)
+
+    if (caseALowerBound <= caseAUpperBound) {
+        // Subcase A1: radiusA in [caseALowerBound .. min(caseAUpperBound, clampThreshold)] -> length = 2*radiusA - 1
+        const i128 range1Start = caseALowerBound;
+        const i128 range1End = (clampThreshold < caseAUpperBound ? clampThreshold : caseAUpperBound);
+        if (range1End >= range1Start) {
+            const i128 rangeSize = range1End - range1Start + 1;
+            pairs += (i128)2 * sumRange(range1Start, range1End) - rangeSize; // sum(2*radiusA-1)
+        }
+
+        // Subcase A2: radiusA in [max(caseALowerBound, clampThreshold+1) .. caseAUpperBound] -> length = numShellsB - distance + radiusA
+        const i128 range2Start = (clampThreshold + 1 > caseALowerBound ? clampThreshold + 1 : caseALowerBound);
+        const i128 range2End = caseAUpperBound;
+        if (range2End >= range2Start) {
+            const i128 rangeSize = range2End - range2Start + 1;
+            // sum(numShellsB - distance + radiusA) = rangeSize*(numShellsB - distance) + sum(radiusA)
+            pairs += rangeSize * (numShellsB - distance) + sumRange(range2Start, range2End);
+        }
+    }
+
+    /*
+     * Case B: radiusA in [distance+1 .. numShellsA]
+     * Necessary condition: radiusB_min = radiusA - distance + 1 <= numShellsB  <=> radiusA <= numShellsB + distance - 1
+     */
+    const i128 caseBLowerBound = distance + 1;
+    const i128 caseBUpperBound = numShellsA;
+    const i128 caseBUpperBoundClamped = (numShellsB + distance - 1 < caseBUpperBound ? numShellsB + distance - 1 : caseBUpperBound);
+    if (caseBLowerBound <= caseBUpperBoundClamped) {
+        // Subcase B1: radiusA in [caseBLowerBound .. min(caseBUpperBoundClamped, clampThreshold)] -> contribution = 2*distance - 1
+        const i128 range1Start = caseBLowerBound;
+        const i128 range1End = (clampThreshold < caseBUpperBoundClamped ? clampThreshold : caseBUpperBoundClamped);
+        if (range1End >= range1Start) {
+            const i128 rangeSize = range1End - range1Start + 1;
+            pairs += rangeSize * ((i128)2 * distance - (i128)1);
+        }
+
+        // Subcase B2: radiusA in [max(caseBLowerBound, clampThreshold+1) .. caseBUpperBoundClamped] -> length = numShellsB - radiusA + distance
+        const i128 range2Start = (clampThreshold + 1 > caseBLowerBound ? clampThreshold + 1 : caseBLowerBound);
+        const i128 range2End = caseBUpperBoundClamped;
+        if (range2End >= range2Start) {
+            const i128 rangeSize = range2End - range2Start + 1;
+            // sum(numShellsB - radiusA + distance) = rangeSize*(numShellsB + distance) - sum(radiusA)
+            pairs += rangeSize * (numShellsB + distance) - sumRange(range2Start, range2End);
+        }
+    }
+
+    const i128 regions = (i128)1 + numShellsA + numShellsB + pairs;
+    std::cout << toString(regions) << "\n";
+    return 0;
+}
+```
+
+
+**4. Code Explanation**
+
+- Variables and types:
+    - Read inputs: $numShellsAInput, centerAInput, numShellsBInput, centerBInput$. Let $distance = |centerAInput - centerBInput|$.
+    - For all arithmetic to avoid overflow; convert to string only at output via toString.
+- Pair counting strategy (pairs):
+    - For each $radiusA \in [1..numShellsA]$, the unconstrained valid $radiusB$-interval has length:
+        - If $radiusA \le distance$: length $2 \cdot radiusA - 1$ with interval $[distance - radiusA + 1,\; distance + radiusA - 1]$.
+        - If $radiusA \ge distance + 1$: length $2 \cdot distance - 1$ with interval $[radiusA - distance + 1,\; radiusA + distance - 1]$.
+    - Because $radiusB$ must lie in $[1..numShellsB]$, we clamp each interval, which changes the length formula after a certain threshold $clampThreshold = numShellsB - distance + 1$.
+    - We also clamp $radiusA$-ranges to those that actually intersect $[1..numShellsB]$:
+        - Case A ($radiusA \le distance$): require $radiusA \ge distance - numShellsB + 1$; set $caseALowerBound = \max(1, distance - numShellsB + 1)$, $caseAUpperBound = \min(numShellsA, distance)$.
+        - Case B ($radiusA \ge distance + 1$): require $radiusA \le numShellsB + distance - 1$; set $caseBLowerBound = distance + 1$, $caseBUpperBoundClamped = \min(numShellsA, numShellsB + distance - 1)$.
+- Range splits and sums:
+    - A1: $radiusA \in [caseALowerBound, \min(caseAUpperBound, clampThreshold)]$ contributes sum of $(2 \cdot radiusA - 1)$.
+    - A2: $radiusA \in [\max(caseALowerBound, clampThreshold + 1), caseAUpperBound]$ contributes sum of $(numShellsB - distance + radiusA)$.
+    - B1: $radiusA \in [caseBLowerBound, \min(caseBUpperBoundClamped, clampThreshold)]$ contributes a constant $(2 \cdot distance - 1)$ per $radiusA$.
+    - B2: $radiusA \in [\max(caseBLowerBound, clampThreshold + 1), caseBUpperBoundClamped]$ contributes $(numShellsB - radiusA + distance)$.
+    - Each subrange sum is computed using $\text{sumRange}(left, right) = ((left + right) \cdot rangeSize)/2$.
+- Final answer:
+    - $\text{regions} = 1 + numShellsA + numShellsB + pairs$, printed via toString(i128).
+- Safety and edges:
+    - All intermediate computations are i128; range emptiness is handled by bounds checks before summing.
+    - The arithmetic uses only $O(1)$ operations regardless of input sizes.
+
+Example : Input: $1\; 0\; 1\; 1$
+- Parsed: $numShellsAInput=1$, $centerAInput=0$, $numShellsBInput=1$, $centerBInput=1$. Casts: $numShellsA=1$, $numShellsB=1$. Distance $distance=|centerAInput - centerBInput|=1$.
+- $clampThreshold = numShellsB - distance + 1 = 1 - 1 + 1 = 1$.
+- Case A: $caseALowerBound = \max(1, distance - numShellsB + 1) = \max(1, 1 - 1 + 1) = 1$; $caseAUpperBound = \min(numShellsA, distance) = 1$.
+    - A1 range: $radiusA \in [1..\min(1, clampThreshold=1)] \Rightarrow radiusA = 1$ only. Contribution $= 2 \cdot radiusA - 1 = 1$.
+    - A2 range: $radiusA \in [\max(1, clampThreshold+1=2)..1]$ $\Rightarrow$ empty.
+- Case B: $caseBLowerBound = distance + 1 = 2$; $caseBUpperBoundClamped = \min(numShellsA, numShellsB + distance - 1) = \min(1, 1) = 1$ $\Rightarrow$ empty.
+- Sum $pairs = 1$. Final $\text{regions} = 1 + numShellsA + numShellsB + pairs = 1 + 1 + 1 + 1 = 4$, matching the sample output.
+
+**5. Time and Space Complexity**
+
+- Time: $O(1)$ — constant number of arithmetic operations and range-sum evaluations.
+- Space: $O(1)$ — a few scalar variables; no auxiliary arrays or loops over input sizes.
+
+**6. Conclusion**
+
+By expressing the pair counting as sums over a constant number of clamped arithmetic-progressions in $radiusA$, we obtain a closed-form $O(1)$ solution. Using 128-bit arithmetic guarantees correctness for large inputs, and the final result is computed as $\text{regions} = 1 + numShellsA + numShellsB + pairs$.

@@ -582,6 +582,8 @@ The document MUST contain a metadata section at the beginning that follows this 
 
 **Category:** - [value]
 
+**GitHub URL:** - [GitHub URL]
+
 **Topic:** - [value]
 
 **Subtopic:** - [JSON array of subtopics]
@@ -600,6 +602,7 @@ REQUIRED FORMAT SPECIFICATIONS:
 3. There must be a space after the colon, then a dash, then a space before the value
 4. All fields must be present in this exact order
 5. The subtopic must be a valid JSON array format with proper quotes
+6. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
 
 CRITICAL VALIDATION FOR "Number of Approaches":
 - Must contain both the count and the time complexity progression
@@ -622,12 +625,13 @@ CRITICAL VALIDATION FOR "Number of Chains":
 
 WHAT TO CHECK:
 1. Metadata section exists with "# Metadata" header
-2. All required fields are present in correct order
+2. All required fields are present in correct order: Category, GitHub URL, Topic, Subtopic, Difficulty, Languages, Number of Approaches, Number of Chains
 3. Each field follows the exact format: **FieldName:** - value
-4. Number of Approaches contains both count and valid time complexity progression
-5. Number of Chains matches actual CHAIN_XX sections count
-6. Subtopic is a properly formatted JSON array
-7. Values are appropriate for the content
+4. GitHub URL is a valid GitHub repository URL starting with https://github.com/
+5. Number of Approaches contains both count and valid time complexity progression
+6. Number of Chains matches actual CHAIN_XX sections count
+7. Subtopic is a properly formatted JSON array
+8. Values are appropriate for the content
 
 Please answer pass or fail.
 
@@ -1737,20 +1741,22 @@ class GitHubReviewValidator:
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
                             if 'solution_bf.cpp' in line:
-                                parts = [p.strip() for p in line.split('|')]
+                                # Split by | and filter out empty strings
+                                parts = [p.strip() for p in line.split('|') if p.strip()]
+                                # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
                                 if len(parts) >= 8:  # Ensure we have enough columns
-                                    errors_column = parts[7]  # Last column with errors
+                                    errors_column = parts[7]  # Last column with errors (0-indexed, so 8th column)
                                     
                                     # Parse errors format: WA/TLE/RTE/CE
                                     if '/' in errors_column:
                                         error_counts = errors_column.split('/')
                                         if len(error_counts) >= 4:
-                                            wa_count = error_counts[0]
-                                            ce_count = error_counts[3]
+                                            wa_count = error_counts[0].strip()
+                                            ce_count = error_counts[3].strip()
                                             if wa_count != '0':
-                                                return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
+                                                return False, f"solution_bf.cpp should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
                                             if ce_count != '0':
-                                                return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
+                                                return False, f"solution_bf.cpp should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
             
             return True, "overall.md format validation passed"
             
