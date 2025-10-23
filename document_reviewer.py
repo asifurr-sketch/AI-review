@@ -1501,7 +1501,7 @@ class GitHubReviewValidator:
                             break
     
     def _extract_github_url(self, document: str) -> Optional[str]:
-        """Extract GitHub URL from document metadata"""
+        """Extract GitHub URL from document metadata - robust extraction for any *github.com* pattern"""
         # Try the exact format first
         github_url_pattern = r'\*\*GitHub URL:\*\*\s+(https://github\.com/[^\s\n]+)'
         match = re.search(github_url_pattern, document)
@@ -1519,6 +1519,20 @@ class GitHubReviewValidator:
             match = re.search(pattern, document, re.IGNORECASE)
             if match:
                 return match.group(1)
+        
+        # Robust fallback: Find any URL containing github.com and take the longest one
+        github_urls = []
+        
+        # Pattern to match any URL containing github.com (case insensitive)
+        robust_pattern = r'https?://[^\s\n]*github\.com[^\s\n]*'
+        matches = re.finditer(robust_pattern, document, re.IGNORECASE)
+        
+        for match in matches:
+            github_urls.append(match.group(0))
+        
+        # If multiple URLs found, return the longest one
+        if github_urls:
+            return max(github_urls, key=len)
         
         return None
     
@@ -1741,20 +1755,22 @@ class GitHubReviewValidator:
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
                             if 'solution_bf.cpp' in line:
-                                parts = [p.strip() for p in line.split('|')]
+                                # Split by | and filter out empty strings
+                                parts = [p.strip() for p in line.split('|') if p.strip()]
+                                # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
                                 if len(parts) >= 8:  # Ensure we have enough columns
-                                    errors_column = parts[7]  # Last column with errors
+                                    errors_column = parts[7]  # Last column with errors (0-indexed, so 8th column)
                                     
                                     # Parse errors format: WA/TLE/RTE/CE
                                     if '/' in errors_column:
                                         error_counts = errors_column.split('/')
                                         if len(error_counts) >= 4:
-                                            wa_count = error_counts[0]
-                                            ce_count = error_counts[3]
+                                            wa_count = error_counts[0].strip()
+                                            ce_count = error_counts[3].strip()
                                             if wa_count != '0':
-                                                return False, "solution_bf.cpp should not have Wrong Answer (WA) errors"
+                                                return False, f"solution_bf.cpp should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
                                             if ce_count != '0':
-                                                return False, "solution_bf.cpp should not have Compilation Error (CE) errors"
+                                                return False, f"solution_bf.cpp should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
             
             return True, "overall.md format validation passed"
             
@@ -1940,7 +1956,7 @@ class GitHubReviewValidator:
         if not github_url:
             return ReviewResponse(
                 result=ReviewResult.FAIL,
-                reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+                reasoning="No GitHub URL found in document. Expected format: **GitHub URL:** https://github.com/owner/repo or any URL containing github.com"
             )
         
         # Step 2: Parse GitHub URL
@@ -1948,7 +1964,7 @@ class GitHubReviewValidator:
         if not owner or not repo:
             return ReviewResponse(
                 result=ReviewResult.FAIL,
-                reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+                reasoning=f"Invalid GitHub URL format: {github_url}. URL must be a valid GitHub repository URL"
             )
         
         # Step 3: Clone repository
@@ -2050,7 +2066,7 @@ class GitHubReviewValidator:
             if not github_url:
                 results.append(("GitHub URL Extraction", ReviewResponse(
                     result=ReviewResult.FAIL,
-                    reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+                    reasoning="No GitHub URL found in document. Expected format: **GitHub URL:** https://github.com/owner/repo or any URL containing github.com"
                 )))
                 return results
             else:
@@ -2064,7 +2080,7 @@ class GitHubReviewValidator:
             if not owner or not repo:
                 results.append(("GitHub URL Parsing", ReviewResponse(
                     result=ReviewResult.FAIL,
-                    reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+                    reasoning=f"Invalid GitHub URL format: {github_url}. URL must be a valid GitHub repository URL"
                 )))
                 # Critical failure, cannot continue without valid URL
                 return results
