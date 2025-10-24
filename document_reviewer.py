@@ -1,43 +1,12 @@
 #!/usr/bin/env python3
 """
-Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - Ultimate Point Analysis
+Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking
 
 This script reads a document from a specified text file and performs comprehensive review checks
 using Claude Opus 4.1 with extended thinking enabled across multiple specialized review points. 
 Each review point is performed by a specialized reviewer class with targeted prompts for maximum precision.
 
-Features:
-- Comprehensive review points covering all aspects of document quality
-- GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
-- Primary: Claude Opus 4.1 with 20k thinking budget for exceptional reasoning
-- Secondary: Claude Sonnet 4 for cleanup operations with 64k output tokens
-- Code style guide and naming convention compliance for C++ and Python (Points 1-3)
-- Response quality and mathematical correctness (Points 4-11) 
-- Problem statement and solution validation (Points 12-17)
-- Reasoning chain analysis and approach evaluation (Points 18-21)
-- Subtopic taxonomy and completeness validation (Points 22-25)
-- Chain 2 test case analysis validation (Point 26)
-- Thought heading violations check (Point 27)
-- Comprehensive reasoning thoughts review (Point 28)
-- Extended thinking provides deep analysis with step-by-step reasoning
-
-GitHub Requirements:
-- Document must contain a GitHub URL in metadata: **GitHub URL:** https://github.com/owner/repo
-- Repository cloning uses SSH by default with HTTPS fallback for better security
-- Repository must be accessible and cloneable (SSH key setup recommended)
-- Repository must contain exactly one overall.md file (case-insensitive)
-- SSH Setup (Recommended):
-  1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'
-  2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519
-  3. Add public key to GitHub: Copy content of ~/.ssh/id_ed25519.pub to GitHub settings
-  4. Test SSH access: ssh -T git@github.com
-- No GitHub API key needed - uses SSH/HTTPS for git operations
-
-Configuration:
-- ANTHROPIC_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
-- For SSH access setup, see GitHub Requirements section above
-
-Author: AI Assistant  
+Author: Md Asifur Rahman
 Date: October 9, 2025 (Updated October 25, 2025)
 """
 
