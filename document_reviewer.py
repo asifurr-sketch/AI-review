@@ -31,10 +31,14 @@ GitHub Requirements:
   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519
   3. Add public key to GitHub: Copy content of ~/.ssh/id_ed25519.pub to GitHub settings
   4. Test SSH access: ssh -T git@github.com
-- GitHub API key should be configured in .env file as: git_api = your_token_here (optional for public repos)
+- No GitHub API key needed - uses SSH/HTTPS for git operations
 
-Author: AI Assistant
-Date: October 9, 2025
+Configuration:
+- ANTHROPIC_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
+- For SSH access setup, see GitHub Requirements section above
+
+Author: AI Assistant  
+Date: October 9, 2025 (Updated October 25, 2025)
 """
 
 import os
@@ -1480,25 +1484,7 @@ class GitHubReviewValidator:
     """Non-AI review: Validates GitHub post links and overall.md file existence"""
     
     def __init__(self, quiet_mode=False):
-        # Load GitHub API key from .env file
-        self.github_api_key = None
         self.quiet_mode = quiet_mode
-        self._load_env_variables()
-    
-    def _load_env_variables(self):
-        """Load environment variables from .env file"""
-        env_path = '.env'
-        if os.path.exists(env_path):
-            with open(env_path, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        key = key.strip()
-                        value = value.strip()
-                        if key == 'git_api':
-                            self.github_api_key = value
-                            break
     
     def _extract_github_url(self, document: str) -> Optional[str]:
         """Extract GitHub URL from document metadata - robust extraction for any *github.com* pattern"""
@@ -2215,10 +2201,10 @@ class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
     def __init__(self, quiet_mode=False):
-        # Initialize Anthropic client with API key from environment
-        api_key = os.getenv('ANTHROPIC_API_KEY')
+        # Initialize Anthropic client with API key from environment or .env file
+        api_key = self._load_anthropic_api_key()
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable not found. Please set it in your .bashrc")
+            raise ValueError("ANTHROPIC_API_KEY not found. Please set it as an environment variable or add 'ANTHROPIC_API_KEY=your_key_here' to a .env file")
         
         self.client = Anthropic(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
@@ -2228,7 +2214,33 @@ class DocumentReviewSystem:
         # Initialize GitHub validator (non-AI review)
         self.github_validator = GitHubReviewValidator(quiet_mode=quiet_mode)
         
-        # Initialize all Ultimate reviewers - each as individual API call
+        # Initialize all reviewers
+        self.__init_reviewers__()
+        
+    def _load_anthropic_api_key(self):
+        """Load Anthropic API key from .env file or environment variable"""
+        # First check .env file (more user-friendly for cross-platform)
+        env_path = '.env'
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key == 'ANTHROPIC_API_KEY':
+                            return value
+        
+        # Fallback to environment variable
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if api_key:
+            return api_key
+        
+        return None
+        
+    def __init_reviewers__(self):
+        """Initialize all Ultimate reviewers - each as individual API call"""
         self.reviewers = {
             # Solution Uniqueness Validation
             "Unique Solution Validation": UniqueSolutionReviewer(self.client),
