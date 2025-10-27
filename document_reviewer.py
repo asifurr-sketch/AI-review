@@ -1,12 +1,43 @@
 #!/usr/bin/env python3
 """
-Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking
+Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - Ultimate Point Analysis
 
 This script reads a document from a specified text file and performs comprehensive review checks
 using Claude Opus 4.1 with extended thinking enabled across multiple specialized review points. 
 Each review point is performed by a specialized reviewer class with targeted prompts for maximum precision.
 
-Author: Md Asifur Rahman
+Features:
+- Comprehensive review points covering all aspects of document quality
+- GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
+- Primary: Claude Opus 4.1 with 20k thinking budget for exceptional reasoning
+- Secondary: Claude Sonnet 4 for cleanup operations with 64k output tokens
+- Code style guide and naming convention compliance for C++ and Python (Points 1-3)
+- Response quality and mathematical correctness (Points 4-11) 
+- Problem statement and solution validation (Points 12-17)
+- Reasoning chain analysis and approach evaluation (Points 18-21)
+- Subtopic taxonomy and completeness validation (Points 22-25)
+- Chain 2 test case analysis validation (Point 26)
+- Thought heading violations check (Point 27)
+- Comprehensive reasoning thoughts review (Point 28)
+- Extended thinking provides deep analysis with step-by-step reasoning
+
+GitHub Requirements:
+- Document must contain a GitHub URL in metadata: **GitHub URL:** https://github.com/owner/repo
+- Repository cloning uses SSH by default with HTTPS fallback for better security
+- Repository must be accessible and cloneable (SSH key setup recommended)
+- Repository must contain exactly one overall.md file (case-insensitive)
+- SSH Setup (Recommended):
+  1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'
+  2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519
+  3. Add public key to GitHub: Copy content of ~/.ssh/id_ed25519.pub to GitHub settings
+  4. Test SSH access: ssh -T git@github.com
+- No GitHub API key needed - uses SSH/HTTPS for git operations
+
+Configuration:
+- ANTHROPIC_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
+- For SSH access setup, see GitHub Requirements section above
+
+Author: AI Assistant  
 Date: October 9, 2025 (Updated October 25, 2025)
 """
 
@@ -1598,21 +1629,31 @@ class GitHubReviewValidator:
         return overall_files
     
     def _check_hunyuan_cpp_files(self, repo_dir: str) -> Tuple[bool, str]:
-        """Check if runs/hunyuan-t1-dev-20250822/*.cpp files exist"""
+        """Check if runs/hunyuan-t1-dev-20250822/*.cpp or *.py files exist"""
         hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-t1-dev-20250822')
         
         if not os.path.exists(hunyuan_dir):
             return False, f"Directory 'runs/hunyuan-t1-dev-20250822' does not exist"
         
         cpp_files = []
+        py_files = []
         for file in os.listdir(hunyuan_dir):
             if file.endswith('.cpp'):
                 cpp_files.append(file)
+            elif file.endswith('.py'):
+                py_files.append(file)
         
-        if not cpp_files:
-            return False, f"No .cpp files found in 'runs/hunyuan-t1-dev-20250822' directory"
+        all_files = cpp_files + py_files
+        if not all_files:
+            return False, f"No .cpp or .py files found in 'runs/hunyuan-t1-dev-20250822' directory"
         
-        return True, f"Found {len(cpp_files)} .cpp files: {', '.join(cpp_files)}"
+        file_summary = []
+        if cpp_files:
+            file_summary.append(f"{len(cpp_files)} .cpp files: {', '.join(cpp_files)}")
+        if py_files:
+            file_summary.append(f"{len(py_files)} .py files: {', '.join(py_files)}")
+        
+        return True, f"Found {'; '.join(file_summary)}"
     
     def _validate_overall_md_format(self, overall_md_path: str) -> Tuple[bool, str]:
         """Validate the format of overall.md file"""
