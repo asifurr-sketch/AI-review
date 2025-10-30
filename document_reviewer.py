@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - Ultimate Point Analysis
+Document Review Script using OpenAI GPT-5 with Thinking Mode - Ultimate Point Analysis
 
 This script reads a document from a specified text file and performs comprehensive review checks
-using Claude Opus 4.1 with extended thinking enabled across multiple specialized review points. 
+using GPT-5 with thinking mode enabled across multiple specialized review points. 
 Each review point is performed by a specialized reviewer class with targeted prompts for maximum precision.
 
 Features:
 - Comprehensive review points covering all aspects of document quality
 - GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
-- Primary: Claude Opus 4.1 with 20k thinking budget for exceptional reasoning
-- Secondary: Claude Sonnet 4 for cleanup operations with 64k output tokens
+- Primary: GPT-5 with thinking mode (reasoning effort: low) for fast yet thorough analysis
+- Secondary: GPT-4o for efficient cleanup operations
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
 - Response quality and mathematical correctness (Points 4-11) 
 - Problem statement and solution validation (Points 12-17)
@@ -34,7 +34,7 @@ GitHub Requirements:
 - No GitHub API key needed - uses SSH/HTTPS for git operations
 
 Configuration:
-- ANTHROPIC_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
+- OPENAI_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
 - For SSH access setup, see GitHub Requirements section above
 
 Author: AI Assistant  
@@ -54,7 +54,7 @@ import subprocess
 import tempfile
 import shutil
 from urllib.parse import urlparse
-from anthropic import Anthropic
+from openai import OpenAI
 import concurrent.futures
 import threading
 
@@ -72,12 +72,12 @@ class ReviewResponse:
 class BaseReviewer:
     """Base class for all document reviewers"""
     
-    def __init__(self, client: Anthropic):
+    def __init__(self, client: OpenAI):
         self.client = client
-        # Primary model: Claude Opus 4.1 with thinking enabled for main review calls
-        self.primary_model = "claude-opus-4-1-20250805"  # Claude Opus 4.1 - Exceptional reasoning
-        # Secondary model: Claude Sonnet 4 for cleanup calls (not fallback)
-        self.secondary_model = "claude-sonnet-4-20250514"  # Claude Sonnet 4 - High performance model
+        # Primary model: GPT-5 for main review calls (best available model for complex reasoning)
+        self.primary_model = "gpt-5"  # GPT-5 - Most advanced model for document analysis
+        # Secondary model: GPT-4o for cleanup calls (powerful but efficient for cleanup)
+        self.secondary_model = "gpt-4o"  # Reliable model for cleanup operations
     
     def review(self, document: str) -> ReviewResponse:
         """Perform the review and return structured results"""
@@ -124,24 +124,20 @@ Original Response:
 """
         
         try:
-            # Use Sonnet 4 for cleanup with streaming for comprehensive failure analysis
-            cleaned_response = ""
-            
-            with self.client.messages.stream(
+            # Use GPT-4o for cleanup with comprehensive failure analysis
+            response = self.client.chat.completions.create(
                 model=self.secondary_model,
-                max_tokens=64000,  # Maximum output tokens for Claude Sonnet 4
-                temperature=0.1,
                 messages=[
                     {
                         "role": "user",
                         "content": f"{cleanup_prompt}\n\n{failure_response}"
                     }
-                ]
-            ) as stream:
-                for event in stream:
-                    if event.type == "content_block_delta":
-                        if hasattr(event.delta, 'text') and event.delta.text:
-                            cleaned_response += event.delta.text
+                ],
+                max_tokens=16000,  # Maximum output tokens for GPT-4o
+                temperature=0.1
+            )
+            
+            cleaned_response = response.choices[0].message.content
             
             if not cleaned_response:
                 cleaned_response = "No text content in cleanup response"
@@ -165,37 +161,65 @@ Original Response:
             return f"[Cleanup failed: {str(e)}]\n\n{failure_response}"
 
     def _make_api_call(self, prompt: str, document: str) -> str:
-        """Make API call to Claude Opus 4.1 with thinking enabled and streaming"""
-        thinking_budget = 20000  # Thinking budget for comprehensive analysis
-        max_output = 32000  # Maximum output tokens for Claude Opus 4.1
+        """Make API call to GPT-5 with thinking mode enabled via Responses API
         
-        # Use streaming for large requests as required by API
-        response_text = ""
-        thinking_words = 0
+        Uses reasoning effort 'low' for speed while maintaining thinking capabilities.
+        GPT-5 will internally think through the problem before generating the response.
+        """
+        max_output = 16000  # Maximum output tokens for GPT-5
         
-        with self.client.messages.stream(
-            model=self.primary_model,
-            max_tokens=max_output,
-            temperature=1.0,  # Must be 1.0 when thinking is enabled
-            thinking={
-                "type": "enabled",
-                "budget_tokens": thinking_budget
-            },
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                }
-            ]
-        ) as stream:
-            for event in stream:
-                if event.type == "content_block_delta":
-                    if hasattr(event.delta, 'text') and event.delta.text:
-                        response_text += event.delta.text
-                    elif hasattr(event.delta, 'thinking') and event.delta.thinking:
-                        thinking_words += len(event.delta.thinking.split())
-                        
-        return response_text if response_text else "No text content in response"
+        try:
+            # Handle different APIs for different models
+            if self.primary_model.startswith("gpt-5"):
+                # GPT-5 uses Responses API with thinking mode
+                response = self.client.responses.create(
+                    model=self.primary_model,
+                    input=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    reasoning={"effort": "low"},  # Enable thinking mode with speed priority
+                    max_output_tokens=max_output
+                )
+                # Extract text from Responses API format
+                return response.output_text if response.output_text else "No text content in response"
+                
+            elif self.primary_model.startswith("o"):
+                # O-series models use Chat Completions with max_completion_tokens
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_completion_tokens=max_output,
+                    temperature=0.7
+                )
+                response_text = response.choices[0].message.content
+                return response_text if response_text else "No text content in response"
+                
+            else:
+                # GPT-4 models use standard Chat Completions API
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_tokens=max_output,
+                    temperature=0.7
+                )
+                response_text = response.choices[0].message.content
+                return response_text if response_text else "No text content in response"
+            
+        except Exception as e:
+            return f"Error in AI call: {str(e)}"
     
     def _parse_response(self, response: str) -> ReviewResponse:
         """Parse the LLM response to extract pass/fail and reasoning"""
@@ -942,17 +966,33 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_predictive_headings_prompt():
         """Check for predictive headings in thoughts"""
         return """
-You are an expert response evaluator. Check if there are predictive headings specifically in THOUGHTS (THOUGHT_XX_YY format) that reveal solutions or approaches.
+You are an expert response evaluator. Check if there are predictive headings specifically in THOUGHTS (THOUGHT_XX_YY format) that break natural thinking flow by revealing solutions prematurely.
 
 IMPORTANT DISTINCTION:
 - ✅ CHAIN_XX: Predictive headings are ALLOWED (e.g., "CHAIN_03: Implementing brute force approach")
-- ❌ THOUGHT_XX_YY: Predictive headings are NOT ALLOWED (e.g., "THOUGHT_03_02: The efficient way is to use hash tables")
+- ❌ THOUGHT_XX_YY: Overly predictive headings that break natural thinking flow are NOT ALLOWED
+
+NATURAL THINKING FLOW GUIDELINES:
+ACCEPTABLE thought headings (somewhat predictive is OK if it doesn't break flow):
+- ✅ "THOUGHT_01_01: List of things we need to check"
+- ✅ "THOUGHT_02_03: Understanding the problem constraints" 
+- ✅ "THOUGHT_03_02: Analyzing time complexity requirements"
+- ✅ "THOUGHT_04_01: Considering different data structures"
+- ✅ "THOUGHT_05_02: Evaluating the brute force approach"
+- ✅ "THOUGHT_06_01: Looking for optimization opportunities"
+
+UNACCEPTABLE thought headings (break natural thinking flow):
+- ❌ "THOUGHT_03_02: The efficient way is to use hash tables" (reveals specific solution)
+- ❌ "THOUGHT_04_01: Using dynamic programming will solve this" (jumps to conclusion)
+- ❌ "THOUGHT_05_02: Binary search is the optimal approach" (reveals final answer)
+- ❌ "THOUGHT_06_01: The answer is O(n log n)" (gives away result)
 
 WHAT TO CHECK:
-- Only examine THOUGHT_XX_YY headings for predictive content
-- Ignore CHAIN_XX headings - they can be predictive
-- Look for thoughts that reveal solutions, approaches, or outcomes before analysis
-- Non-predictive thought headings are acceptable (e.g., "THOUGHT_01_01: List of things we need to check")
+- Only examine THOUGHT_XX_YY headings for flow-breaking predictive content
+- Ignore CHAIN_XX headings - they can be fully predictive
+- Allow somewhat predictive thought headings that maintain natural thinking progression
+- Flag only thoughts that reveal specific solutions, final approaches, or definitive conclusions before proper analysis
+- Consider whether the heading allows for natural exploration or forces a predetermined path
 
 Please answer pass or fail.
 
@@ -1298,7 +1338,7 @@ class MissingSubtopicsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class PredictiveHeadingsReviewer(BaseReviewer):
-    """Reviews for predictive headings in thoughts"""
+    """Reviews for natural thinking flow in thoughts - allows somewhat predictive titles if they don't break thinking flow"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_predictive_headings_prompt()
@@ -2047,12 +2087,12 @@ class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
     def __init__(self, quiet_mode=False):
-        # Initialize Anthropic client with API key from environment or .env file
-        api_key = self._load_anthropic_api_key()
+        # Initialize OpenAI client with API key from environment or .env file
+        api_key = self._load_openai_api_key()
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY not found. Please set it as an environment variable or add 'ANTHROPIC_API_KEY=your_key_here' to a .env file")
+            raise ValueError("OPENAI_API_KEY not found. Please set it as an environment variable or add 'OPENAI_API_KEY=your_key_here' to a .env file")
         
-        self.client = Anthropic(api_key=api_key)
+        self.client = OpenAI(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
         self.output_lock = threading.Lock()  # Thread-safe output
         self.quiet_mode = quiet_mode  # Control output verbosity
@@ -2063,8 +2103,8 @@ class DocumentReviewSystem:
         # Initialize all reviewers
         self.__init_reviewers__()
         
-    def _load_anthropic_api_key(self):
-        """Load Anthropic API key from .env file or environment variable"""
+    def _load_openai_api_key(self):
+        """Load OpenAI API key from .env file or environment variable"""
         # First check .env file (more user-friendly for cross-platform)
         env_path = '.env'
         if os.path.exists(env_path):
@@ -2075,11 +2115,16 @@ class DocumentReviewSystem:
                         key, value = line.split('=', 1)
                         key = key.strip()
                         value = value.strip()
-                        if key == 'ANTHROPIC_API_KEY':
+                        if key == 'OPENAI_API_KEY':
+                            # Remove quotes if present
+                            if value.startswith('"') and value.endswith('"'):
+                                value = value[1:-1]
+                            elif value.startswith("'") and value.endswith("'"):
+                                value = value[1:-1]
                             return value
         
         # Fallback to environment variable
-        api_key = os.getenv('ANTHROPIC_API_KEY')
+        api_key = os.getenv('OPENAI_API_KEY')
         if api_key:
             return api_key
         
@@ -2131,7 +2176,7 @@ class DocumentReviewSystem:
             "Typo and Spelling Check": TypoCheckReviewer(self.client),
             "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client),
             "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client)
         }
     
@@ -2649,9 +2694,9 @@ def main():
         
         # Model information
         print("\n🤖 Model Configuration:")
-        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 20k thinking budget")
-        print("   Secondary: Claude Sonnet 4 (claude-sonnet-4-20250514) for cleanup operations")
-        print("   Max tokens: 32,000 (Opus 4.1) / 64,000 (Sonnet 4 cleanup)")
+        print("   Primary: GPT-5 (gpt-5) with thinking mode enabled (reasoning effort: low)")
+        print("   Secondary: GPT-4o (gpt-4o) for cleanup operations")
+        print("   Max tokens: 16,000 (GPT-5 + reasoning) / 16,000 (GPT-4o cleanup)")
         print()
         
         # Run reviews with specified options
