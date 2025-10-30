@@ -580,31 +580,24 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 You are an expert response evaluator. Is the metadata correct?
 
 METADATA VALIDATION REQUIREMENTS:
-The document MUST contain a metadata section at the beginning that follows this EXACT format:
+The document MUST contain a metadata section at the beginning that contains all required fields:
 
 # Metadata
 
-**Category:** - [value]
-
-**GitHub URL:** - [GitHub URL]
-
-**Topic:** - [value]
-
-**Subtopic:** - [JSON array of subtopics]
-
-**Difficulty:** - [difficulty level]
-
-**Languages:** - [programming languages]
-
-**Number of Approaches:** - [approach count and complexity progression]
-
-**Number of Chains:** - [number]
+REQUIRED FIELDS (order not strictly enforced, but all must be present):
+- **Category:** - [value]
+- **GitHub URL:** - [GitHub URL]
+- **Topic:** - [value]  
+- **Subtopic:** - [JSON array of subtopics]
+- **Difficulty:** - [difficulty level]
+- **Languages:** - [programming languages]
+- **Number of Approaches:** - [approach count and complexity progression]
+- **Number of Chains:** - [number]
 
 REQUIRED FORMAT SPECIFICATIONS:
-1. Must start with "# Metadata" header
 2. Each field must use the pattern: **FieldName:** - value
 3. There must be a space after the colon, then a dash, then a space before the value
-4. All fields must be present in this exact order
+4. All fields must be present (order is flexible)
 5. The subtopic must be a valid JSON array format with proper quotes
 6. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
 
@@ -968,79 +961,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Chain Test Case Analysis Validation
-    @staticmethod
-    def get_chain2_testcase_analysis_prompt():
-        """Check if Chain 2 actually performs test case analysis"""
-        return """
-You are an expert response evaluator. Check if Chain 2 (CHAIN_02) actually performs detailed test case analysis with step-by-step execution, rather than just suggesting test cases that need to be analyzed.
 
-REQUIREMENTS FOR CHAIN 2:
-- Must contain actual step-by-step analysis of test cases
-- Must show detailed execution traces or walkthroughs
-- Must demonstrate how the algorithm works on specific examples
-- Must NOT be just suggestions like "we should test case X" or "consider testing edge case Y"
-
-WHAT TO LOOK FOR (PASS criteria):
-- Actual step-by-step execution of test cases
-- Detailed walkthroughs showing algorithm behavior
-- Concrete examples with input/output analysis
-- Manual tracing through algorithm steps
-
-WHAT COUNTS AS FAIL:
-- Only suggestions for test cases without actual analysis
-- Vague statements like "we need to test edge cases"
-- Lists of test cases without execution details
-- General recommendations without concrete analysis
-
-Please provide ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY) and specific quotes.
-
-RESPONSE FORMAT:
-Provide detailed analysis, then end with:
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
-
-    # Thought Heading Violations
-    @staticmethod
-    def get_thought_heading_violations_prompt():
-        """Check if thoughts have prohibited headings"""
-        return """
-You are an expert response evaluator. Check if any THOUGHT_XX_YY sections contain prohibited headings or titles.
-
-CRITICAL REQUIREMENTS:
-- THOUGHT_XX_YY sections must NOT have any headings or titles
-- Thoughts should contain only analysis content, not descriptive headings
-- Any heading-like text in thoughts is a violation
-
-PROHIBITED EXAMPLES (these are VIOLATIONS):
-- "Going for best approach: ..."
-- "Optimizing approach: ..."
-- "Analyzing complexity: ..."
-- "Edge cases consideration: ..."
-- "Algorithm selection: ..."
-- Any colon-followed descriptions that act as headings
-
-ACCEPTABLE CONTENT:
-- Direct analysis without headings
-- Plain explanatory text
-- Questions and reasoning without title formatting
-
-INSTRUCTIONS:
-1. Examine EVERY THOUGHT_XX_YY section systematically
-2. Identify ALL violations with exact THOUGHT_XX_YY numbers
-3. Provide the exact heading text that violates the rule
-4. List ALL violations - do not summarize or omit any
-
-Please provide ALL violations with exact locations (THOUGHT_XX_YY) and the specific prohibited heading text.
-
-RESPONSE FORMAT:
-For each violation, use this format:
-• **[THOUGHT_XX_YY]**: "[Exact prohibited heading text]"
-
-If no violations found, state "No heading violations found in thoughts."
-
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
 
     # Mathematical Variables and Expressions Formatting
     @staticmethod
@@ -1103,65 +1024,7 @@ If no violations are found, state: "No mathematical formatting violations found.
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Reasoning Thoughts Review Process
-    @staticmethod
-    def get_reasoning_thoughts_review_prompt():
-        """Comprehensive review of reasoning thought chains"""
-        return """
-You are an expert response evaluator specializing in reasoning chain analysis. You must conduct an extremely thorough review of the reasoning thought chains with maximum attention to detail.
 
-TASK: Review the reasoning thought chains for comprehensive analysis of thought processes and development from simple to optimized solutions.
-
-CRITICAL ANALYSIS REQUIREMENTS:
-
-1. **Style and Structure Analysis** (Apply to ALL chains):
-   a. Reasoning chains should follow manuscript style - conclusions come AFTER analysis
-   b. Avoid "presentation-style" reasoning where conclusions are given first, followed by supporting arguments
-   c. Avoid any predictive statements without prior analysis, EXCEPT for very obvious cases (e.g., "if L = R, then length = 1", "empty array has size 0", basic arithmetic like "2 + 2 = 4")
-   d. **Special check for Chain 1 and Chain 2 ONLY**: Ensure they don't contain information about approaches or data structures that are efficient or inefficient in solving the problem
-
-   **IMPORTANT EXCEPTION for criterion (a), (b), (c)**: Do NOT flag conclusions that are immediately obvious or trivial mathematical facts that require no analysis. Examples of acceptable obvious conclusions:
-   - Basic arithmetic: "if we have 5 elements, the array size is 5"
-   - Range calculations: "if L = R, the range contains exactly 1 element"
-   - Simple conditionals: "if the array is empty, no operations are needed"
-   - Direct definitions: "a palindrome reads the same forwards and backwards"
-   - Immediate logical implications: "if all elements are equal, no changes are needed"
-   
-   Only flag conclusions that involve non-trivial insights, complex algorithms, or problem-specific discoveries that should be derived through analysis.
-
-2. **Information Quality Assessment** (Apply to ALL thoughts):
-   a. Each thought should provide sufficient information for analysis
-   b. Information must be factually accurate according to the chain context
-   c. No redundant, repeated, or similar data compared to previous thoughts
-   d. Account for dependencies between chains or thoughts
-
-CRITICAL VIOLATION REPORTING:
-- Report ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY)
-- Provide specific quotes and context for each violation
-- Do NOT summarize or omit any violations
-- Include the exact section/thought number where each issue occurs
-
-ANALYSIS METHODOLOGY:
-- Review EVERY single thought in EVERY chain systematically
-- Check each thought against ALL criteria
-- Be extremely precise in identifying issues
-- Do not miss any violations or create false positives
-- Consider context and dependencies carefully
-
-RESPONSE FORMAT:
-For each discovered issue, use this exact format:
-
-• **[THOUGHT_XX_YY]**:
-  - [Exact context/quote] - [Issue explanation according to criteria]
-  - [Exact context/quote] - [Issue explanation according to criteria]
-
-If no issues found in a thought, do not mention it.
-If no issues found overall, state "No issues found in reasoning chains."
-
-CRITICAL: Use VERY EXTENDED THINKING to ensure comprehensive analysis. Miss no issues and create no false positives.
-
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
 
     @staticmethod
     def get_time_limit_validation_prompt():
@@ -1442,40 +1305,11 @@ class PredictiveHeadingsReviewer(BaseReviewer):
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
-class Chain2TestCaseAnalysisReviewer(BaseReviewer):
-    """Reviews if Chain 2 performs actual test case analysis"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_chain2_testcase_analysis_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
-
-
-class ThoughtHeadingViolationsReviewer(BaseReviewer):
-    """Reviews for prohibited headings in thoughts"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_thought_heading_violations_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
-
-
 class MathFormattingReviewer(BaseReviewer):
     """Reviews mathematical variables and expressions formatting"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_math_formatting_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-    
-
-class ReasoningThoughtsReviewer(BaseReviewer):
-    """Comprehensive review of reasoning thought chains"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_reasoning_thoughts_review_prompt()
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
 
@@ -2298,10 +2132,7 @@ class DocumentReviewSystem:
             "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
             "No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "Chain Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
-            "Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client)
         }
     
     def _thread_safe_print(self, message: str, force_quiet=False):
@@ -2595,7 +2426,7 @@ class DocumentReviewSystem:
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
-        """Generate comprehensive review report for all 30 review points"""
+        """Generate comprehensive review report for all review points"""
         report = []
         
         # Add the complete detailed execution log first
