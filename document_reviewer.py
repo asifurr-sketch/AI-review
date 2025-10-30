@@ -1629,11 +1629,11 @@ class GitHubReviewValidator:
         return overall_files
     
     def _check_hunyuan_cpp_files(self, repo_dir: str) -> Tuple[bool, str]:
-        """Check if runs/hunyuan-t1-dev-20250822/*.cpp or *.py files exist"""
-        hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-t1-dev-20250822')
+        """Check if runs/hunyuan-2.0-thinking-dev-20251012/*.cpp or *.py files exist"""
+        hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-2.0-thinking-dev-20251012')
         
         if not os.path.exists(hunyuan_dir):
-            return False, f"Directory 'runs/hunyuan-t1-dev-20250822' does not exist"
+            return False, f"Directory 'runs/hunyuan-2.0-thinking-dev-20251012' does not exist"
         
         cpp_files = []
         py_files = []
@@ -1645,7 +1645,7 @@ class GitHubReviewValidator:
         
         all_files = cpp_files + py_files
         if not all_files:
-            return False, f"No .cpp or .py files found in 'runs/hunyuan-t1-dev-20250822' directory"
+            return False, f"No .cpp or .py files found in 'runs/hunyuan-2.0-thinking-dev-20251012' directory"
         
         file_summary = []
         if cpp_files:
@@ -1665,8 +1665,7 @@ class GitHubReviewValidator:
                 "# Overall Test Report for",
                 "**Error Code Legend:**",
                 "## Detailed Model Performance",
-                "### Model: `hunyuan-t1-dev-20250822`",
-                "### Model: `standard.cpp`",
+                "### Model: `hunyuan-2.0-thinking-dev-20251012`",
                 "## Overall Model Comparison"
             ]
             
@@ -1679,9 +1678,9 @@ class GitHubReviewValidator:
                 return False, f"Missing required sections: {', '.join(missing_sections)}"
             
             # Check for hunyuan model failure requirement
-            if "hunyuan-t1-dev-20250822" in content:
+            if "hunyuan-2.0-thinking-dev-20251012" in content:
                 # Look for failure indicators in hunyuan section
-                hunyuan_section_start = content.find("### Model: `hunyuan-t1-dev-20250822`")
+                hunyuan_section_start = content.find("### Model: `hunyuan-2.0-thinking-dev-20251012`")
                 if hunyuan_section_start != -1:
                     # Find the next model section or end of content
                     next_model = content.find("### Model:", hunyuan_section_start + 1)
@@ -1691,54 +1690,57 @@ class GitHubReviewValidator:
                         hunyuan_section = content[hunyuan_section_start:next_model]
                     
                     if "❌ FAIL" not in hunyuan_section and "✅ PASS" in hunyuan_section:
-                        return False, "hunyuan-t1-dev-20250822 model should show FAIL status (❌ FAIL), not PASS"
+                        return False, "hunyuan-2.0-thinking-dev-20251012 model should show FAIL status (❌ FAIL), not PASS"
             
-            # Check for standard.cpp pass requirement
-            if "standard.cpp" in content:
-                standard_section_start = content.find("### Model: `standard.cpp`")
-                if standard_section_start != -1:
-                    # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
-                    next_section_positions = []
+            # Check for standard model pass requirement (extension-agnostic)
+            standard_model_match = re.search(r"^### Model: `standard[^`]*`", content, flags=re.MULTILINE)
+            if not standard_model_match:
+                return False, "Missing required standard model section: expected a header like ### Model: `standard` or `standard.<ext>`"
+            else:
+                standard_section_start = standard_model_match.start()
+                # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
+                next_section_positions = []
+                
+                # Look for next model section
+                next_model = content.find("### Model:", standard_section_start + 1)
+                if next_model != -1:
+                    next_section_positions.append(next_model)
+                
+                # Look for overall comparison section
+                next_overall = content.find("## Overall", standard_section_start + 1)
+                if next_overall != -1:
+                    next_section_positions.append(next_overall)
                     
-                    # Look for next model section
-                    next_model = content.find("### Model:", standard_section_start + 1)
-                    if next_model != -1:
-                        next_section_positions.append(next_model)
-                    
-                    # Look for overall comparison section
-                    next_overall = content.find("## Overall", standard_section_start + 1)
-                    if next_overall != -1:
-                        next_section_positions.append(next_overall)
-                        
-                    # Look for separator - but only standalone separators (not table borders)
-                    # Look for \n---\n pattern to avoid table borders like |---|---|
-                    search_start = standard_section_start + 1
-                    while True:
-                        next_separator = content.find("\n---\n", search_start)
-                        if next_separator == -1:
-                            break
-                        # Make sure this isn't part of a table
-                        line_start = content.rfind('\n', 0, next_separator)
-                        line_before = content[line_start+1:next_separator].strip()
-                        if not line_before.startswith('|') and not line_before.endswith('|'):
-                            next_section_positions.append(next_separator)
-                            break
-                        search_start = next_separator + 1
-                    
-                    # If no markers found, use end of content
-                    if not next_section_positions:
-                        next_section = len(content)
-                    else:
-                        next_section = min(next_section_positions)
-                    
-                    standard_section = content[standard_section_start:next_section]
-                    
-                    if "✅ PASS" not in standard_section:
-                        return False, "standard.cpp model should show PASS status (✅ PASS)"
+                # Look for separator - but only standalone separators (not table borders)
+                # Look for \n---\n pattern to avoid table borders like |---|---|
+                search_start = standard_section_start + 1
+                while True:
+                    next_separator = content.find("\n---\n", search_start)
+                    if next_separator == -1:
+                        break
+                    # Make sure this isn't part of a table
+                    line_start = content.rfind('\n', 0, next_separator)
+                    line_before = content[line_start+1:next_separator].strip()
+                    if not line_before.startswith('|') and not line_before.endswith('|'):
+                        next_section_positions.append(next_separator)
+                        break
+                    search_start = next_separator + 1
+                
+                # If no markers found, use end of content
+                if not next_section_positions:
+                    next_section = len(content)
+                else:
+                    next_section = min(next_section_positions)
+                
+                standard_section = content[standard_section_start:next_section]
+                
+                if "✅ PASS" not in standard_section:
+                    return False, "standard model section should show PASS status (✅ PASS)"
             
-            # Check for solution_bf.cpp constraints if present
-            if "solution_bf.cpp" in content:
-                bf_section_start = content.find("### Model: `solution_bf.cpp`")
+            # Check for solution_bf constraints if present (extension-agnostic)
+            bf_model_match = re.search(r"^### Model: `solution_bf[^`]*`", content, flags=re.MULTILINE)
+            if bf_model_match:
+                bf_section_start = bf_model_match.start()
                 if bf_section_start != -1:
                     next_model = content.find("### Model:", bf_section_start + 1)
                     if next_model == -1:
@@ -1750,7 +1752,7 @@ class GitHubReviewValidator:
                     if "|" in bf_section:  # Look for table rows
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
-                            if 'solution_bf.cpp' in line:
+                            if re.search(r"\bsolution_bf(?:\.[A-Za-z0-9_]+)?\b", line):
                                 # Split by | and filter out empty strings
                                 parts = [p.strip() for p in line.split('|') if p.strip()]
                                 # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
@@ -1764,9 +1766,9 @@ class GitHubReviewValidator:
                                             wa_count = error_counts[0].strip()
                                             ce_count = error_counts[3].strip()
                                             if wa_count != '0':
-                                                return False, f"solution_bf.cpp should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
+                                                return False, f"solution_bf should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
                                             if ce_count != '0':
-                                                return False, f"solution_bf.cpp should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
+                                                return False, f"solution_bf should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
             
             return True, "overall.md format validation passed"
             
