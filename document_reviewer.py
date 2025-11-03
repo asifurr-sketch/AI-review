@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Document Review Script using Anthropic Claude Opus 4.1 with Extended Thinking - Ultimate Point Analysis
+Document Review Script using OpenAI GPT-5 with Thinking Mode - Ultimate Point Analysis
 
 This script reads a document from a specified text file and performs comprehensive review checks
-using Claude Opus 4.1 with extended thinking enabled across multiple specialized review points. 
+using GPT-5 with thinking mode enabled across multiple specialized review points. 
 Each review point is performed by a specialized reviewer class with targeted prompts for maximum precision.
 
 Features:
 - Comprehensive review points covering all aspects of document quality
 - GitHub Requirements Validation (Non-AI): Validates GitHub URL and overall.md file existence
-- Primary: Claude Opus 4.1 with 20k thinking budget for exceptional reasoning
-- Secondary: Claude Sonnet 4 for cleanup operations with 64k output tokens
+- Primary: GPT-5 with thinking mode (reasoning effort: low) for fast yet thorough analysis
+- Secondary: GPT-4o for efficient cleanup operations
 - Code style guide and naming convention compliance for C++ and Python (Points 1-3)
 - Response quality and mathematical correctness (Points 4-11) 
 - Problem statement and solution validation (Points 12-17)
@@ -31,10 +31,14 @@ GitHub Requirements:
   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519
   3. Add public key to GitHub: Copy content of ~/.ssh/id_ed25519.pub to GitHub settings
   4. Test SSH access: ssh -T git@github.com
-- GitHub API key should be configured in .env file as: git_api = your_token_here (optional for public repos)
+- No GitHub API key needed - uses SSH/HTTPS for git operations
 
-Author: AI Assistant
-Date: October 9, 2025
+Configuration:
+- OPENAI_API_KEY: Set as environment variable or in .env file (for cross-platform compatibility)
+- For SSH access setup, see GitHub Requirements section above
+
+Author: AI Assistant  
+Date: October 9, 2025 (Updated October 25, 2025)
 """
 
 import os
@@ -50,7 +54,7 @@ import subprocess
 import tempfile
 import shutil
 from urllib.parse import urlparse
-from anthropic import Anthropic
+from openai import OpenAI
 import concurrent.futures
 import threading
 
@@ -68,12 +72,12 @@ class ReviewResponse:
 class BaseReviewer:
     """Base class for all document reviewers"""
     
-    def __init__(self, client: Anthropic):
+    def __init__(self, client: OpenAI):
         self.client = client
-        # Primary model: Claude Opus 4.1 with thinking enabled for main review calls
-        self.primary_model = "claude-opus-4-1-20250805"  # Claude Opus 4.1 - Exceptional reasoning
-        # Secondary model: Claude Sonnet 4 for cleanup calls (not fallback)
-        self.secondary_model = "claude-sonnet-4-20250514"  # Claude Sonnet 4 - High performance model
+        # Primary model: GPT-5 for main review calls (best available model for complex reasoning)
+        self.primary_model = "gpt-5"  # GPT-5 - Most advanced model for document analysis
+        # Secondary model: GPT-4o for cleanup calls (powerful but efficient for cleanup)
+        self.secondary_model = "gpt-4o"  # Reliable model for cleanup operations
     
     def review(self, document: str) -> ReviewResponse:
         """Perform the review and return structured results"""
@@ -120,24 +124,20 @@ Original Response:
 """
         
         try:
-            # Use Sonnet 4 for cleanup with streaming for comprehensive failure analysis
-            cleaned_response = ""
-            
-            with self.client.messages.stream(
+            # Use GPT-4o for cleanup with comprehensive failure analysis
+            response = self.client.chat.completions.create(
                 model=self.secondary_model,
-                max_tokens=64000,  # Maximum output tokens for Claude Sonnet 4
-                temperature=0.1,
                 messages=[
                     {
                         "role": "user",
                         "content": f"{cleanup_prompt}\n\n{failure_response}"
                     }
-                ]
-            ) as stream:
-                for event in stream:
-                    if event.type == "content_block_delta":
-                        if hasattr(event.delta, 'text') and event.delta.text:
-                            cleaned_response += event.delta.text
+                ],
+                max_tokens=16000,  # Maximum output tokens for GPT-4o
+                temperature=0.1
+            )
+            
+            cleaned_response = response.choices[0].message.content
             
             if not cleaned_response:
                 cleaned_response = "No text content in cleanup response"
@@ -161,37 +161,65 @@ Original Response:
             return f"[Cleanup failed: {str(e)}]\n\n{failure_response}"
 
     def _make_api_call(self, prompt: str, document: str) -> str:
-        """Make API call to Claude Opus 4.1 with thinking enabled and streaming"""
-        thinking_budget = 20000  # Thinking budget for comprehensive analysis
-        max_output = 32000  # Maximum output tokens for Claude Opus 4.1
+        """Make API call to GPT-5 with thinking mode enabled via Responses API
         
-        # Use streaming for large requests as required by API
-        response_text = ""
-        thinking_words = 0
+        Uses reasoning effort 'low' for speed while maintaining thinking capabilities.
+        GPT-5 will internally think through the problem before generating the response.
+        """
+        max_output = 16000  # Maximum output tokens for GPT-5
         
-        with self.client.messages.stream(
-            model=self.primary_model,
-            max_tokens=max_output,
-            temperature=1.0,  # Must be 1.0 when thinking is enabled
-            thinking={
-                "type": "enabled",
-                "budget_tokens": thinking_budget
-            },
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                }
-            ]
-        ) as stream:
-            for event in stream:
-                if event.type == "content_block_delta":
-                    if hasattr(event.delta, 'text') and event.delta.text:
-                        response_text += event.delta.text
-                    elif hasattr(event.delta, 'thinking') and event.delta.thinking:
-                        thinking_words += len(event.delta.thinking.split())
-                        
-        return response_text if response_text else "No text content in response"
+        try:
+            # Handle different APIs for different models
+            if self.primary_model.startswith("gpt-5"):
+                # GPT-5 uses Responses API with thinking mode
+                response = self.client.responses.create(
+                    model=self.primary_model,
+                    input=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    reasoning={"effort": "low"},  # Enable thinking mode with speed priority
+                    max_output_tokens=max_output
+                )
+                # Extract text from Responses API format
+                return response.output_text if response.output_text else "No text content in response"
+                
+            elif self.primary_model.startswith("o"):
+                # O-series models use Chat Completions with max_completion_tokens
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_completion_tokens=max_output,
+                    temperature=0.7
+                )
+                response_text = response.choices[0].message.content
+                return response_text if response_text else "No text content in response"
+                
+            else:
+                # GPT-4 models use standard Chat Completions API
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_tokens=max_output,
+                    temperature=0.7
+                )
+                response_text = response.choices[0].message.content
+                return response_text if response_text else "No text content in response"
+            
+        except Exception as e:
+            return f"Error in AI call: {str(e)}"
     
     def _parse_response(self, response: str) -> ReviewResponse:
         """Parse the LLM response to extract pass/fail and reasoning"""
@@ -576,31 +604,24 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 You are an expert response evaluator. Is the metadata correct?
 
 METADATA VALIDATION REQUIREMENTS:
-The document MUST contain a metadata section at the beginning that follows this EXACT format:
+The document MUST contain a metadata section at the beginning that contains all required fields:
 
 # Metadata
 
-**Category:** - [value]
-
-**GitHub URL:** - [GitHub URL]
-
-**Topic:** - [value]
-
-**Subtopic:** - [JSON array of subtopics]
-
-**Difficulty:** - [difficulty level]
-
-**Languages:** - [programming languages]
-
-**Number of Approaches:** - [approach count and complexity progression]
-
-**Number of Chains:** - [number]
+REQUIRED FIELDS (order not strictly enforced, but all must be present):
+- **Category:** - [value]
+- **GitHub URL:** - [GitHub URL]
+- **Topic:** - [value]  
+- **Subtopic:** - [JSON array of subtopics]
+- **Difficulty:** - [difficulty level]
+- **Languages:** - [programming languages]
+- **Number of Approaches:** - [approach count and complexity progression]
+- **Number of Chains:** - [number]
 
 REQUIRED FORMAT SPECIFICATIONS:
-1. Must start with "# Metadata" header
 2. Each field must use the pattern: **FieldName:** - value
 3. There must be a space after the colon, then a dash, then a space before the value
-4. All fields must be present in this exact order
+4. All fields must be present (order is flexible)
 5. The subtopic must be a valid JSON array format with proper quotes
 6. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
 
@@ -945,17 +966,33 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_predictive_headings_prompt():
         """Check for predictive headings in thoughts"""
         return """
-You are an expert response evaluator. Check if there are predictive headings specifically in THOUGHTS (THOUGHT_XX_YY format) that reveal solutions or approaches.
+You are an expert response evaluator. Check if there are predictive headings specifically in THOUGHTS (THOUGHT_XX_YY format) that break natural thinking flow by revealing solutions prematurely.
 
 IMPORTANT DISTINCTION:
 - ✅ CHAIN_XX: Predictive headings are ALLOWED (e.g., "CHAIN_03: Implementing brute force approach")
-- ❌ THOUGHT_XX_YY: Predictive headings are NOT ALLOWED (e.g., "THOUGHT_03_02: The efficient way is to use hash tables")
+- ❌ THOUGHT_XX_YY: Overly predictive headings that break natural thinking flow are NOT ALLOWED
+
+NATURAL THINKING FLOW GUIDELINES:
+ACCEPTABLE thought headings (somewhat predictive is OK if it doesn't break flow):
+- ✅ "THOUGHT_01_01: List of things we need to check"
+- ✅ "THOUGHT_02_03: Understanding the problem constraints" 
+- ✅ "THOUGHT_03_02: Analyzing time complexity requirements"
+- ✅ "THOUGHT_04_01: Considering different data structures"
+- ✅ "THOUGHT_05_02: Evaluating the brute force approach"
+- ✅ "THOUGHT_06_01: Looking for optimization opportunities"
+
+UNACCEPTABLE thought headings (break natural thinking flow):
+- ❌ "THOUGHT_03_02: The efficient way is to use hash tables" (reveals specific solution)
+- ❌ "THOUGHT_04_01: Using dynamic programming will solve this" (jumps to conclusion)
+- ❌ "THOUGHT_05_02: Binary search is the optimal approach" (reveals final answer)
+- ❌ "THOUGHT_06_01: The answer is O(n log n)" (gives away result)
 
 WHAT TO CHECK:
-- Only examine THOUGHT_XX_YY headings for predictive content
-- Ignore CHAIN_XX headings - they can be predictive
-- Look for thoughts that reveal solutions, approaches, or outcomes before analysis
-- Non-predictive thought headings are acceptable (e.g., "THOUGHT_01_01: List of things we need to check")
+- Only examine THOUGHT_XX_YY headings for flow-breaking predictive content
+- Ignore CHAIN_XX headings - they can be fully predictive
+- Allow somewhat predictive thought headings that maintain natural thinking progression
+- Flag only thoughts that reveal specific solutions, final approaches, or definitive conclusions before proper analysis
+- Consider whether the heading allows for natural exploration or forces a predetermined path
 
 Please answer pass or fail.
 
@@ -964,79 +1001,7 @@ Provide detailed analysis, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Chain Test Case Analysis Validation
-    @staticmethod
-    def get_chain2_testcase_analysis_prompt():
-        """Check if Chain 2 actually performs test case analysis"""
-        return """
-You are an expert response evaluator. Check if Chain 2 (CHAIN_02) actually performs detailed test case analysis with step-by-step execution, rather than just suggesting test cases that need to be analyzed.
 
-REQUIREMENTS FOR CHAIN 2:
-- Must contain actual step-by-step analysis of test cases
-- Must show detailed execution traces or walkthroughs
-- Must demonstrate how the algorithm works on specific examples
-- Must NOT be just suggestions like "we should test case X" or "consider testing edge case Y"
-
-WHAT TO LOOK FOR (PASS criteria):
-- Actual step-by-step execution of test cases
-- Detailed walkthroughs showing algorithm behavior
-- Concrete examples with input/output analysis
-- Manual tracing through algorithm steps
-
-WHAT COUNTS AS FAIL:
-- Only suggestions for test cases without actual analysis
-- Vague statements like "we need to test edge cases"
-- Lists of test cases without execution details
-- General recommendations without concrete analysis
-
-Please provide ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY) and specific quotes.
-
-RESPONSE FORMAT:
-Provide detailed analysis, then end with:
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
-
-    # Thought Heading Violations
-    @staticmethod
-    def get_thought_heading_violations_prompt():
-        """Check if thoughts have prohibited headings"""
-        return """
-You are an expert response evaluator. Check if any THOUGHT_XX_YY sections contain prohibited headings or titles.
-
-CRITICAL REQUIREMENTS:
-- THOUGHT_XX_YY sections must NOT have any headings or titles
-- Thoughts should contain only analysis content, not descriptive headings
-- Any heading-like text in thoughts is a violation
-
-PROHIBITED EXAMPLES (these are VIOLATIONS):
-- "Going for best approach: ..."
-- "Optimizing approach: ..."
-- "Analyzing complexity: ..."
-- "Edge cases consideration: ..."
-- "Algorithm selection: ..."
-- Any colon-followed descriptions that act as headings
-
-ACCEPTABLE CONTENT:
-- Direct analysis without headings
-- Plain explanatory text
-- Questions and reasoning without title formatting
-
-INSTRUCTIONS:
-1. Examine EVERY THOUGHT_XX_YY section systematically
-2. Identify ALL violations with exact THOUGHT_XX_YY numbers
-3. Provide the exact heading text that violates the rule
-4. List ALL violations - do not summarize or omit any
-
-Please provide ALL violations with exact locations (THOUGHT_XX_YY) and the specific prohibited heading text.
-
-RESPONSE FORMAT:
-For each violation, use this format:
-• **[THOUGHT_XX_YY]**: "[Exact prohibited heading text]"
-
-If no violations found, state "No heading violations found in thoughts."
-
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
 
     # Mathematical Variables and Expressions Formatting
     @staticmethod
@@ -1099,65 +1064,7 @@ If no violations are found, state: "No mathematical formatting violations found.
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
-    # Reasoning Thoughts Review Process
-    @staticmethod
-    def get_reasoning_thoughts_review_prompt():
-        """Comprehensive review of reasoning thought chains"""
-        return """
-You are an expert response evaluator specializing in reasoning chain analysis. You must conduct an extremely thorough review of the reasoning thought chains with maximum attention to detail.
 
-TASK: Review the reasoning thought chains for comprehensive analysis of thought processes and development from simple to optimized solutions.
-
-CRITICAL ANALYSIS REQUIREMENTS:
-
-1. **Style and Structure Analysis** (Apply to ALL chains):
-   a. Reasoning chains should follow manuscript style - conclusions come AFTER analysis
-   b. Avoid "presentation-style" reasoning where conclusions are given first, followed by supporting arguments
-   c. Avoid any predictive statements without prior analysis, EXCEPT for very obvious cases (e.g., "if L = R, then length = 1", "empty array has size 0", basic arithmetic like "2 + 2 = 4")
-   d. **Special check for Chain 1 and Chain 2 ONLY**: Ensure they don't contain information about approaches or data structures that are efficient or inefficient in solving the problem
-
-   **IMPORTANT EXCEPTION for criterion (a), (b), (c)**: Do NOT flag conclusions that are immediately obvious or trivial mathematical facts that require no analysis. Examples of acceptable obvious conclusions:
-   - Basic arithmetic: "if we have 5 elements, the array size is 5"
-   - Range calculations: "if L = R, the range contains exactly 1 element"
-   - Simple conditionals: "if the array is empty, no operations are needed"
-   - Direct definitions: "a palindrome reads the same forwards and backwards"
-   - Immediate logical implications: "if all elements are equal, no changes are needed"
-   
-   Only flag conclusions that involve non-trivial insights, complex algorithms, or problem-specific discoveries that should be derived through analysis.
-
-2. **Information Quality Assessment** (Apply to ALL thoughts):
-   a. Each thought should provide sufficient information for analysis
-   b. Information must be factually accurate according to the chain context
-   c. No redundant, repeated, or similar data compared to previous thoughts
-   d. Account for dependencies between chains or thoughts
-
-CRITICAL VIOLATION REPORTING:
-- Report ALL violations with exact locations (CHAIN_XX, THOUGHT_XX_YY)
-- Provide specific quotes and context for each violation
-- Do NOT summarize or omit any violations
-- Include the exact section/thought number where each issue occurs
-
-ANALYSIS METHODOLOGY:
-- Review EVERY single thought in EVERY chain systematically
-- Check each thought against ALL criteria
-- Be extremely precise in identifying issues
-- Do not miss any violations or create false positives
-- Consider context and dependencies carefully
-
-RESPONSE FORMAT:
-For each discovered issue, use this exact format:
-
-• **[THOUGHT_XX_YY]**:
-  - [Exact context/quote] - [Issue explanation according to criteria]
-  - [Exact context/quote] - [Issue explanation according to criteria]
-
-If no issues found in a thought, do not mention it.
-If no issues found overall, state "No issues found in reasoning chains."
-
-CRITICAL: Use VERY EXTENDED THINKING to ensure comprehensive analysis. Miss no issues and create no false positives.
-
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
 
     @staticmethod
     def get_time_limit_validation_prompt():
@@ -1431,32 +1338,12 @@ class MissingSubtopicsReviewer(BaseReviewer):
         return self._parse_response(response)
 
 class PredictiveHeadingsReviewer(BaseReviewer):
-    """Reviews for predictive headings in thoughts"""
+    """Reviews for natural thinking flow in thoughts - allows somewhat predictive titles if they don't break thinking flow"""
     
     def review(self, document: str) -> ReviewResponse:
         prompt = ReviewPrompts.get_predictive_headings_prompt()
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
-
-class Chain2TestCaseAnalysisReviewer(BaseReviewer):
-    """Reviews if Chain 2 performs actual test case analysis"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_chain2_testcase_analysis_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
-
-
-class ThoughtHeadingViolationsReviewer(BaseReviewer):
-    """Reviews for prohibited headings in thoughts"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_thought_heading_violations_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
-
 
 class MathFormattingReviewer(BaseReviewer):
     """Reviews mathematical variables and expressions formatting"""
@@ -1465,43 +1352,16 @@ class MathFormattingReviewer(BaseReviewer):
         prompt = ReviewPrompts.get_math_formatting_prompt()
         response = self._make_api_call(prompt, document)
         return self._parse_response(response)
-    
-
-class ReasoningThoughtsReviewer(BaseReviewer):
-    """Comprehensive review of reasoning thought chains"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = ReviewPrompts.get_reasoning_thoughts_review_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
 
 
 class GitHubReviewValidator:
     """Non-AI review: Validates GitHub post links and overall.md file existence"""
     
     def __init__(self, quiet_mode=False):
-        # Load GitHub API key from .env file
-        self.github_api_key = None
         self.quiet_mode = quiet_mode
-        self._load_env_variables()
-    
-    def _load_env_variables(self):
-        """Load environment variables from .env file"""
-        env_path = '.env'
-        if os.path.exists(env_path):
-            with open(env_path, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        key = key.strip()
-                        value = value.strip()
-                        if key == 'git_api':
-                            self.github_api_key = value
-                            break
     
     def _extract_github_url(self, document: str) -> Optional[str]:
-        """Extract GitHub URL from document metadata"""
+        """Extract GitHub URL from document metadata - robust extraction for any *github.com* pattern"""
         # Try the exact format first
         github_url_pattern = r'\*\*GitHub URL:\*\*\s+(https://github\.com/[^\s\n]+)'
         match = re.search(github_url_pattern, document)
@@ -1519,6 +1379,20 @@ class GitHubReviewValidator:
             match = re.search(pattern, document, re.IGNORECASE)
             if match:
                 return match.group(1)
+        
+        # Robust fallback: Find any URL containing github.com and take the longest one
+        github_urls = []
+        
+        # Pattern to match any URL containing github.com (case insensitive)
+        robust_pattern = r'https?://[^\s\n]*github\.com[^\s\n]*'
+        matches = re.finditer(robust_pattern, document, re.IGNORECASE)
+        
+        for match in matches:
+            github_urls.append(match.group(0))
+        
+        # If multiple URLs found, return the longest one
+        if github_urls:
+            return max(github_urls, key=len)
         
         return None
     
@@ -1629,21 +1503,31 @@ class GitHubReviewValidator:
         return overall_files
     
     def _check_hunyuan_cpp_files(self, repo_dir: str) -> Tuple[bool, str]:
-        """Check if runs/hunyuan-t1-dev-20250822/*.cpp files exist"""
-        hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-t1-dev-20250822')
+        """Check if runs/hunyuan-2.0-thinking-dev-20251012/*.cpp or *.py files exist"""
+        hunyuan_dir = os.path.join(repo_dir, 'runs', 'hunyuan-2.0-thinking-dev-20251012')
         
         if not os.path.exists(hunyuan_dir):
-            return False, f"Directory 'runs/hunyuan-t1-dev-20250822' does not exist"
+            return False, f"Directory 'runs/hunyuan-2.0-thinking-dev-20251012' does not exist"
         
         cpp_files = []
+        py_files = []
         for file in os.listdir(hunyuan_dir):
             if file.endswith('.cpp'):
                 cpp_files.append(file)
+            elif file.endswith('.py'):
+                py_files.append(file)
         
-        if not cpp_files:
-            return False, f"No .cpp files found in 'runs/hunyuan-t1-dev-20250822' directory"
+        all_files = cpp_files + py_files
+        if not all_files:
+            return False, f"No .cpp or .py files found in 'runs/hunyuan-2.0-thinking-dev-20251012' directory"
         
-        return True, f"Found {len(cpp_files)} .cpp files: {', '.join(cpp_files)}"
+        file_summary = []
+        if cpp_files:
+            file_summary.append(f"{len(cpp_files)} .cpp files: {', '.join(cpp_files)}")
+        if py_files:
+            file_summary.append(f"{len(py_files)} .py files: {', '.join(py_files)}")
+        
+        return True, f"Found {'; '.join(file_summary)}"
     
     def _validate_overall_md_format(self, overall_md_path: str) -> Tuple[bool, str]:
         """Validate the format of overall.md file"""
@@ -1655,8 +1539,7 @@ class GitHubReviewValidator:
                 "# Overall Test Report for",
                 "**Error Code Legend:**",
                 "## Detailed Model Performance",
-                "### Model: `hunyuan-t1-dev-20250822`",
-                "### Model: `standard.cpp`",
+                "### Model: `hunyuan-2.0-thinking-dev-20251012`",
                 "## Overall Model Comparison"
             ]
             
@@ -1669,9 +1552,9 @@ class GitHubReviewValidator:
                 return False, f"Missing required sections: {', '.join(missing_sections)}"
             
             # Check for hunyuan model failure requirement
-            if "hunyuan-t1-dev-20250822" in content:
+            if "hunyuan-2.0-thinking-dev-20251012" in content:
                 # Look for failure indicators in hunyuan section
-                hunyuan_section_start = content.find("### Model: `hunyuan-t1-dev-20250822`")
+                hunyuan_section_start = content.find("### Model: `hunyuan-2.0-thinking-dev-20251012`")
                 if hunyuan_section_start != -1:
                     # Find the next model section or end of content
                     next_model = content.find("### Model:", hunyuan_section_start + 1)
@@ -1681,54 +1564,57 @@ class GitHubReviewValidator:
                         hunyuan_section = content[hunyuan_section_start:next_model]
                     
                     if "❌ FAIL" not in hunyuan_section and "✅ PASS" in hunyuan_section:
-                        return False, "hunyuan-t1-dev-20250822 model should show FAIL status (❌ FAIL), not PASS"
+                        return False, "hunyuan-2.0-thinking-dev-20251012 model should show FAIL status (❌ FAIL), not PASS"
             
-            # Check for standard.cpp pass requirement
-            if "standard.cpp" in content:
-                standard_section_start = content.find("### Model: `standard.cpp`")
-                if standard_section_start != -1:
-                    # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
-                    next_section_positions = []
+            # Check for standard model pass requirement (extension-agnostic)
+            standard_model_match = re.search(r"^### Model: `standard[^`]*`", content, flags=re.MULTILINE)
+            if not standard_model_match:
+                return False, "Missing required standard model section: expected a header like ### Model: `standard` or `standard.<ext>`"
+            else:
+                standard_section_start = standard_model_match.start()
+                # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
+                next_section_positions = []
+                
+                # Look for next model section
+                next_model = content.find("### Model:", standard_section_start + 1)
+                if next_model != -1:
+                    next_section_positions.append(next_model)
+                
+                # Look for overall comparison section
+                next_overall = content.find("## Overall", standard_section_start + 1)
+                if next_overall != -1:
+                    next_section_positions.append(next_overall)
                     
-                    # Look for next model section
-                    next_model = content.find("### Model:", standard_section_start + 1)
-                    if next_model != -1:
-                        next_section_positions.append(next_model)
-                    
-                    # Look for overall comparison section
-                    next_overall = content.find("## Overall", standard_section_start + 1)
-                    if next_overall != -1:
-                        next_section_positions.append(next_overall)
-                        
-                    # Look for separator - but only standalone separators (not table borders)
-                    # Look for \n---\n pattern to avoid table borders like |---|---|
-                    search_start = standard_section_start + 1
-                    while True:
-                        next_separator = content.find("\n---\n", search_start)
-                        if next_separator == -1:
-                            break
-                        # Make sure this isn't part of a table
-                        line_start = content.rfind('\n', 0, next_separator)
-                        line_before = content[line_start+1:next_separator].strip()
-                        if not line_before.startswith('|') and not line_before.endswith('|'):
-                            next_section_positions.append(next_separator)
-                            break
-                        search_start = next_separator + 1
-                    
-                    # If no markers found, use end of content
-                    if not next_section_positions:
-                        next_section = len(content)
-                    else:
-                        next_section = min(next_section_positions)
-                    
-                    standard_section = content[standard_section_start:next_section]
-                    
-                    if "✅ PASS" not in standard_section:
-                        return False, "standard.cpp model should show PASS status (✅ PASS)"
+                # Look for separator - but only standalone separators (not table borders)
+                # Look for \n---\n pattern to avoid table borders like |---|---|
+                search_start = standard_section_start + 1
+                while True:
+                    next_separator = content.find("\n---\n", search_start)
+                    if next_separator == -1:
+                        break
+                    # Make sure this isn't part of a table
+                    line_start = content.rfind('\n', 0, next_separator)
+                    line_before = content[line_start+1:next_separator].strip()
+                    if not line_before.startswith('|') and not line_before.endswith('|'):
+                        next_section_positions.append(next_separator)
+                        break
+                    search_start = next_separator + 1
+                
+                # If no markers found, use end of content
+                if not next_section_positions:
+                    next_section = len(content)
+                else:
+                    next_section = min(next_section_positions)
+                
+                standard_section = content[standard_section_start:next_section]
+                
+                if "✅ PASS" not in standard_section:
+                    return False, "standard model section should show PASS status (✅ PASS)"
             
-            # Check for solution_bf.cpp constraints if present
-            if "solution_bf.cpp" in content:
-                bf_section_start = content.find("### Model: `solution_bf.cpp`")
+            # Check for solution_bf constraints if present (extension-agnostic)
+            bf_model_match = re.search(r"^### Model: `solution_bf[^`]*`", content, flags=re.MULTILINE)
+            if bf_model_match:
+                bf_section_start = bf_model_match.start()
                 if bf_section_start != -1:
                     next_model = content.find("### Model:", bf_section_start + 1)
                     if next_model == -1:
@@ -1740,7 +1626,7 @@ class GitHubReviewValidator:
                     if "|" in bf_section:  # Look for table rows
                         table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
                         for line in table_lines:
-                            if 'solution_bf.cpp' in line:
+                            if re.search(r"\bsolution_bf(?:\.[A-Za-z0-9_]+)?\b", line):
                                 # Split by | and filter out empty strings
                                 parts = [p.strip() for p in line.split('|') if p.strip()]
                                 # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
@@ -1754,9 +1640,9 @@ class GitHubReviewValidator:
                                             wa_count = error_counts[0].strip()
                                             ce_count = error_counts[3].strip()
                                             if wa_count != '0':
-                                                return False, f"solution_bf.cpp should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
+                                                return False, f"solution_bf should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
                                             if ce_count != '0':
-                                                return False, f"solution_bf.cpp should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
+                                                return False, f"solution_bf should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
             
             return True, "overall.md format validation passed"
             
@@ -1942,7 +1828,7 @@ class GitHubReviewValidator:
         if not github_url:
             return ReviewResponse(
                 result=ReviewResult.FAIL,
-                reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+                reasoning="No GitHub URL found in document. Expected format: **GitHub URL:** https://github.com/owner/repo or any URL containing github.com"
             )
         
         # Step 2: Parse GitHub URL
@@ -1950,7 +1836,7 @@ class GitHubReviewValidator:
         if not owner or not repo:
             return ReviewResponse(
                 result=ReviewResult.FAIL,
-                reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+                reasoning=f"Invalid GitHub URL format: {github_url}. URL must be a valid GitHub repository URL"
             )
         
         # Step 3: Clone repository
@@ -2052,7 +1938,7 @@ class GitHubReviewValidator:
             if not github_url:
                 results.append(("GitHub URL Extraction", ReviewResponse(
                     result=ReviewResult.FAIL,
-                    reasoning="No GitHub URL found in document metadata. Expected format: **GitHub URL:** https://github.com/owner/repo"
+                    reasoning="No GitHub URL found in document. Expected format: **GitHub URL:** https://github.com/owner/repo or any URL containing github.com"
                 )))
                 return results
             else:
@@ -2066,7 +1952,7 @@ class GitHubReviewValidator:
             if not owner or not repo:
                 results.append(("GitHub URL Parsing", ReviewResponse(
                     result=ReviewResult.FAIL,
-                    reasoning=f"Invalid GitHub URL format: {github_url}. Expected format: https://github.com/owner/repo"
+                    reasoning=f"Invalid GitHub URL format: {github_url}. URL must be a valid GitHub repository URL"
                 )))
                 # Critical failure, cannot continue without valid URL
                 return results
@@ -2201,12 +2087,12 @@ class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
     def __init__(self, quiet_mode=False):
-        # Initialize Anthropic client with API key from environment
-        api_key = os.getenv('ANTHROPIC_API_KEY')
+        # Initialize OpenAI client with API key from environment or .env file
+        api_key = self._load_openai_api_key()
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable not found. Please set it in your .bashrc")
+            raise ValueError("OPENAI_API_KEY not found. Please set it as an environment variable or add 'OPENAI_API_KEY=your_key_here' to a .env file")
         
-        self.client = Anthropic(api_key=api_key)
+        self.client = OpenAI(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
         self.output_lock = threading.Lock()  # Thread-safe output
         self.quiet_mode = quiet_mode  # Control output verbosity
@@ -2214,7 +2100,38 @@ class DocumentReviewSystem:
         # Initialize GitHub validator (non-AI review)
         self.github_validator = GitHubReviewValidator(quiet_mode=quiet_mode)
         
-        # Initialize all Ultimate reviewers - each as individual API call
+        # Initialize all reviewers
+        self.__init_reviewers__()
+        
+    def _load_openai_api_key(self):
+        """Load OpenAI API key from .env file or environment variable"""
+        # First check .env file (more user-friendly for cross-platform)
+        env_path = '.env'
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key == 'OPENAI_API_KEY':
+                            # Remove quotes if present
+                            if value.startswith('"') and value.endswith('"'):
+                                value = value[1:-1]
+                            elif value.startswith("'") and value.endswith("'"):
+                                value = value[1:-1]
+                            return value
+        
+        # Fallback to environment variable
+        api_key = os.getenv('OPENAI_API_KEY')
+        if api_key:
+            return api_key
+        
+        return None
+        
+    def __init_reviewers__(self):
+        """Initialize all Ultimate reviewers - each as individual API call"""
         self.reviewers = {
             # Solution Uniqueness Validation
             "Unique Solution Validation": UniqueSolutionReviewer(self.client),
@@ -2259,11 +2176,8 @@ class DocumentReviewSystem:
             "Typo and Spelling Check": TypoCheckReviewer(self.client),
             "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "No Predictive Headings in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "Chain Test Case Analysis Validation": Chain2TestCaseAnalysisReviewer(self.client),
-            "Thought Heading Violations Check": ThoughtHeadingViolationsReviewer(self.client),
-            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
-            "Comprehensive Reasoning Thoughts Review": ReasoningThoughtsReviewer(self.client)
+            "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client),
+            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client)
         }
     
     def _thread_safe_print(self, message: str, force_quiet=False):
@@ -2557,7 +2471,7 @@ class DocumentReviewSystem:
         return results
     
     def generate_report(self, results: Dict[str, ReviewResponse]) -> str:
-        """Generate comprehensive review report for all 30 review points"""
+        """Generate comprehensive review report for all review points"""
         report = []
         
         # Add the complete detailed execution log first
@@ -2780,9 +2694,9 @@ def main():
         
         # Model information
         print("\n🤖 Model Configuration:")
-        print("   Primary: Claude Opus 4.1 (claude-opus-4-1-20250805) with 20k thinking budget")
-        print("   Secondary: Claude Sonnet 4 (claude-sonnet-4-20250514) for cleanup operations")
-        print("   Max tokens: 32,000 (Opus 4.1) / 64,000 (Sonnet 4 cleanup)")
+        print("   Primary: GPT-5 (gpt-5) with thinking mode enabled (reasoning effort: low)")
+        print("   Secondary: GPT-4o (gpt-4o) for cleanup operations")
+        print("   Max tokens: 16,000 (GPT-5 + reasoning) / 16,000 (GPT-4o cleanup)")
         print()
         
         # Run reviews with specified options

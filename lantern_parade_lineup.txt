@@ -1,0 +1,708 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/lantern_parade_lineup
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Dynamic Programming", "Backtracking Algorithms", "Sorting Algorithms", "Arrays and Lists", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** -$4,$ $O(n! \cdot n)
+\to O(n \log n)
+\to O(n^2 \cdot 2^n)
+\to O(S \cdot n \cdot R)$
+
+**Number of Chains:** - $10$
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+# Lantern Parade Lineup
+
+**Time Limit:** 2 seconds
+
+**Memory Limit:** 256 MB
+
+At the annual Lantern Parade, two guilds—Northlight and Southwind—each bring a collection of $n$ lanterns. Every lantern has a glow rating between 1 and 10. The parade master must schedule a one-on-one showcase: each Northlight lantern is paired with exactly one Southwind lantern, and vice versa.
+
+When a pair takes the stage:
+- If the Northlight lantern’s glow is strictly higher than the Southwind lantern’s glow, Northlight scores a point for that showcase.
+- If the glow ratings are equal, neither side scores for that showcase.
+- Otherwise, Southwind scores a point.
+
+A lineup is successful if Northlight wins strictly more showcases than Southwind. All lanterns are distinct because of their unique craftsmanship, even if they share the same glow rating.
+
+Your task: For each parade, count how many different perfect lineups (pairings) make Northlight win strictly more showcases. Report the answer modulo $1{,}000{,}000{,}007$.
+
+**Input Format:-**
+- The first line contains an integer $t$, the number of parades.
+- Each parade consists of:
+  - A line with an integer $n$ $(1 \le n \le 14)$.
+  - A line with $n$ integers in $[1..10]$, the glow ratings of Northlight’s lanterns.
+  - A line with $n$ integers in $[1..10]$, the glow ratings of Southwind’s lanterns.
+
+**Output Format:-**
+- For each parade, print one integer: the number of successful lineups modulo $1{,}000{,}000{,}007$.
+
+**Constraints:-**
+- $1 \le t \le 100$
+- $1 \le n \le 14$
+- Lantern ratings are integers $1$ through $10$
+- Modulus is $1{,}000{,}000{,}007$
+**Examples:-**
+ - **Input:**
+```
+1
+5
+1 2 3 5 7
+6 5 4 3 2
+```
+
+ - **Output:**
+```
+14
+```
+
+ - **Input:**
+```
+1
+7
+10 10 1 1 5 5 6
+9 9 2 2 5 6 7
+```
+
+ - **Output:**
+```
+1200
+```
+
+**Note:-**
+In the first example, fix Northlight’s order and permute Southwind’s lanterns.  
+Lanterns $1$ and $7$ give a guaranteed loss and a guaranteed win, respectively, so only  
+$A = \{2, 3, 5\}$ versus $B = \{2, 3, 4, 5, 6\}$ matter.  
+
+Successful lineups occur in two patterns:
+
+- Both $3$ and $5$ must win: $3$ gets $2$; $5$ gets $3$ or $4$ (2 choices).  
+  Then $2$ (at $A=2$) must take any of the remaining $\{3,4,5,6\}$  
+  (3 choices after choosing for $5$).  
+  The last two $B$ values go to $A=1$ and $A=7$ in 2 orders.  
+  Total $2 \times 3 \times 2 = 12$.
+
+- Or ties at $A=2$ and $A=3$ $(2 \text{ with } 2,\; 3 \text{ with } 3)$  
+  and a win at $A=5$ (must be 4).  
+  The remaining $\{5,6\}$ go to $A=1$ and $A=7$ in 2 orders.  
+  Total $2$.
+
+Summing gives $12 + 2 = 14$ successful lineups.
+
+In the second example, two $A=10$ always win and two $A=1$ always lose,  
+so focus on $A = \{5,5,6\}$ against $B = \{2,2,5,6,7,9,9\}$.  
+Count by the $B$ given to $A=6$, then multiply by the permutations  
+of the remaining four $B$’s over the two 10’s and two 1’s ($4! = 24$):
+
+- If $A=6$ gets $2$ (2 choices), the two 5’s must take an ordered pair  
+  from the remaining items with at least one $2$: 10 ways per choice $\to 20$.
+
+- If $A=6$ gets $5$, the two 5’s must take an ordered pair with at least one $2$: 18 ways.
+
+- If $A=6$ gets $6$, the two 5’s must be either $(2,2)$ or $(2,5)$ in any order: 6 ways.
+
+- If $A=6$ gets $7$, only $(2,2)$ works: 2 ways.
+
+- If $A=6$ gets $9$ (2 choices), only $(2,2)$ works: 2 ways per choice $\to 4$.
+
+Summing gives $20 + 18 + 6 + 2 + 4 = 50$ ways for $\{5,5,6\}$.  
+Multiplying by $4! = 24$ yields $50 \times 24 = 1200$ successful lineups.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Interpreting the problem requirements and clarifying the objective
+
+**[THOUGHT_01_01]**
+
+Restate the task precisely: We are given two labeled sets of $n$ lanterns, one from Northlight and one from Southwind, with ratings in $\{1, 2, \dots, 10\}$. We must form a perfect one-to-one pairing. For each pair $(x, y)$ where $x$ is a Northlight lantern and $y$ is a Southwind lantern, Northlight scores if $x$ has strictly higher rating than $y$, Southwind scores if $y$ has strictly higher rating than $x$, and ties score nothing. Count the number of pairings where Northlight’s total score is strictly greater than Southwind’s, modulo $1{,}000{,}000{,}007$.
+
+
+**[THOUGHT_01_02]**
+
+Clarify labeled distinctness: Even if two lanterns share the same rating, they are distinct and labeled. Two lineups that differ only by swapping equal-rated Northlight lanterns are considered different. We are counting bijections between two labeled sets under a success predicate.
+
+
+**[THOUGHT_01_03]**
+
+Define an advantage variable to formalize the success condition. Let $s$ denote the score advantage $s = \#\text{Northlight wins} - \#\text{Southwind wins}$. Ties do not affect $s$. A lineup is successful if and only if after all $n$ pairs are formed, $s > 0$.
+
+
+**[THOUGHT_01_04]**
+
+State constraints guiding algorithm design. The number of test cases $t$ can be large in practice, and $1 \le n \le 14$. Ratings lie in a small alphabet $\{1, \dots, 10\}$. The small $n$ and tiny alphabet suggest dynamic programming over compressed states rather than naive enumeration.
+
+
+**[THOUGHT_01_05]**
+
+Identify two equivalent perspectives for counting. One can count over labeled items directly (considering each lantern individually), or compress identical ratings into counts to reduce state size and then account for labeling at the end. The latter approach is promising due to the small rating alphabet and the labeled nature needing a controlled correction factor.
+
+
+
+---
+
+**[CHAIN_02]**
+
+Constructing a comprehensive suite of test cases to validate logic and edge behaviors
+
+**[THOUGHT_02_01]**
+
+Validate minimality and base logic with single-pair cases.
+- Northlight wins: $n = 1$, Northlight $[5]$, Southwind $[4]$ gives $s = 1$, expected $1$.
+- Tie: $n = 1$, Northlight $[7]$, Southwind $[7]$ gives $s = 0$, expected $0$.
+- Southwind wins: $n = 1$, Northlight $[3]$, Southwind $[9]$ gives $s = -1$, expected $0$.
+
+
+**[THOUGHT_02_02]**
+
+Test all-equal ratings to enforce strict majority. For $n = 3$, Northlight $[4, 4, 4]$, Southwind $[4, 4, 4]$, every lineup ties all pairs, so $s = 0$ and the result should be $0$.
+
+
+**[THOUGHT_02_03]**
+
+Test dominance scenarios to ensure combinatorial counting respects labels. If every Northlight rating exceeds every Southwind rating, every lineup wins and the answer must be $n!$. Example: $n = 2$, Northlight $[10, 10]$, Southwind $[1, 1]$ produces $2$. For $n = 3$, Northlight $[9, 9, 9]$, Southwind $[1, 2, 3]$ produces $6$.
+
+
+**[THOUGHT_02_04]**
+
+Test balanced cases enforcing strict inequality. For $n = 2$, Northlight $[3, 7]$, Southwind $[2, 8]$, every pairing gives one win and one loss, so $s = 0$ and the answer is $0$. This checks that the strict condition $s > 0$ is applied.
+
+
+**[THOUGHT_02_05]**
+
+Test label sensitivity with duplicates. For $n = 3$, Northlight $[5, 5, 5]$, Southwind $[4, 5, 6]$, multiple lineups differ only by swapping equal-rated Northlight lanterns, yet must be counted distinctly. The solution must handle this through state representation and final label restoration.
+
+
+**[THOUGHT_02_06]**
+
+Stress extreme multiplicities and mixed distributions. Construct cases with many repeated ratings and with diverse ratings to test that the DP state space bound and transitions remain efficient and accurate up to $n = 14$, with ratings spanning $\{1, \dots, 10\}$.
+
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force enumeration and recognizing its infeasibility
+
+**[THOUGHT_03_01]**
+
+Outline the naive method: Fix an order of the $n$ Southwind lanterns. Enumerate all $n!$ permutations of Northlight lanterns, pair position-wise, compute the advantage $s$ for each permutation, and count those with $s > 0$. This is correct by construction and simple to implement.
+
+
+**[THOUGHT_03_02]**
+
+Quantify time and space complexity. The method needs $O(n!)$ permutations and $O(n)$ time per permutation to evaluate $s$, for $O(n! \cdot n)$ time. Memory is $O(1)$ beyond input. With $n = 14$, $n!$ is about $8.7 \times 10^{10}$, making this approach infeasible.
+
+
+**[THOUGHT_03_03]**
+
+Evaluate potential pruning and its limitations. One might try to prune using partial advantage bounds, but ties prevent strong bounds and the remaining pairs can still flip the final advantage. General pruning does not change the factorial growth, so this remains impractical.
+
+
+**[THOUGHT_03_04]**
+
+Conclude the failure and motivation. Brute force is exact but computationally impossible within constraints. We need a counting strategy that reuses subresults, respects resource constraints, and leverages the small rating alphabet.
+
+
+**[THOUGHT_03_05]**
+
+Set improvement goals based on the failure. Any improved approach must avoid enumerating all bijections explicitly, must ensure no double counting, and must maintain the advantage $s$ while enforcing that each Northlight lantern is used exactly once.
+
+
+
+---
+
+**[CHAIN_04]**
+
+Trying greedy pairing heuristics and identifying their inadequacy for counting
+
+**[THOUGHT_04_01]**
+
+Propose a greedy optimization heuristic: Sort both sides and repeatedly pair a Northlight lantern to the strongest Southwind lantern it can beat (or symmetrically, to the weakest that still yields a win). This tends to maximize wins for a single lineup.
+
+
+**[THOUGHT_04_02]**
+
+Expose the misalignment with the problem’s goal. We are not asked to maximize the number of wins for one lineup; we must count all lineups with $s > 0$. A greedy output is a single arrangement and gives no direct information about the count of all winning lineups.
+
+
+**[THOUGHT_04_03]**
+
+Demonstrate inadequacy via counterexamples. For $n = 2$, Northlight $[7, 7]$, Southwind $[6, 8]$, a greedy strategy can yield one win and one loss, but it neither confirms nor counts other lineups that may also produce $s > 0$ (or none). Thus it does not solve the counting problem.
+
+
+**[THOUGHT_04_04]**
+
+Note the absence of additivity. Choices in one pair affect availability for others; greedy local decisions do not decompose the global count. There is no principled way to derive the number of winning lineups from a greedy construction.
+
+
+**[THOUGHT_04_05]**
+
+Conclude the failure. Greedy pairing is useful for constructing a single favorable lineup but is fundamentally unsuitable for enumerating or counting all lineups satisfying $s > 0$. We need an approach that enumerates combinatorial choices without duplication and with resource tracking.
+
+
+
+---
+
+**[CHAIN_05]**
+
+Discarding independence-based counting due to resource coupling
+
+**[THOUGHT_05_01]**
+
+Consider a tempting independence model: For each Southwind lantern $y$, count the number of Northlight lanterns that beat it, then multiply these counts across all $y$. This would be efficient but assumes independence.
+
+
+**[THOUGHT_05_02]**
+
+Identify the core flaw: resource reuse. A single Northlight lantern cannot be used to beat multiple Southwind lanterns. Multiplying per-item options double counts arrangements and violates the one-to-one pairing constraint.
+
+
+**[THOUGHT_05_03]**
+
+Provide a concrete failure. With $n = 2$, Northlight $[9, 1]$, Southwind $[8, 2]$, each Southwind lantern has exactly one Northlight that beats it. Multiplying yields $1 \times 1 = 1$, but there are actually two pairings overall and exactly one achieves $s > 0$. The naive product does not align with the bijection constraint or with advantage accounting.
+
+
+**[THOUGHT_05_04]**
+
+Conclude inadequacy and lessons learned. Counting must be done over feasible matchings with explicit resource tracking. Any correct approach must integrate the coupling across choices. This motivates dynamic programming where availability is part of the state and advantage is tracked cumulatively.
+
+
+
+---
+
+**[CHAIN_06]**
+
+Applying bitmask dynamic programming over labeled Northlight lanterns as a first viable method
+
+**[THOUGHT_06_01]**
+
+Define a DP over labeled availability. Fix an order of Southwind lanterns (they are labeled; any fixed order suffices). Let $M$ be a bitmask over the $n$ Northlight lanterns indicating which are used. Let $s$ be the current advantage. The number of processed Southwind lanterns is $|M|$. Define $dp[M][s]$ as the count of ways to match the first $|M|$ Southwind lanterns to the set of Northlight lanterns in $M$ achieving advantage $s$.
+
+
+**[THOUGHT_06_02]**
+
+Specify transitions. For the next Southwind lantern at index $|M|$, try all unused Northlight lanterns $i \notin M$. Let $M' = M \cup \{i\}$. Update $s$ by $+1$ if Northlight $i$ beats this Southwind lantern, by $-1$ if it loses, and by $0$ if tied. Accumulate counts into $dp[M'][s']$.
+
+
+**[THOUGHT_06_03]**
+
+Define terminal condition and aggregation. When $|M| = n$, all pairs are formed. Sum $dp[\text{all\_used}][s]$ over all $s > 0$ to obtain the number of successful lineups. This counts each labeled bijection exactly once, as each trajectory corresponds to a unique matching.
+
+
+**[THOUGHT_06_04]**
+
+Analyze complexity. The number of masks is $2^n$ and the range of $s$ is of width $2n + 1$. Each state considers up to $n$ transitions to unused lanterns. Time is $O(2^n \cdot (2n + 1) \cdot n)$, which is $O(n^2 \cdot 2^n)$. Memory is $O(2^n \cdot (2n + 1))$. For $n = 14$, this is marginally feasible but may be tight across many test cases.
+
+
+**[THOUGHT_06_05]**
+
+Identify limitations and opportunities. While this DP is correct and can run for $n = 14$, it scales with $2^n$ because it distinguishes equal-rated Northlight lanterns. Since ratings lie in $\{1, \dots, 10\}$, we can compress the state by aggregating lanterns by rating and recover labeled distinctions afterward.
+
+
+**[THOUGHT_06_06]**
+
+Set the improvement objective. Reduce state from $2^n$ masks to a product of small dimensions by rating, while preserving labeled Southwind handling and advantage tracking. The improved DP should count by rating assignments and later account for Northlight labelings via a controlled multiplier.
+
+
+
+---
+
+**[CHAIN_07]**
+
+Compressing state via rating-count DP and processing Southwind labels
+
+**[THOUGHT_07_01]**
+
+Aggregate by rating for Northlight and Southwind. Let $A[v]$ be the number of Northlight lanterns with rating $v$ and $B[v]$ be the number of Southwind lanterns with rating $v$, for $v \in \{1, \dots, 10\}$. This replaces individual identities with counts per rating.
+
+
+**[THOUGHT_07_02]**
+
+Define the DP state with used counts and advantage. Let $U[v]$ be how many Northlight lanterns of rating $v$ have been used so far, with $0 \le U[v] \le A[v]$. Let $s$ be the current advantage. Define $dp(U, s)$ as the count of ways to assign the already-processed Southwind lanterns to Northlight ratings to realize the used-vector $U$ and advantage $s$.
+
+
+**[THOUGHT_07_03]**
+
+Process Southwind lanterns one by one, respecting label distinctness. Expand the Southwind multiset by iterating over $v = 1$ to $10$ and, for each, processing its $B[v]$ copies individually. This naturally distinguishes Southwind lanterns in the DP.
+
+
+**[THOUGHT_07_04]**
+
+Specify transitions. When processing a Southwind lantern of rating $w$, choose a rating $i$ with $U[i] < A[i]$. Increment $U[i]$ by one. Update $s$ by $+1$ if $i > w$, by $-1$ if $i < w$, and leave $s$ unchanged if $i = w$. Add the current count to $dp(U', s')$.
+
+
+**[THOUGHT_07_05]**
+
+Restore labeled Northlight distinctions at the end. The DP treats Northlight lanterns within the same rating as indistinguishable. For each complete used-vector $U[v] = A[v]$ and $s > 0$, multiply the DP count by the product $\prod_{v=1}^{10} A[v]!$ to account for the permutations of labeled Northlight lanterns within each rating.
+
+
+**[THOUGHT_07_06]**
+
+Argue correctness. For each sequence of choices assigning each labeled Southwind lantern to a Northlight rating, the DP counts exactly one way, provided capacities $A[\cdot]$ are not exceeded. Every labeled Northlight assignment consistent with a rating-level assignment corresponds to $\prod_v A[v]!$ distinct labeled lineups. Summing terminal states with $s > 0$ yields the exact number of successful labeled lineups.
+
+
+**[THOUGHT_07_07]**
+
+Bound complexity using the small alphabet. The number of used-vectors is $S = \prod_{v=1}^{10} (A[v] + 1)$. With $n \le 14$, the maximum is $S \le 3^4 \cdot 2^6 = 5184$, achieved by balancing counts across ratings. The advantage range width is $2n + 1 \le 29$. Each transition considers at most $10$ ratings. Time is on the order of $O(S \cdot (2n + 1) \cdot n \cdot 10)$ in a straightforward implementation, and memory is $O(S \cdot (2n + 1))$. This is comfortably efficient.
+
+
+
+---
+
+**[CHAIN_08]**
+
+Implementing efficient indexing and advantage management for the rating-count DP
+
+**[THOUGHT_08_01]**
+
+Index the multi-dimensional used-vector via mixed radix. For each rating $i$, the coordinate $U[i]$ ranges over $A[i] + 1$ values. Precompute a base array where $base[1] = 1$ and $base[i + 1] = base[i] \cdot (A[i] + 1)$. The linear index of $U$ is $\sum_{i=1}^{10} U[i] \cdot base[i]$. This enables compact storage and constant-time coordinate updates.
+
+
+**[THOUGHT_08_02]**
+
+Represent the advantage in an array-friendly way. Map $s \in [-n, n]$ to $s + n$ to index an array of size $2n + 1$. Maintain two DP layers (current and next) of size $S \cdot (2n + 1)$, swapping layers after processing each Southwind lantern.
+
+
+**[THOUGHT_08_03]**
+
+Restrict iteration to feasible advantage bounds per step. After processing $k$ Southwind lanterns, the advantage necessarily lies in $[-k, k]$. Iterating only over this range reduces work and improves cache locality without changing results.
+
+
+**[THOUGHT_08_04]**
+
+Precompute available ratings to reduce branching. Track the set of ratings $i$ with $A[i] > 0$ to cap the inner branching factor at the number of nonempty Northlight ratings, at most $10$. Precompute small factorials up to $n$ to evaluate $\prod_v A[v]!$ efficiently under modulus $1{,}000{,}000{,}007$.
+
+
+**[THOUGHT_08_05]**
+
+Finalize state identification and aggregation. The terminal state has $U[i] = A[i]$ for every $i$ and thus linear index $\sum_i A[i] \cdot base[i]$. Sum counts over $s \in \{1, 2, \dots, n\}$ at this terminal index, then multiply by $\prod_v A[v]!$ modulo $1{,}000{,}000{,}007$ to obtain the final answer.
+
+
+
+---
+
+**[CHAIN_09]**
+
+Asserting correctness through invariants, edge-case analysis, and sample reconciliation
+
+**[THOUGHT_09_01]**
+
+Maintain a conservation invariant. At each step, the total number of used Northlight lanterns equals the number of processed Southwind lanterns. Transitions respect capacity constraints $U[i] \le A[i]$, ensuring the DP only explores feasible partial assignments.
+
+
+**[THOUGHT_09_02]**
+
+Verify tie behavior. When Northlight rating equals Southwind rating for the current pair, the advantage $s$ does not change. The DP counts such assignments distinctly (due to Southwind labels) while leaving $s$ unchanged, aligning with the problem’s scoring rule.
+
+
+**[THOUGHT_09_03]**
+
+Check extreme scenarios. If all ratings are equal across both sides, every lineup yields $s = 0$, so the DP’s sum over $s > 0$ is empty and the answer is $0$. If every Northlight rating is strictly higher than every Southwind rating, every lineup yields $s = n$, so the answer is $n!$.
+
+
+**[THOUGHT_09_04]**
+
+Reconcile with known examples. For $n = 1$ with Northlight $[5]$ and Southwind $[4]$, the DP processes one item, reaches $s = 1$, and outputs $1$. For cases where every lineup wins (e.g., Northlight $[10, 10]$, Southwind $[1, 1]$), the DP yields $2$. For balanced cases like Northlight $[3, 7]$, Southwind $[2, 8]$, every terminal state has $s = 0$, giving $0$. For Northlight $[10, 10, 10]$, Southwind $[1, 9, 10]$, the DP yields $6$.
+
+
+**[THOUGHT_09_05]**
+
+Ensure no overcounting or undercounting. Southwind lanterns are processed individually, so their labelings are inherently counted. Northlight lanterns within a rating are indistinguishable in the DP; multiplying by $\prod_v A[v]!$ restores exactly the labeled permutations for Northlight without duplication. Thus each labeled lineup is counted exactly once.
+
+
+
+---
+
+**[CHAIN_10]**
+
+Analyzing complexities, comparing approaches, and justifying the final selection
+
+**[THOUGHT_10_01]**
+
+Summarize brute force enumeration. Time $O(n! \cdot n)$, space $O(1)$. It is exact but infeasible for $n \le 14$, failing to meet performance needs.
+
+
+**[THOUGHT_10_02]**
+
+Summarize greedy and independence attempts. Greedy constructs a single lineup and cannot count solutions; independence-based multiplication ignores resource coupling and double counts. Both are incorrect for counting and are discarded.
+
+
+**[THOUGHT_10_03]**
+
+Summarize bitmask DP over labeled items. Time $O(n^2 \cdot 2^n)$, space $O(2^n \cdot (2n + 1))$. It is correct and borderline feasible for $n = 14$, but it does not exploit identical ratings and may be costly over many test cases.
+
+
+**[THOUGHT_10_04]**
+
+Summarize rating-count DP. Time roughly $O(S \cdot (2n + 1) \cdot n \cdot R)$ with $S \le 5184$ and $R \le 10$, and space $O(S \cdot (2n + 1))$. It is significantly faster and more memory-efficient by compressing states via ratings, while correctly accounting for labeling through $\prod_v A[v]!$.
+
+
+**[THOUGHT_10_05]**
+
+Justify the final choice. The rating-count DP is the most robust under the given constraints: it leverages the small rating alphabet, maintains exact counting with proper label restoration, handles ties naturally, and runs comfortably fast for all allowed inputs. It is therefore the recommended approach.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given two labeled sets of $n$ lanterns, one from Northlight and one from Southwind. Each lantern has a glow rating in $\{1, 2, \dots, 10\}$. We must form a perfect one-to-one pairing between them. For each pair, Northlight scores a point if its rating is strictly higher, Southwind scores a point if its rating is strictly higher, and ties give no points. A lineup is successful if Northlight’s total points exceed Southwind’s total points.
+
+Key observations:
+- All lanterns are labeled: even lanterns with the same rating are distinct. Different bijections count separately.
+- Define advantage $s = \#\text{Northlight wins} - \#\text{Southwind wins}$. Ties do not affect $s$. We need to count bijections for which $s > 0$.
+- Constraints are small: $n \le 14$, ratings in $\{1, \dots, 10\}$. This enables dynamic programming that compresses states by rating counts.
+
+
+**2. Optimal Approach**
+
+We use a dynamic programming strategy that aggregates Northlight lanterns by rating and processes Southwind lanterns one-by-one while tracking how many Northlight lanterns of each rating have been used and the current advantage.
+
+Steps:
+1. Frequency compression:
+   - Let $A[v]$ be the number of Northlight lanterns with rating $v$.
+   - Let $B[v]$ be the number of Southwind lanterns with rating $v$.
+2. DP state:
+   - Maintain $U[1..10]$, where $U[v]$ is the number of Northlight lanterns of rating $v$ already used, with $0 \le U[v] \le A[v]$.
+   - Maintain advantage $s \in [-n, n]$.
+   - Define $dp(U, s)$ as the number of ways to assign the already-processed (labeled) Southwind lanterns to Northlight ratings to reach used-vector $U$ with advantage $s$.
+3. Transitions:
+   - Process Southwind lanterns rating by rating. For each Southwind lantern of rating $w$, choose any rating $i$ with $U[i] < A[i]$, increase $U[i]$ by one, and update $s$ by:
+     - $+1$ if $i > w$,
+     - $-1$ if $i < w$,
+     - $0$ if $i = w$.
+4. Label accounting:
+   - The DP treats Northlight lanterns within the same rating as indistinguishable. To account for labeled Northlight lanterns, multiply the final count by $\prod_{v=1}^{10} A[v]!$.
+   - Southwind lanterns are processed individually, so their labelings are inherently counted.
+5. Implementation details:
+   - Use mixed-radix indexing to map the multi-dimensional used-vector $U$ to a single linear index, with dimension sizes $A[v] + 1$.
+   - Restrict the advantage range after processing $k$ items to $[-k, k]$ to save time.
+   - The final answer is the sum of $dp(U_{\text{final}}, s)$ over $s = 1..n$ times $\prod_v A[v]!$, modulo $1{,}000{,}000{,}007$.
+
+Why this works:
+- The DP enumerates all ways to choose a Northlight rating for each labeled Southwind lantern while respecting availability. This exactly represents all bijections up to permutations of equal-rated Northlight lanterns; the post-multiplication by $\prod_v A[v]!$ restores labeled counting on Northlight’s side.
+- Ties leave $s$ unchanged; success requires $s > 0$.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <array>
+#include <algorithm>
+
+static const int kMod = 1'000'000'007;
+static const int kMaxRating = 10;
+static const int kMaxF = 50;
+
+/**
+ * @brief Adds two integers modulo kMod.
+ *
+ * @param a First operand.
+ * @param b Second operand.
+ * @return Sum modulo kMod.
+ */
+int addMod(int a, int b) {
+    int s = a + b;
+    if (s >= kMod) s -= kMod;
+    return s;
+}
+
+/**
+ * @brief Precomputes factorials modulo kMod up to maxN.
+ *
+ * @param maxN Maximum factorial index to compute.
+ * @return Vector fact where fact[i] = i! mod kMod for 0 <= i <= maxN.
+ */
+std::vector<int> precomputeFactorials(int maxN) {
+    std::vector<int> fact(maxN + 1, 1);
+    for (int i = 1; i <= maxN; ++i) {
+        fact[i] = static_cast<int>(1LL * fact[i - 1] * i % kMod);
+    }
+    return fact;
+}
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int t;
+    if (!(std::cin >> t)) {
+        return 0;
+    }
+
+    // Precompute factorials (safe upper bound for this problem).
+    std::vector<int> fact = precomputeFactorials(kMaxF);
+
+    while (t--) {
+        int n;
+        std::cin >> n;
+
+        std::vector<int> northlightVals(n), southwindVals(n);
+        for (int i = 0; i < n; ++i) std::cin >> northlightVals[i];
+        for (int i = 0; i < n; ++i) std::cin >> southwindVals[i];
+
+        // Frequency counts by rating (1..10).
+        std::array<int, kMaxRating + 1> aCounts{};
+        std::array<int, kMaxRating + 1> bCounts{};
+        for (int x : northlightVals) ++aCounts[x];
+        for (int x : southwindVals) ++bCounts[x];
+
+        // Mixed-radix mapping for used-vector U[1..10].
+        // dims[i] = A[i] + 1; baseRadix[i] = product of dims[1..i-1], with baseRadix[1] = 1.
+        std::vector<int> dimSizes(kMaxRating + 1, 0);
+        std::vector<int> baseRadix(kMaxRating + 2, 0);
+        baseRadix[1] = 1;
+        for (int i = 1; i <= kMaxRating; ++i) {
+            dimSizes[i] = aCounts[i] + 1;
+            baseRadix[i + 1] = baseRadix[i] * dimSizes[i];
+        }
+        int stateCount = baseRadix[kMaxRating + 1];
+
+        // Advantage s in [-n, n]
+        int offset = n;
+        int width = 2 * n + 1;
+
+        std::vector<int> dp(stateCount * width, 0);
+        std::vector<int> nextDp(stateCount * width, 0);
+
+        auto getIndex = [&](int state, int adv) -> int {
+            return state * width + (adv + offset);
+        };
+
+        // Precompute which Northlight ratings exist.
+        std::vector<int> availableRatings;
+        for (int i = 1; i <= kMaxRating; ++i) {
+            if (aCounts[i] > 0) availableRatings.push_back(i);
+        }
+
+        // Initialize DP.
+        dp[getIndex(0, 0)] = 1;
+        int processed = 0;
+
+        // Process Southwind's labeled lanterns rating by rating.
+        for (int w = 1; w <= kMaxRating; ++w) {
+            for (int rep = 0; rep < bCounts[w]; ++rep) {
+                std::fill(nextDp.begin(), nextDp.end(), 0);
+
+                int minAdv = -processed;
+                int maxAdv = processed;
+
+                for (int state = 0; state < stateCount; ++state) {
+                    int baseRow = state * width;
+                    for (int adv = minAdv; adv <= maxAdv; ++adv) {
+                        int cur = dp[baseRow + (adv + offset)];
+                        if (!cur) continue;
+
+                        // Try pairing with each available Northlight rating.
+                        for (int i : availableRatings) {
+                            int usedI = (state / baseRadix[i]) % dimSizes[i];
+                            if (usedI < aCounts[i]) {
+                                int nextState = state + baseRadix[i];
+                                int delta = 0;
+                                if (i > w) delta = 1;
+                                else if (i < w) delta = -1;
+                                int nextAdv = adv + delta;
+
+                                int pos = nextState * width + (nextAdv + offset);
+                                int val = nextDp[pos] + cur;
+                                if (val >= kMod) val -= kMod;
+                                nextDp[pos] = val;
+                            }
+                        }
+                    }
+                }
+
+                dp.swap(nextDp);
+                ++processed;
+            }
+        }
+
+        // Final used-vector: U[i] = A[i] for all i.
+        int finalState = 0;
+        for (int i = 1; i <= kMaxRating; ++i) {
+            finalState += (dimSizes[i] - 1) * baseRadix[i];
+        }
+
+        // Sum over strictly positive advantages.
+        int waysByRating = 0;
+        for (int adv = 1; adv <= n; ++adv) {
+            waysByRating = addMod(waysByRating, dp[getIndex(finalState, adv)]);
+        }
+
+        // Multiply by product of A[i]! to restore labeled Northlight lanterns.
+        int multiplier = 1;
+        for (int i = 1; i <= kMaxRating; ++i) {
+            multiplier = static_cast<int>(1LL * multiplier * fact[aCounts[i]] % kMod);
+        }
+
+        int answer = static_cast<int>(1LL * waysByRating * multiplier % kMod);
+        std::cout << answer << '\n';
+    }
+
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- Frequency counts:
+  - Northlight and Southwind ratings are compressed into counts $A[v]$ and $B[v]$ for $v \in \{1, \dots, 10\}$.
+
+- State encoding:
+  - The DP state is the used-count vector $U[1..10]$ and advantage $s$.
+  - The used-count vector is mapped to a linear index using mixed-radix encoding, where the radix for coordinate $v$ is $A[v] + 1$.
+
+- Transition:
+  - Southwind lanterns are processed one by one, grouped by rating. For each processed Southwind lantern of rating $w$, we try assigning a Northlight rating $i$ with remaining capacity $U[i] < A[i]$.
+  - The advantage update is $+1$ if $i > w$, $-1$ if $i < w$, and $0$ if $i = w$.
+
+- Initialization and aggregation:
+  - Start with $U = \mathbf{0}$ and $s = 0$.
+  - After processing all $n$ Southwind lanterns, we consider the terminal state $U[i] = A[i]$ for all $i$, sum DP values over $s = 1..n$ (strictly positive), and multiply by $\prod_v A[v]!$ to account for labeled Northlight lanterns.
+
+- Example sketch:
+  - For $n = 1$, Northlight $[5]$, Southwind $[4]$: $A[5] = 1$, $B[4] = 1$. After processing the single Southwind lantern of rating $4$, the only valid transition is to use rating $5$, which increases $s$ to $1$. The terminal sum over $s > 0$ is $1$; multiplying by $A[5]!$ still yields $1$.
+
+**5. Time and Space Complexity**
+
+- Let $S = \prod_{v=1}^{10} (A[v] + 1)$. With $n \le 14$, the worst-case bound is $S \le 5184$.
+- Advantage range width is $2n + 1 \le 29$.
+- For each of the $n$ processed Southwind lanterns, we consider at most $R \le 10$ Northlight ratings.
+
+Time complexity:
+- Approximately $O(S \cdot (2n + 1) \cdot n \cdot R)$, which is well within limits for the given constraints.
+
+Space complexity:
+- $O(S \cdot (2n + 1))$ for the DP arrays.
+
+**6. Conclusion**
+
+By aggregating Northlight lanterns by rating and processing Southwind lanterns one by one with a dynamic programming approach that tracks used counts and score advantage, we efficiently count all successful labeled lineups. The small rating alphabet allows a compact state space, and a final factorial multiplier restores labeled distinctions on Northlight’s side. This solution is both correct and performant for $n \le 14$ under the required modulus.

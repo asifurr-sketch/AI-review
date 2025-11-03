@@ -1,0 +1,605 @@
+📋 COMPLETE EXECUTION LOG
+======================================================================
+
+🔍 Running complete review (AI + GitHub)...
+======================================================================
+🚀 Starting 33 AI reviews...
+🔄 1. Unique Solution Validation - Starting...
+🔄 2. Time Complexity Authenticity Check - Starting...
+🔄 3. Style Guide Compliance - Starting...
+🔄 4. Naming Conventions - Starting...
+🔄 5. Documentation Standards - Starting...
+🔄 6. Response Relevance to Problem - Starting...
+🔄 7. Mathematical Equations Correctness - Starting...
+🔄 8. Problem Constraints Consistency - Starting...
+🔄 9. Missing Approaches in Steps - Starting...
+🔄 10. Code Elements Existence - Starting...
+🔄 11. Example Walkthrough with Optimal Algorithm - Starting...
+🔄 12. Time and Space Complexity Correctness - Starting...
+🔄 13. Conclusion Quality - Starting...
+🔄 14. Problem Statement Consistency - Starting...
+🔄 15. Solution Passability According to Limits - Starting...
+🔄 16. Metadata Correctness - Starting...
+🔄 17. Test Case Validation - Starting...
+🔄 18. Sample Test Case Dry Run Validation - Starting...
+🔄 19. Note Section Explanation Approach - Starting...
+🔄 20. Inefficient Approaches Limitations - Starting...
+🔄 21. Final Approach Discussion - Starting...
+🔄 22. No Code in Reasoning Chains - Starting...
+🔄 23. Subtopic Taxonomy Validation - Starting...
+🔄 24. Time Limit Validation - Starting...
+🔄 25. Memory Limit Validation - Starting...
+🔄 26. Typo and Spelling Check - Starting...
+🔄 27. Subtopic Relevance - Starting...
+🔄 28. Missing Relevant Subtopics - Starting...
+🔄 29. No Predictive Headings in Thoughts - Starting...
+🔄 30. Chain Test Case Analysis Validation - Starting...
+🔄 31. Thought Heading Violations Check - Starting...
+🔄 32. Mathematical Variables and Expressions Formatting - Starting...
+🔄 33. Comprehensive Reasoning Thoughts Review - Starting...
+✅ 8. Problem Constraints Consistency - ✅ PASS (40.1s)
+✅ 1. Unique Solution Validation - ✅ PASS (44.1s)
+❌ 5. Documentation Standards - ❌ FAIL (45.5s)
+✅ 4. Naming Conventions - ✅ PASS (52.5s)
+✅ 2. Time Complexity Authenticity Check - ✅ PASS (57.0s)
+✅ 6. Response Relevance to Problem - ✅ PASS (60.1s)
+✅ 7. Mathematical Equations Correctness - ✅ PASS (65.4s)
+❌ 3. Style Guide Compliance - ❌ FAIL (67.9s)
+✅ 11. Example Walkthrough with Optimal Algorithm - ✅ PASS (33.0s)
+✅ 10. Code Elements Existence - ✅ PASS (42.6s)
+✅ 12. Time and Space Complexity Correctness - ✅ PASS (40.4s)
+✅ 13. Conclusion Quality - ✅ PASS (41.2s)
+✅ 14. Problem Statement Consistency - ✅ PASS (53.7s)
+✅ 9. Missing Approaches in Steps - ✅ PASS (80.8s)
+✅ 15. Solution Passability According to Limits - ✅ PASS (57.5s)
+❌ 16. Metadata Correctness - ❌ FAIL (59.4s)
+✅ 18. Sample Test Case Dry Run Validation - ✅ PASS (52.2s)
+✅ 17. Test Case Validation - ✅ PASS (64.6s)
+✅ 19. Note Section Explanation Approach - ✅ PASS (51.1s)
+✅ 24. Time Limit Validation - ✅ PASS (21.4s)
+✅ 23. Subtopic Taxonomy Validation - ✅ PASS (28.3s)
+✅ 25. Memory Limit Validation - ✅ PASS (13.6s)
+✅ 20. Inefficient Approaches Limitations - ✅ PASS (71.9s)
+✅ 22. No Code in Reasoning Chains - ✅ PASS (56.6s)
+✅ 21. Final Approach Discussion - ✅ PASS (72.2s)
+✅ 28. Missing Relevant Subtopics - ✅ PASS (47.8s)
+✅ 26. Typo and Spelling Check - ✅ PASS (55.9s)
+✅ 27. Subtopic Relevance - ✅ PASS (59.4s)
+✅ 29. No Predictive Headings in Thoughts - ✅ PASS (65.5s)
+❌ 31. Thought Heading Violations Check - ❌ FAIL (48.1s)
+❌ 30. Chain Test Case Analysis Validation - ❌ FAIL (114.6s)
+✅ 33. Comprehensive Reasoning Thoughts Review - ✅ PASS (240.5s)
+❌ 32. Mathematical Variables and Expressions Formatting - ❌ FAIL (255.1s)
+✅ AI reviews completed: 27 passed, 6 failed
+🔄 Running GitHub validation...
+✅ GitHub validation: 6/8 passed
+
+
+📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS
+======================================================================
+
+📊 SUMMARY: GitHub: 6/8 passed | AI: 27/33 passed
+⚠️  8 review(s) failed (GitHub: 2, AI: 6)
+
+⚠️  OVERALL STATUS: SOME REVIEWS FAILED
+
+======================================================================
+
+📝 1. PROBLEM CONSTRAINTS CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 2. UNIQUE SOLUTION VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 3. DOCUMENTATION STANDARDS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• struct CodeState - VIOLATION: Missing doxygen-style documentation for the struct itself. Has inline comments for members but lacks required doxygen format with @brief tag
+
+• int main() function - VIOLATION: Missing doxygen-style documentation. No documentation at all, requires doxygen format with @brief and @return tags
+
+• Code uses regular inline comments (//) throughout but fails to use proper doxygen-style comments (/ */ or ///) with appropriate tags (@brief, @param, @return) for struct and function declarations
+
+--------------------------------------------------
+
+📝 4. NAMING CONVENTIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 5. TIME COMPLEXITY AUTHENTICITY CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 6. RESPONSE RELEVANCE TO PROBLEM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 7. MATHEMATICAL EQUATIONS CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 8. STYLE GUIDE COMPLIANCE
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Comment capitalization violations in main function:
+  - Line with "// first time seeing this code" - should be "// First time seeing this code"
+  - Line with "// must be contiguous" - should be "// Must be contiguous" 
+  - Line with "// participants must match exactly" - should be "// Participants must match exactly"
+
+• All three violations occur in main function where single-line comments do not capitalize the first letter after the comment delimiter
+
+--------------------------------------------------
+
+📝 9. EXAMPLE WALKTHROUGH WITH OPTIMAL ALGORITHM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 10. CODE ELEMENTS EXISTENCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 11. TIME AND SPACE COMPLEXITY CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 12. CONCLUSION QUALITY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 13. PROBLEM STATEMENT CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 14. MISSING APPROACHES IN STEPS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 15. SOLUTION PASSABILITY ACCORDING TO LIMITS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 16. METADATA CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Metadata section header violation: Document has `# Metadata` but required format is `# Metadata` - extra bold formatting (`Metadata`) violates the mandatory exact format requirement
+
+--------------------------------------------------
+
+📝 17. SAMPLE TEST CASE DRY RUN VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 18. TEST CASE VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 19. NOTE SECTION EXPLANATION APPROACH
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 20. TIME LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 21. SUBTOPIC TAXONOMY VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 22. MEMORY LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 23. INEFFICIENT APPROACHES LIMITATIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 24. NO CODE IN REASONING CHAINS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 25. FINAL APPROACH DISCUSSION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 26. MISSING RELEVANT SUBTOPICS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 27. TYPO AND SPELLING CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 28. SUBTOPIC RELEVANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 29. NO PREDICTIVE HEADINGS IN THOUGHTS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 30. THOUGHT HEADING VIOLATIONS CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_08_01: "Invariant I1 (per-frame admissibility):" - Contains prohibited heading-like structure with label followed by colon acting as title
+
+• THOUGHT_08_02: "Invariant I2 (contiguity):" - Contains prohibited heading-like structure with label followed by colon acting as title
+
+• THOUGHT_08_03: "Invariant I3 (fixed emitters):" - Contains prohibited heading-like structure with label followed by colon acting as title
+
+• THOUGHT_09_01: "Formal lower bound for per-code rescans:" - Contains prohibited heading-like structure with label followed by colon acting as title
+
+--------------------------------------------------
+
+📝 31. CHAIN TEST CASE ANALYSIS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_02, THOUGHT_02_01: States "No positive codes appear, so no songs exist; the log is valid and the duet count is 0" - This is problem analysis, not algorithm execution showing data structure updates or processing steps.
+
+• CHAIN_02, THOUGHT_02_02: States "This violates the rule...the log is invalid and the output is -1" - Identifies the violation conceptually but doesn't show algorithm steps for counting occurrences or detecting the violation.
+
+• CHAIN_02, THOUGHT_02_03: States "The participant set changes, violating the fixed-participants rule" - Describes the violation but doesn't show algorithm execution like map lookups, participant set comparisons, or state tracking.
+
+• CHAIN_02, THOUGHT_02_04: States "this breaks contiguity, so the log is invalid" - Identifies the problem but doesn't demonstrate algorithm execution for tracking frame sequences or detecting gaps.
+
+• CHAIN_02, THOUGHT_02_05: States "No rules are violated; since there are no duets, the output is 0" - Provides the answer without showing algorithm processing steps.
+
+• CHAIN_02 analyzes test cases to understand problem rules but doesn't trace through algorithm execution with data structure operations, variable updates, conditional checks in code, or step-by-step processing flow.
+
+--------------------------------------------------
+
+📝 32. COMPREHENSIVE REASONING THOUGHTS REVIEW
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 33. MATHEMATICAL VARIABLES AND EXPRESSIONS FORMATTING
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Section: # Duets in the Greenhouse (Problem Statement - Exegesis of Examples)
+  - Violation: "frequency code $9$ through shards 1–2"
+  - Should be: "frequency code $9$ through shards $1$–$2$"
+
+• Section: # Duets in the Greenhouse (Problem Statement - Exegesis of Examples)
+  - Violation: "then lapse into silence across shards 3–4"
+  - Should be: "then lapse into silence across shards $3$–$4$"
+
+• Section: # Duets in the Greenhouse (Problem Statement - Exegesis of Examples)
+  - Violation: "same code $9$ in shard 5"
+  - Should be: "same code $9$ in shard $5$"
+
+• Section: THOUGHT_03_03
+  - Violation: "keeps time at  Θ(D⋅M)"
+  - Should be: "keeps time at $\Theta(D \cdot M)$"
+
+• Section: THOUGHT_03_03
+  - Violation: "the time remains  Θ(D⋅T+K)  with  K  non-zero entries"
+  - Should be: "the time remains $\Theta(D \cdot T + K)$ with $K$ non-zero entries"
+
+• Section: THOUGHT_03_03
+  - Violation: "The memory for all per-frame count entries totals  Θ(K)"
+  - Should be: "The memory for all per-frame count entries totals $\Theta(K)$"
+
+• Section: THOUGHT_03_03
+  - Violation: "at  K ≈ 2 × 10^6"
+  - Should be: "at $K \approx 2 \times 10^6$"
+
+• Section: THOUGHT_04_03
+  - Violation: "8 bytes; with"
+  - Should be: "$8$ bytes; with"
+
+• Section: THOUGHT_04_05
+  - Violation: "above the 32 MB budget"
+  - Should be: "above the $32$ MB budget"
+
+• Section: THOUGHT_04_05
+  - Violation: "payload $\sim$16 MB"
+  - Should be: "payload $\sim 16$ MB"
+
+• Section: THOUGHT_07_01
+  - Violation: "acknowledging the extra  log  factor"
+  - Should be: "acknowledging the extra $\log$ factor"
+
+• Section: THOUGHT_07_05
+  - Violation: "Using the sentinel  −1  for solos"
+  - Should be: "Using the sentinel $-1$ for solos"
+
+• Section: THOUGHT_07_06
+  - Violation: "the algorithm can output −1"
+  - Should be: "the algorithm can output $-1$"
+
+• Section: THOUGHT_08_01
+  - Violation: "Invariant I1"
+  - Should be: "Invariant $I_1$"
+
+• Section: THOUGHT_08_02
+  - Violation: "Invariant I2"
+  - Should be: "Invariant $I_2$"
+
+• Section: THOUGHT_08_03
+  - Violation: "Invariant I3"
+  - Should be: "Invariant $I_3$"
+
+• Section: THOUGHT_09_02
+  - Violation: "a 16-byte pair"
+  - Should be: "a $16$-byte pair"
+
+• Section: THOUGHT_09_02
+  - Violation: "this exceeds the 32 MB memory limit"
+  - Should be: "this exceeds the $32$ MB memory limit"
+
+--------------------------------------------------
+
+📝 34. GITHUB URL EXTRACTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 35. GITHUB URL PARSING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 36. REPOSITORY CLONING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 37. OVERALL.MD FILE DETECTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 38. HUNYUAN CPP FILES CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 39. OVERALL.MD FORMAT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 40. SOLUTION.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+solution.md validation failed: solution.md content mismatch: Content diff violations found: Disallowed diff: 'Re-scanning without extra storage minimizes memory but keeps time at  $Θ(D⋅M)$ . Precomputing per-frame counts (code → count per frame) allows  $O(1)$  lookups when validating a specific code, yet we still must iterate relevant frames for each code, so the time remains  $Θ(D⋅T+K)$  with  K  non-zero entries. The memory for all per-frame count entries totals  $Θ(K)$ ; at  $K \approx 2 \times 10^6$  and, on 64-bit systems, a realistic per-entry footprint for $(key, count)$ in a hashed structure (including buckets/pointers and allocator overhead) is typically on the order of tens of bytes (e.g., $\approx 24\text{–}48+$ bytes). Thus caching does not improve the asymptotic time and risks exceeding tight memory budgets.'; Disallowed diff: 'Re-scanning without extra storage minimizes memory but keeps time at $\Theta(D \cdot M)$. Precomputing per-frame counts (code → count per frame) allows $O(1)$ lookups when validating a specific code, yet we still must iterate relevant frames for each code, so the time remains $\Theta(D \cdot T + K)$ with $K$ non-zero entries. The memory for all per-frame count entries totals $\Theta(K)$; at $K \approx 2 \times 10^6$ and, on 64-bit systems, a realistic per-entry footprint for $(key, count)$ in a hashed structure (including buckets/pointers and allocator overhead) is typically on the order of tens of bytes (e.g., $\approx 24\text{–}48+$ bytes). Thus caching does not improve the asymptotic time and risks exceeding tight memory budgets.'; Disallowed diff: '- `numberOfPollinators = 2`, `numberOfFrames = 5`'; Disallowed diff: '- `numberOfPollinators = $2$`, `numberOfFrames = $5$`'; Disallowed diff: '"""'
+
+Full diff output:
+--- 
++++ 
+@@ -63 +63 @@
+-Re-scanning without extra storage minimizes memory but keeps time at  $Θ(D⋅M)$ . Precomputing per-frame counts (code → count per frame) allows  $O(1)$  lookups when validating a specific code, yet we still must iterate relevant frames for each code, so the time remains  $Θ(D⋅T+K)$  with  K  non-zero entries. The memory for all per-frame count entries totals  $Θ(K)$ ; at  $K \approx 2 \times 10^6$  and, on 64-bit systems, a realistic per-entry footprint for $(key, count)$ in a hashed structure (including buckets/pointers and allocator overhead) is typically on the order of tens of bytes (e.g., $\approx 24\text{–}48+$ bytes). Thus caching does not improve the asymptotic time and risks exceeding tight memory budgets.
++Re-scanning without extra storage minimizes memory but keeps time at $\Theta(D \cdot M)$. Precomputing per-frame counts (code → count per frame) allows $O(1)$ lookups when validating a specific code, yet we still must iterate relevant frames for each code, so the time remains $\Theta(D \cdot T + K)$ with $K$ non-zero entries. The memory for all per-frame count entries totals $\Theta(K)$; at $K \approx 2 \times 10^6$ and, on 64-bit systems, a realistic per-entry footprint for $(key, count)$ in a hashed structure (including buckets/pointers and allocator overhead) is typically on the order of tens of bytes (e.g., $\approx 24\text{–}48+$ bytes). Thus caching does not improve the asymptotic time and risks exceeding tight memory budgets.
+@@ -414 +414 @@
+-- `numberOfPollinators = 2`, `numberOfFrames = 5`
++- `numberOfPollinators = $2$`, `numberOfFrames = $5$`
+@@ -530,0 +531 @@
++"""
+
+--------------------------------------------------
+
+📝 41. PROBLEM STATEMENT.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+problem_statement.md validation failed: problem_statement.md content mismatch: Content diff violations found: Disallowed diff: '**Duets in the Greenhouse**'; Disallowed diff: '**Time Limit:** **1 second**'; Disallowed diff: '**Memory Limit:** **32 MB**'; Disallowed diff: 'Within the labyrinthine enclave of a bioluminescent conservatory, a cohort of $N$ ethereal pollinators, each adorned with a cryptic sigil, is scrutinized across $T$ temporal shards.'; Disallowed diff: 'In each shard, these enigmatic entities either retreat into a state of mute resonance (denoted by the null cipher, $0$) or project a spectral frequency code—a positive integer woven into the aether.'
+
+Full diff output:
+--- 
++++ 
+@@ -0,0 +1 @@
++**Duets in the Greenhouse**
+@@ -1,0 +3,102 @@
++**Time Limit:** **1 second**
++
++**Memory Limit:** **32 MB**
++
++Within the labyrinthine enclave of a bioluminescent conservatory, a cohort of $N$ ethereal pollinators, each adorned with a cryptic sigil, is scrutinized across $T$ temporal shards.
++In each shard, these enigmatic entities either retreat into a state of mute resonance (denoted by the null cipher, $0$) or project a spectral frequency code—a positive integer woven into the aether.
++
++Each non-null frequency code manifests as a singular *canticle*, a harmonic phenomenon bound by the following arcane edicts:
++
++* A canticle persists through an unbroken continuum of temporal shards; its essence may never be fractured by silence or resurgence.
++* Its chorus is sustained by a fixed coterie of either one (a *soliloquy*) or two (a *dyadic hymn*) pollinators, their sigils eternally bound to the canticle’s duration.
++* No canticle may be intoned by a triad or greater assembly in any shard, lest the harmonic fabric unravel.
++
++Your task is to divine whether the conservatory's chronicle aligns with these mystic tenets.
++If the chronicle is sound, unveil the count of *dyadic hymns* (codes chanted by exactly two pollinators).
++If the chronicle is tainted by discord, proclaim the verdict of $-1$.
++
++---
++
++### **Input Format:**
++
++* The first line bears two integers $N$ and $T$, the number of sigil-bearing pollinators and temporal shards, respectively.
++* The next $T$ lines each encode $N$ integers, representing the conservatory's chronicle:
++
++  * For shard $t$ and pollinator $i$, a value of $0$ signifies mute resonance, while a positive integer denotes a frequency code projected into the aether.
++
++---
++
++### **Output Format:**
++
++* Emit a solitary integer — the tally of *dyadic hymns* if the chronicle is harmonious; otherwise, inscribe $-1$.
++
++---
++
++### **Constraints:**
++
++* $(1 \le N, T)$
++* $(N \cdot T \le 2 \cdot 10^6)$
++* $(0 \le \text{code} \le 10^9)$
++* In any single shard, no frequency code may be intoned by more than two pollinators; otherwise, the chronicle is deemed dissonant.
++
++---
++
++### **Examples:**
++
++**Input:**
++
++```
++2 5
++9 9
++9 9
++0 0
++0 0
++9 9
++```
++
++**Output:**
++
++```
++-1
++```
++
++---
++
++**Input:**
++
++```
++1 3
++1000000000
++1000000000
++1000000000
++```
++
++**Output:**
++
++```
++0
++```
++
++---
++
++### **Exegesis of Examples:**
++
++In the first chronicle, two pollinators weave frequency code $9$ through shards $1$–$2$, then lapse into silence across shards $3$–$4$, only to resurrect the same code $9$ in shard $5$.
++The mystic edict demands that a canticle's essence endure through a single, unbroken continuum; its resurgence after silence rends the harmonic fabric, rendering the chronicle dissonant, thus yielding $-1$.
++
++In the second chronicle, a lone pollinator intones frequency code $10^9$ across all three shards, forming a single *soliloquy* (a canticle with one emitter).
++The chronicle is harmonious, yet no *dyadic hymns* (codes with exactly two emitters) exist, so the tally is $0$.
++
++---
++
++### **Additional Arcana:**
++
++* The null cipher (0) signifies mute resonance and does not kindle a canticle.
++* Each positive frequency code corresponds to exactly one canticle, defined by:
++
++  * A singular, unbroken continuum of shards.
++  * A fixed coterie of one (*soliloquy*) or two (*dyadic hymn*) pollinators.
++  * Never more than two emitters in any shard; otherwise the chronicle is invalid.
++* For a *dyadic hymn*, both pollinators must intone the code in every shard of the canticle’s continuum; the absence of either in any shard disrupts the harmony, invalidating the chronicle.
++* The output counts distinct *dyadic hymn* codes, not the shards where dual emissions occur.
++* A single pair of pollinators may weave multiple *dyadic hymns* using distinct codes at different continua, each counted once.
+
+--------------------------------------------------

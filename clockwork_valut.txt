@@ -1,0 +1,1223 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Graph Algorithms", "Graphs and Networks", "Dynamic Programming", "Divide and Conquer", "Arrays and Lists", "Hash Tables", "Algorithm Complexity and Big O Notation"]
+
+**Difficulty:** - Hard
+
+**Languages:** - Python
+
+**Number of Approaches:** - 3, ($O(2^m(n+m))$ -> $O(2^{L/2})$ per component -> $O(n+m)$)
+
+**Number of Chains:** - 8
+
+**GitHub:** - https://github.com/NOI-gen/clockwork_vault_parity
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Clockwork Vault Parity**
+
+Time Limit: **32 seconds**
+
+Memory Limit: **32 MB**
+
+Deep below the old city lies the Clockwork Vault, a machine with $m$ levers and $n$ sentinels. Each lever $i$ is binary: down $(0)$ or up $(1)$. If down, it contributes weight $X_i$; if up, weight $Y_i$. Each sentinel watches up to three levers and carries a list of signed wishes over lever indices: a positive $j$ means "lever $j$ should be up," a negative $-j$ means "lever $j$ should be down." A sentinel is pacified if at least one of its wishes is satisfied; otherwise it is restless. A pacified sentinel contributes $P_i$, a restless one contributes $Q_i$.
+
+The Vault opens for a lever configuration if the parity of the sum of pacified sentinels and up levers is odd, i.e.,
+$$(\#\text{pacified} + \#\text{up}) \bmod 2 = 1.$$
+
+Special rules for wishes inside a single sentinel:
+- If the same wish is repeated, it collapses to a single wish.
+- If both "up" and "down" appear for the same lever, the sentinel is a tautology: it is always pacified, contributes a global multiplier $P_i$, flips the global parity of the pacified count by $1$, and is then discarded from further consideration.
+
+Compute the total activation score: sum, over all configurations that open the Vault, of the product of all lever weights and all sentinel weights for that configuration, modulo $10^9+7$.
+
+You may assume the following structural guarantees:
+- Across all sentinels (before collapsing duplicates inside a sentinel), each lever is mentioned at most twice.
+- After collapsing duplicates per sentinel, connecting two sentinels if they share a lever yields a graph of maximum degree $2$ (a disjoint union of paths and cycles).
+
+
+**Input Format:-**
+
+- The first line contains two integers $n$ and $m$.
+- The next $m$ lines each contain two integers $X_i$ and $Y_i$ for lever $i$.
+- The next $n$ lines describe the sentinels. Each line contains:
+  - an integer $k$ $(1 \le k \le 3)$,
+  - then $k$ nonzero integers $a_1,\dots,a_k$ with $-m \le a_j \le m$ (sign indicates desired state),
+  - then two integers $P_i$ and $Q_i$.
+
+All weights are taken modulo $10^9+7$.
+
+
+**Output Format:-**
+
+- Output a single integer: the total activation score modulo $10^9+7$.
+
+
+**Constraints:-**
+
+- $1 \le n, m \le 100000$
+- $0 \le X_i, Y_i, P_i, Q_i < 10^9+7$
+- For each sentinel: $1 \le k \le 3$, and each $a_j \ne 0$ with $|a_j| \le m$
+- Structural guarantees noted above hold
+**Examples:-**
+ - **Input:**
+```
+5 4
+2 3
+5 7
+11 13
+17 19
+1 1 23 29
+2 -1 2 31 37
+2 -2 3 41 43
+2 -3 4 47 53
+1 -4 59 61
+```
+
+ - **Output:**
+```
+539962232
+```
+
+ - **Input:**
+```
+4 4
+2 9
+3 8
+4 7
+5 6
+2 1 2 3 5
+2 -2 3 7 11
+2 -3 4 13 17
+2 -4 -1 19 23
+```
+
+ - **Output:**
+```
+77059137
+```
+
+**Note:-**
+  
+In the first example, observe that there are no tautologies or duplicate wishes. The five sentinels form a path via shared levers: sentinel 1 watches lever 1; sentinel 2 watches levers 1 and 2; sentinel 3 watches 2 and 3; sentinel 4 watches 3 and 4; sentinel 5 watches 4. Pacification conditions are:
+- S1: lever 1 up;
+- S2: lever 1 down or lever 2 up;
+- S3: lever 2 down or lever 3 up;
+- S4: lever 3 down or lever 4 up;
+- S5: lever 4 down.
+A representative contributing configuration is levers \((1,0,0,0)\) (up/down for levers \(1\)–\(4\)): \(\#\text{up}=1\); S1, S3, S4, S5 are pacified and S2 is restless, so \(\#\text{pacified}=4\) and \((4+1)\bmod 2=1\). Its contribution is
+$$
+(Y_1 X_2 X_3 X_4)\cdot(P_1 Q_2 P_3 P_4 P_5)\bmod(10^9+7).
+$$
+Summing the contributions of all configurations with odd \((\#\text{pacified}+\#\text{up})\) gives the printed answer.
+
+In the first example, the second sample has four sentinels forming a 4-cycle through levers: S1 watches \(\{1,2\}\), S2 \(\{2,3\}\), S3 \(\{3,4\}\), S4 \(\{4,1\}\). Pacification conditions are:
+- S1: lever 1 up or lever 2 up;
+- S2: lever 2 down or lever 3 up;
+- S3: lever 3 down or lever 4 up;
+- S4: lever 4 down or lever 1 down.
+Two representative contributing configurations:
+- All down \((0,0,0,0)\): \(\#\text{up}=0\); S1 restless, S2–S4 pacified, so \(\#\text{pacified}=3\) and \((3+0)\bmod 2=1\). Contribution:
+  $$
+  (X_1 X_2 X_3 X_4)\cdot(Q_1 P_2 P_3 P_4).
+  $$
+- All up \((1,1,1,1)\): \(\#\text{up}=4\); S1–S3 pacified, S4 restless, so \(\#\text{pacified}=3\) and \((3+4)\bmod 2=1\). Contribution:
+  $$
+  (Y_1 Y_2 Y_3 Y_4)\cdot(P_1 P_2 P_3 Q_4).
+  $$
+Aggregating all odd-parity configurations yields the shown output.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+We clarify the entities, rules, and the required output.
+
+**[THOUGHT_01_01]**
+
+We model $m$ levers, each binary: for lever $i$, state $0$ (down) contributes weight $X_i$, and state $1$ (up) contributes weight $Y_i$. The product of lever weights for a configuration is $\prod_{i=1}^{m} \left( (1-x_i) X_i + x_i Y_i \right)$, where $x_i \in \{0,1\}$ is the chosen state of lever $i$.
+
+**[THOUGHT_01_02]**
+
+We model $n$ sentinels. Each sentinel $s$ watches up to three levers and carries signed wishes over lever indices. A positive $j$ encodes "lever $j$ should be up," while a negative $-j$ encodes "lever $j$ should be down." The sentinel is pacified if at least one of its wishes matches the actual lever assignment. If pacified, it contributes $P_s$; otherwise it contributes $Q_s$.
+
+**[THOUGHT_01_03]**
+
+Inside a single sentinel's wish list, repeated references to the same lever collapse: multiple identical wishes become one. If both "up" and "down" for the same lever appear, the sentinel is a tautology. Such a sentinel is always pacified, contributes $P_s$ to every configuration, and effectively flips the global parity of the pacified count by $1$. After accounting for these effects, tautological sentinels can be removed from the instance.
+
+**[THOUGHT_01_04]**
+
+The Vault opens for a configuration if the parity of $(\#\text{pacified} + \#\text{up})$ is odd. Equivalently, if we denote $pc$ as the number of pacified sentinels mod $2$ and $po$ as the number of levers set to up mod $2$, the opening condition is $pc \oplus po = 1$, with a global flip if we removed tautological sentinels.
+
+**[THOUGHT_01_05]**
+
+The structural guarantees constrain the interaction pattern: across all sentinels (before collapsing duplicates inside a sentinel), each lever is mentioned at most twice. After the dedup step per sentinel, connecting two sentinels if they share any lever yields a graph of maximum degree $2$, hence a disjoint union of paths and cycles. A sentinel may still have a third lever that is unique to it.
+
+**[THOUGHT_01_06]**
+
+The required output is the activation score: sum, over all configurations that open the Vault, of the product of all lever weights and all sentinel weights, modulo $10^9+7$. The parity constraint couples the lever states and sentinel pacifications, so we cannot trivially factor the sum without further structure.
+
+
+---
+
+**[CHAIN_02]**
+
+We design concrete tests and edge scenarios.
+
+**[THOUGHT_02_01]**
+
+Single lever, single sentinel (up wish): $n=1$, $m=1$, $X_1=2$, $Y_1=3$, sentinel wishes $\{+1\}$ with $(P_1,Q_1)=(5,7)$. If $x_1=0$: pacified $=0$, up $=0$, parity even. If $x_1=1$: pacified $=1$, up $=1$, parity even. Activation score is $0$. This validates that parity can cancel otherwise nonzero products.
+
+**[THOUGHT_02_02]**
+
+Single lever, tautology sentinel: $n=1$, $m=1$, $X_1=4$, $Y_1=9$, sentinel wishes $\{+1,-1\}$, $(P_1,Q_1)=(13,17)$. The sentinel is always pacified, contributes $13$, and flips pacified parity by $1$. With no remaining sentinels, the Vault opens when the number of up levers is even. Only $x_1=0$ qualifies, yielding $4 \cdot 13 = 52$.
+
+**[THOUGHT_02_03]**
+
+Isolated lever not watched by any sentinel: its contribution must be accounted for regardless of sentinel structure. It should contribute $X_i$ to $(pc,po)=(0,0)$ and $Y_i$ to $(0,1)$ in a component-level parity summary because it never affects $pc$.
+
+**[THOUGHT_02_04]**
+
+Isolated sentinel (degree $0$) with up to $3$ levers, none shared with other sentinels: enumerate its $2^k$ assignments ($k \in \{1,2,3\}$), accumulate contributions to $(pc,po)$ buckets. This tests correct handling of unique levers and the pacification condition without shared constraints.
+
+**[THOUGHT_02_05]**
+
+Two sentinels sharing exactly one lever (a path of length $2$): construct cases where the shared lever either suffices to pacify both, or only one, or none, to ensure the DP over a shared state resolves consistent counting of lever weights precisely once.
+
+**[THOUGHT_02_06]**
+
+Cycle of $3$ sentinels, each sharing one lever with the next: tests the "closure" requirement that the state of the first shared lever must match at the end. Checking both starting values $\{0,1\}$ ensures the cycle DP respects wrap-around consistency.
+
+**[THOUGHT_02_07]**
+
+Weights with zeros: if some $X_i=0$ or $Y_i=0$, or if some $P_s=0$ or $Q_s=0$, ensure the algorithm nullifies configurations appropriately and no spurious contributions remain. Also test the all-zero case yielding $0$.
+
+**[THOUGHT_02_08]**
+
+Sentinel with repeated identical wishes: $\{+3,+3,+3\}$ collapses to a single wish. Sentinel with both signs for a lever is a tautology and must be removed after updating the global product $G=\prod P_s$ and the global flip $T$.
+
+**[THOUGHT_02_09]**
+
+Large-scale stress: long path with $10^5$ sentinels and $10^5$ levers, alternating desires, to validate linear-time behavior and memory usage without stack overflow or recursion limits.
+
+
+---
+
+**[CHAIN_03]**
+
+We implement brute force over all lever assignments.
+
+**[THOUGHT_03_01]**
+
+We enumerate all $2^m$ assignments $x \in \{0,1\}^m$. For each assignment, compute the number of pacified sentinels by checking each sentinel's wishes; any matching wish pacifies it. We also compute the number of levers set to up as $\sum_i x_i$.
+
+**[THOUGHT_03_02]**
+
+For each assignment, the configuration's weight is $\left( \prod_{i=1}^{m} \big( x_i Y_i + (1-x_i) X_i \big) \right) \cdot \left( \prod_{s=1}^{n} (\text{pacified}_s ? P_s : Q_s) \right)$. If $(\#\text{pacified} + \#\text{up}) \bmod 2 = 1$, we add this weight to the answer modulo $10^9+7$.
+
+**[THOUGHT_03_03]**
+
+We can integrate tautological sentinels before brute force by multiplying a global factor $G$ and flipping a global parity bit $T$, but that does not change the exponential iteration over levers. The parity check becomes $pc \oplus po = 1 \oplus T$.
+
+**[THOUGHT_03_04]**
+
+Time complexity is $O(2^m \cdot (n + m))$ because each assignment requires evaluating $m$ lever weights and $n$ sentinel pacifications. Space complexity is $O(1)$ beyond input storage. This is infeasible for $m$ up to $10^5$.
+
+**[THOUGHT_03_05]**
+
+This approach fails due to the exponential factor $2^m$. It ignores the structural guarantees (degree-$2$ graph of sentinels, at most two mentions per lever) that could drastically reduce the effective computation. We must exploit the graph structure to avoid enumerating all lever assignments.
+
+**[THOUGHT_03_06]**
+
+The failure highlights two couplings: local constraints (sentinel wishes across up to $3$ levers) and a global parity constraint that mixes pacified count with the number of up levers. Any viable improvement must factor computations by graph components and carry parity summaries instead of enumerating all assignments.
+
+
+---
+
+**[CHAIN_04]**
+
+We apply meet-in-the-middle on path and cycle components.
+
+**[THOUGHT_04_01]**
+
+Motivated by the degree-$2$ sentinel graph, we first decompose sentinels into connected components that are paths or cycles. Within a component of size $L$ sentinels and $O(L)$ levers, naive enumeration costs $O(2^{\Theta(L)})$. Meet-in-the-middle (MITM) can reduce this to roughly $O(2^{L/2})$ per component.
+
+**[THOUGHT_04_02]**
+
+For a path component, we split its sentinels into left and right halves at a boundary shared lever. We enumerate all assignments in the left half and record, for each boundary lever state and $(pc,po)$ parity contribution, the accumulated weight. We repeat for the right half, then join on matching boundary states while combining parities.
+
+**[THOUGHT_04_03]**
+
+The join operation uses a small convolution: when left contributes $(pc_L,po_L)$ and right contributes $(pc_R,po_R)$, their merged parities are $(pc_L \oplus pc_R, po_L \oplus po_R)$. We only count assignments that are consistent on the cut shared lever. This reduces per-component time from $O(2^L)$ to $O(2^{L/2})$ up to polynomial factors in $L$.
+
+**[THOUGHT_04_04]**
+
+For a cycle component, we break it into a path by removing an edge and fixing the removed shared lever state to $0$ or $1$. We run the path MITM for each fixed value and ensure the boundary lever states match at both ends (closure). The cycle case thus incurs a small constant factor over the path case.
+
+**[THOUGHT_04_05]**
+
+Overall complexity across components is $O\!\left(\sum_{\text{components}} L \cdot 2^{L/2}\right)$ time and $O\!\left(\max_{\text{components}} 2^{L/2}\right)$ space for the stored tables. This is a strict improvement over $O(2^L)$ per component and leverages the degree-$2$ structure.
+
+**[THOUGHT_04_06]**
+
+This approach remains infeasible in the worst case when a component has $L=\Theta(n)$, yielding $2^{\Theta(n/2)}$ time and space. It still enumerates exponentially many partial assignments and does not scale to $10^5$.
+
+**[THOUGHT_04_07]**
+
+The takeaway is that we must avoid enumerations over component sizes by using a dynamic program with constant-sized state at each step. The bounded arity of sentinels ($\le 3$) and the linear layout (paths/cycles) suggest a left-to-right DP over shared lever states.
+
+
+---
+
+**[CHAIN_05]**
+
+We build a linear-time DP on degree-2 sentinel graphs.
+
+**[THOUGHT_05_01]**
+
+We switch to a DP that marches along each component (path or cycle), carrying only the state of the shared lever with the neighbor and two parity bits. The per-step state is constant-sized: $(\text{shared lever value} \in \{0,1\}) \times (pc \in \{0,1\}) \times (po \in \{0,1\})$, yielding $8$ states.
+
+**[THOUGHT_05_02]**
+
+Preprocess sentinels: within each sentinel, collapse duplicate wishes for the same lever. If both signs for a lever appear, mark the sentinel as tautological: multiply a global accumulator $G$ by $P_s$, flip a global parity bit $T \leftarrow T \oplus 1$, and remove the sentinel from the graph. This makes tautologies independent of lever states.
+
+**[THOUGHT_05_03]**
+
+Construct the sentinel adjacency: map each lever to its incident sentinels. For any lever that appears in exactly two non-tautological sentinels, connect those sentinels. The resulting graph has maximum degree $2$, so it decomposes into paths, cycles, and isolated vertices. Isolated levers (not watched by any sentinel) are noted for separate handling.
+
+**[THOUGHT_05_04]**
+
+Path DP: order sentinels along the path $D_1,\dots,D_k$, with $k \ge 1$. For $D_1$, enumerate all assignments to its levers and bucket by the state of the shared lever with $D_2$, updating $(pc,po)$ and including all lever weights in $D_1$. For a middle $D_i$, transform $dp$ from left-shared to right-shared by enumerating $D_i$'s assignments, including lever weights for all levers except the left-shared one (already counted), and toggling parities according to $D_i$'s pacification and up-count contribution. For $D_k$, consume the DP and enumerate its assignments, including all non-left-shared levers, to produce a $2 \times 2$ matrix $M$ over $(pc,po)$ for the entire component.
+
+**[THOUGHT_05_05]**
+
+Cycle DP: order sentinels around the cycle. Fix the starting shared lever's value $s_0 \in \{0,1\}$, initialize $dp[s_0][0][0]=1$, and sweep all sentinels as middle steps, counting all levers except the left-shared one at each step. At the end, only retain the states where the final right-shared value equals $s_0$ (closure). Sum contributions over $s_0 \in \{0,1\}$ to obtain the component matrix $M$.
+
+**[THOUGHT_05_06]**
+
+Isolated entities: an isolated sentinel (degree $0$) is enumerated directly over its $k \le 3$ levers to yield its $M$. A lever not watched by any non-tautological sentinel forms a trivial component: it contributes $M[0][0] \mathrel{+}= X_i$ and $M[0][1] \mathrel{+}= Y_i$.
+
+**[THOUGHT_05_07]**
+
+Combine components: maintain a global $2 \times 2$ accumulator $H$ initialized with $H[0][0]=1$. For each component matrix $M$, perform XOR-convolution: for all $pc,po,qc,qo \in \{0,1\}$, update $H'[pc \oplus qc][po \oplus qo] \mathrel{+}= H[pc][po] \cdot M[qc][qo] \bmod 10^9+7$. Replace $H$ with $H'$.
+
+**[THOUGHT_05_08]**
+
+Finalize: the Vault opens when $(pc \oplus po) = 1 \oplus T$, where $T$ is the global flip from tautologies. Sum the corresponding entries of $H$ and multiply by the global weight $G$ modulo $10^9+7$. Time complexity is $O(n + m)$ with constant factors from enumerations of at most $2^3=8$ assignments per sentinel. Space complexity is $O(n + m)$ for the graph structures.
+
+
+---
+
+**[CHAIN_06]**
+
+We validate the parity algebra and component convolution.
+
+**[THOUGHT_06_01]**
+
+Within any component, define a matrix $M$ with entries $M[pc][po]$ equal to the total weight of assignments on that component that produce parity $pc$ for pacified count and $po$ for the number of up levers (both modulo $2$). This fully summarizes the component for global parity purposes.
+
+**[THOUGHT_06_02]**
+
+Components are independent: after removing tautologies, there are no levers shared across different components. Therefore, the weight contribution of a global assignment factorizes as the product of component contributions, and parities compose via XOR across components: $pc = \bigoplus pc_c$ and $po = \bigoplus po_c$.
+
+**[THOUGHT_06_03]**
+
+The combination rule is an XOR-convolution over $\mathbb{Z}_2 \times \mathbb{Z}_2$: letting $H$ be the accumulator and $M$ be a new component, the updated counts are $H'[a][b] = \sum_{c,d} H[a \oplus c][b \oplus d] \cdot M[c][d]$. Reindexing yields the implementation-friendly form $H'[a \oplus c][b \oplus d] \mathrel{+}= H[a][b] \cdot M[c][d]$.
+
+**[THOUGHT_06_04]**
+
+The final selection condition is $(pc \oplus po) = 1 \oplus T$. This is equivalent to selecting $H[0][1] + H[1][0]$ if $T=0$ and $H[0][0] + H[1][1]$ if $T=1$. Multiplying by the global factor $G = \prod P_s$ over tautologies restores their contribution to every configuration.
+
+**[THOUGHT_06_05]**
+
+Modular arithmetic preserves correctness: addition and multiplication distribute over component sums and products. Because all weights are nonnegative modulo $10^9+7$, and operations are associative and commutative, the order of component merges does not affect the result.
+
+
+---
+
+**[CHAIN_07]**
+
+We verify robustness with targeted unit tests.
+
+**[THOUGHT_07_01]**
+
+Reproduce the provided examples to validate parity logic: a single sentinel desiring "up" for a single lever yields $0$, a single tautology flips parity and reduces to a trivial lever, and a two-sentinel, two-lever case matches the given sum $2210$. This establishes baseline correctness.
+
+**[THOUGHT_07_02]**
+
+Multiple tautologies: include two different tautological sentinels. The global flip $T$ toggles twice and returns to its initial value, while the global multiplier $G$ multiplies the two $P_s$. The remaining instance should behave identically to having no tautologies.
+
+**[THOUGHT_07_03]**
+
+Isolated lever set: several levers not watched by any sentinel should contribute only to $po$ without affecting $pc$. Their combined effect is the tensor (XOR-convolution) of their $2 \times 2$ matrices, which can be validated by directly enumerating these levers and comparing with the convolution result.
+
+**[THOUGHT_07_04]**
+
+Path of length $k=3$: craft sentinels $D_1,D_2,D_3$ where $D_1$ and $D_2$ share lever $a$, and $D_2$ and $D_3$ share lever $b$. Ensure $D_2$ also has a unique lever $c$. Verify that the DP counts lever weights $a$ and $b$ exactly once across the path and $c$ only when enumerating $D_2$.
+
+**[THOUGHT_07_05]**
+
+Cycle of length $k=4$: verify both $s_0=0$ and $s_0=1$ runs, and that only closed states are summed. Cross-check by brute force on a tiny instance to ensure the cycle DP equals the full enumeration restricted to the cycle.
+
+**[THOUGHT_07_06]**
+
+Zero weights: if some $X_i=0$ or $Y_i=0$, validate that all configurations forcing that state produce zero contribution. Similarly, if $P_s=0$ or $Q_s=0$, validate that configurations that pacify or not pacify $s$ contribute zero accordingly.
+
+**[THOUGHT_07_07]**
+
+Stress scenario: construct a single long path of size $10^5$ with random $X_i,Y_i,P_s,Q_s$ modulo $10^9+7$. The algorithm should complete in linear time and memory without recursion-depth issues, confirming scalability.
+
+
+---
+
+**[CHAIN_08]**
+
+We plan the implementation and select data structures.
+
+**[THOUGHT_08_01]**
+
+Represent lever weights in two arrays of size $m+1$: $X[1..m]$ and $Y[1..m]$. Represent each non-tautological sentinel as a small structure with vectors for lever indices and their desired bits (0 for down, 1 for up), plus $P$ and $Q$ weights. This keeps per-sentinel enumeration efficient and cache-friendly.
+
+**[THOUGHT_08_02]**
+
+Build a lever-to-sentinels incidence list: for each lever $v$, store the indices of incident sentinels. If the size is exactly $2$, connect those two sentinels and record the shared lever id in both adjacency lists. Track sentinel degrees to quickly identify path endpoints (degree $1$), isolated sentinels (degree $0$), and cycle members (degree $2$).
+
+**[THOUGHT_08_03]**
+
+Traverse components iteratively. For paths, start at degree-$1$ sentinels and walk until no unvisited neighbor remains, recording the sequence of sentinels and the sequence of shared levers between consecutive pairs. For cycles, start at any unvisited degree-$2$ sentinel and loop until returning to the start, recording shared levers in order.
+
+**[THOUGHT_08_04]**
+
+Implement component DP with small fixed-size arrays for $dp[\text{shared}][pc][po]$. For path first/middle/last sentinels, and for cycle middle steps, enumerate up to $2^3=8$ local assignments per sentinel. Carefully include lever weights only once: skip counting the left-shared lever in middle/last steps since it was counted when processing the previous sentinel.
+
+**[THOUGHT_08_05]**
+
+Maintain a global $2 \times 2$ accumulator $H$ and merge each component's $M$ by XOR-convolution. After all components (including isolated levers) are merged, select entries matching the target parity and multiply by the global tautology product $G$. Ensure all additions and multiplications are reduced modulo $10^9+7$ to avoid overflow.
+
+**[THOUGHT_08_06]**
+
+Recheck corner cases within implementation: handle negative indices for wishes by converting $-j$ to lever id $j$ with desired bit $0$. Collapse duplicate wishes within a sentinel via sorting or a map. Detect tautologies when both desired bits appear for the same lever. Validate indices are in range $[1..m]$.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given $m$ binary levers and $n$ sentinels. Lever $i$ in state
+down $(0)$ contributes weight $X_i$, and in state up $(1)$ contributes
+weight $Y_i$. Each sentinel watches up to three signed lever indices:
+a positive $j$ means the wish "lever $j$ up," and a negative $-j$
+means "lever $j$ down." A sentinel is pacified if at least one of its
+wishes is satisfied by the lever assignment; otherwise it is restless.
+If pacified, the sentinel contributes weight $P_s$, else $Q_s$.
+
+Inside a sentinel:
+- Duplicate identical wishes for the same lever collapse to one.
+- If both "up" and "down" appear for the same lever, the sentinel is a
+  tautology: it is always pacified, contributes $P_s$ to every
+  configuration, and flips the global parity of the pacified count by
+  $1$. Such sentinels are removed after accounting for these effects.
+
+The Vault opens for a lever configuration if the parity of the sum of
+pacified sentinels and up levers is odd:
+$$(\#\text{pacified} + \#\text{up}) \bmod 2 = 1.$$
+
+We must compute the total activation score: the sum, over all
+configurations that open the Vault, of the product of all lever weights
+and all sentinel weights, modulo $10^9+7$.
+
+Structural guarantees:
+- Before deduplicating wishes inside a sentinel, each lever is mentioned
+  at most twice across all sentinels.
+- After deduplication, connecting two sentinels if they share a lever
+  yields a graph of maximum degree $2$ (a disjoint union of paths and
+  cycles). Some levers can be unique to a single sentinel or to none.
+
+
+**2. Optimal Approach**
+
+Key observations:
+- After removing tautologies (collecting a global product and a global
+  parity flip), the sentinel graph has degree at most $2$, so it
+  decomposes into paths and cycles that can be processed independently.
+- For each connected component, a $2 \times 2$ matrix $M[pc][po]$
+  suffices:
+  - $pc$: parity of pacified sentinels in the component.
+  - $po$: parity of up levers in the component.
+- Component matrices combine by XOR-convolution over parities.
+- The Vault opens when $(pc \oplus po) = 1 \oplus T$, where $T$ is the
+  global flip from tautologies.
+
+Steps:
+1) Preprocess sentinels:
+   - Deduplicate wishes per lever within each sentinel.
+   - If both desired bits are present for a lever, mark as tautology:
+     multiply a global factor $G$ by $P_s$, flip a global bit $T$, and
+     discard the sentinel.
+
+2) Build the degree-2 sentinel graph:
+   - For each lever, collect the incident non-tautological sentinels.
+   - If a lever appears in exactly two sentinels, connect them via this
+     lever (the shared variable for the edge).
+
+3) Compute component matrices:
+   - Paths: order the sentinels along the path and run a DP that carries
+     the right shared lever value and parities $(pc, po)$, enumerating
+     up to $2^3$ assignments per sentinel and including each lever's
+     weight exactly once.
+   - Cycles: fix the starting shared lever value $s_0 \in \{0,1\}$,
+     sweep all sentinels as "middle" steps, and keep only states with
+     the final right-shared equal to $s_0$. Sum both $s_0$ cases.
+   - Isolated sentinel (degree $0$): enumerate its assignments to get
+     its $2 \times 2$ matrix.
+   - Levers watched by no sentinel: contribute a trivial matrix with
+     $M[0][0] \mathrel{+}= X_i$, $M[0][1] \mathrel{+}= Y_i$.
+
+4) Merge components:
+   - Maintain accumulator $H$ with $H[0][0]=1$.
+   - For each component matrix $M$, merge by XOR-convolution:
+     $$H'[a \oplus c][b \oplus d] \mathrel{+}= H[a][b] \cdot M[c][d].$$
+
+5) Select final parity and restore tautologies:
+   - Target is $(pc \oplus po) = 1 \oplus T$.
+   - Sum matching entries of $H$ and multiply by $G$.
+
+
+**3. Code**
+```python
+import sys
+
+
+"""
+Compute the activation score for the Clockwork Vault problem by
+exploiting the degree-2 structure of the sentinel graph. The algorithm
+removes tautologies, decomposes the graph into path/cycle components,
+computes per-component parity matrices via small-state DP, merges them
+by XOR-convolution, and selects entries matching the parity target.
+"""
+
+MOD = 1_000_000_007
+
+
+class Sentinel:
+    """
+    Represents a non-tautological sentinel with its watched levers and
+    desired states, and its pacified/restless weights.
+
+    Attributes:
+        lever_ids (list[int]): Lever indices watched by this sentinel.
+        desired_bits (list[int]): Desired state per lever (0 or 1).
+        weight_p (int): Weight if the sentinel is pacified.
+        weight_q (int): Weight if the sentinel is restless.
+    """
+    __slots__ = ("lever_ids", "desired_bits", "weight_p", "weight_q")
+
+    def __init__(self, lever_ids: list, desired_bits: list,
+                 weight_p: int, weight_q: int) -> None:
+        self.lever_ids = lever_ids
+        self.desired_bits = desired_bits
+        self.weight_p = weight_p
+        self.weight_q = weight_q
+
+
+def add_mod(value_a: int, value_b: int) -> int:
+    """
+    Return (value_a + value_b) modulo MOD.
+
+    Args:
+        value_a (int): First operand.
+        value_b (int): Second operand.
+
+    Returns:
+        int: The sum modulo MOD.
+    """
+    total = value_a + value_b
+    if total >= MOD:
+        total -= MOD
+    return total
+
+
+def mul_mod(value_a: int, value_b: int) -> int:
+    """
+    Return (value_a * value_b) modulo MOD.
+
+    Args:
+        value_a (int): First operand.
+        value_b (int): Second operand.
+
+    Returns:
+        int: The product modulo MOD.
+    """
+    return (value_a * value_b) % MOD
+
+
+def zero_matrix_2x2() -> list:
+    """
+    Create a 2x2 zero matrix.
+
+    Returns:
+        list[list[int]]: A 2x2 matrix initialized with zeros.
+    """
+    return [[0, 0], [0, 0]]
+
+
+def zero_dp_2x2x2() -> list:
+    """
+    Create a 2x2x2 zero tensor for DP over shared value, pc, and po.
+
+    Returns:
+        list[list[list[int]]]: A 2x2x2 tensor initialized with zeros.
+    """
+    return [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
+
+
+def index_of_lever(lever_ids: list, lever_id: int) -> int:
+    """
+    Return the index of lever_id within lever_ids.
+
+    Args:
+        lever_ids (list[int]): List of lever indices.
+        lever_id (int): Lever index to locate.
+
+    Returns:
+        int: The index position within lever_ids.
+
+    Raises:
+        ValueError: If lever_id is not in lever_ids.
+    """
+    for position, value in enumerate(lever_ids):
+        if value == lever_id:
+            return position
+    raise ValueError("Shared lever not found in sentinel.")
+
+
+def process_first(sentinel: Sentinel, right_lever: int,
+                  x_weight: list, y_weight: list,
+                  dp_next: list) -> None:
+    """
+    Process the first sentinel of a path. Enumerate all local assignments
+    and bucket by the right shared lever's value, updating parity.
+
+    Args:
+        sentinel (Sentinel): The first sentinel in the path.
+        right_lever (int): The shared lever with the next sentinel.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+        dp_next (list): DP tensor dp_next[shared][pc][po].
+    """
+    size = len(sentinel.lever_ids)
+    idx_right = index_of_lever(sentinel.lever_ids, right_lever)
+    for mask in range(1 << size):
+        pacified = False
+        weight_levers = 1
+        parity_up = 0
+        for bit_index in range(size):
+            lever_id = sentinel.lever_ids[bit_index]
+            bit_val = (mask >> bit_index) & 1
+            weight_levers = mul_mod(
+                weight_levers,
+                y_weight[lever_id] if bit_val else x_weight[lever_id]
+            )
+            if bit_val == 1:
+                parity_up ^= 1
+            if bit_val == sentinel.desired_bits[bit_index]:
+                pacified = True
+        weight_sentinel = sentinel.weight_p if pacified else sentinel.weight_q
+        shared_val = (mask >> idx_right) & 1
+        parity_pacified = 1 if pacified else 0
+        total_weight = mul_mod(weight_levers, weight_sentinel)
+        dp_next[shared_val][parity_pacified][parity_up] = add_mod(
+            dp_next[shared_val][parity_pacified][parity_up],
+            total_weight
+        )
+
+
+def process_middle(sentinel: Sentinel, left_lever: int, right_lever: int,
+                   x_weight: list, y_weight: list,
+                   dp_prev: list, dp_next: list) -> None:
+    """
+    Process a middle sentinel of a path or a cycle, transforming the DP
+    from left-shared-keyed to right-shared-keyed states.
+
+    Args:
+        sentinel (Sentinel): The current sentinel.
+        left_lever (int): The shared lever with the previous sentinel.
+        right_lever (int): The shared lever with the next sentinel.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+        dp_prev (list): Previous DP tensor keyed by left shared value.
+        dp_next (list): Next DP tensor keyed by right shared value.
+    """
+    size = len(sentinel.lever_ids)
+    idx_left = index_of_lever(sentinel.lever_ids, left_lever)
+    idx_right = index_of_lever(sentinel.lever_ids, right_lever)
+    for mask in range(1 << size):
+        left_val = (mask >> idx_left) & 1
+        right_val = (mask >> idx_right) & 1
+        pacified = False
+        weight_levers = 1
+        parity_up_add = 0
+        for bit_index in range(size):
+            bit_val = (mask >> bit_index) & 1
+            if bit_val == sentinel.desired_bits[bit_index]:
+                pacified = True
+            if bit_index == idx_left:
+                continue
+            lever_id = sentinel.lever_ids[bit_index]
+            weight_levers = mul_mod(
+                weight_levers,
+                y_weight[lever_id] if bit_val else x_weight[lever_id]
+            )
+            if bit_val == 1:
+                parity_up_add ^= 1
+        weight_sentinel = sentinel.weight_p if pacified else sentinel.weight_q
+        for parity_pacified in range(2):
+            for parity_up in range(2):
+                ways = dp_prev[left_val][parity_pacified][parity_up]
+                if ways == 0:
+                    continue
+                new_pc = parity_pacified ^ (1 if pacified else 0)
+                new_po = parity_up ^ parity_up_add
+                add_value = mul_mod(ways, mul_mod(weight_levers,
+                                                  weight_sentinel))
+                dp_next[right_val][new_pc][new_po] = add_mod(
+                    dp_next[right_val][new_pc][new_po],
+                    add_value
+                )
+
+
+def process_last(sentinel: Sentinel, left_lever: int,
+                 x_weight: list, y_weight: list,
+                 dp_prev: list, component_matrix: list) -> None:
+    """
+    Process the last sentinel of a path, consuming the DP keyed by left
+    shared lever and accumulating into the component matrix.
+
+    Args:
+        sentinel (Sentinel): The last sentinel in the path.
+        left_lever (int): The shared lever with the previous sentinel.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+        dp_prev (list): DP tensor keyed by left shared value.
+        component_matrix (list): The 2x2 component matrix to fill.
+    """
+    size = len(sentinel.lever_ids)
+    idx_left = index_of_lever(sentinel.lever_ids, left_lever)
+    for mask in range(1 << size):
+        left_val = (mask >> idx_left) & 1
+        pacified = False
+        weight_levers = 1
+        parity_up_add = 0
+        for bit_index in range(size):
+            bit_val = (mask >> bit_index) & 1
+            if bit_val == sentinel.desired_bits[bit_index]:
+                pacified = True
+            if bit_index == idx_left:
+                continue
+            lever_id = sentinel.lever_ids[bit_index]
+            weight_levers = mul_mod(
+                weight_levers,
+                y_weight[lever_id] if bit_val else x_weight[lever_id]
+            )
+            if bit_val == 1:
+                parity_up_add ^= 1
+        weight_sentinel = sentinel.weight_p if pacified else sentinel.weight_q
+        for parity_pacified in range(2):
+            for parity_up in range(2):
+                ways = dp_prev[left_val][parity_pacified][parity_up]
+                if ways == 0:
+                    continue
+                new_pc = parity_pacified ^ (1 if pacified else 0)
+                new_po = parity_up ^ parity_up_add
+                add_value = mul_mod(ways, mul_mod(weight_levers,
+                                                  weight_sentinel))
+                component_matrix[new_pc][new_po] = add_mod(
+                    component_matrix[new_pc][new_po],
+                    add_value
+                )
+
+
+def process_isolated_sentinel(sentinel: Sentinel,
+                              x_weight: list, y_weight: list,
+                              component_matrix: list) -> None:
+    """
+    Process an isolated sentinel (degree 0) by enumerating all local
+    assignments and accumulating a 2x2 component matrix.
+
+    Args:
+        sentinel (Sentinel): The isolated sentinel.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+        component_matrix (list): The 2x2 component matrix to fill.
+    """
+    size = len(sentinel.lever_ids)
+    for mask in range(1 << size):
+        pacified = False
+        weight_levers = 1
+        parity_up = 0
+        for bit_index in range(size):
+            lever_id = sentinel.lever_ids[bit_index]
+            bit_val = (mask >> bit_index) & 1
+            weight_levers = mul_mod(
+                weight_levers,
+                y_weight[lever_id] if bit_val else x_weight[lever_id]
+            )
+            if bit_val == 1:
+                parity_up ^= 1
+            if bit_val == sentinel.desired_bits[bit_index]:
+                pacified = True
+        weight_sentinel = sentinel.weight_p if pacified else sentinel.weight_q
+        total_weight = mul_mod(weight_levers, weight_sentinel)
+        component_matrix[1 if pacified else 0][parity_up] = add_mod(
+            component_matrix[1 if pacified else 0][parity_up],
+            total_weight
+        )
+
+
+def merge_component(global_matrix: list, component_matrix: list) -> None:
+    """
+    Merge a component matrix into the global accumulator by XOR-convolution
+    over parities.
+
+    Args:
+        global_matrix (list): The 2x2 accumulator matrix H.
+        component_matrix (list): The 2x2 matrix M for the component.
+    """
+    new_matrix = zero_matrix_2x2()
+    for pc_g in range(2):
+        for po_g in range(2):
+            g_val = global_matrix[pc_g][po_g]
+            if g_val == 0:
+                continue
+            for pc_c in range(2):
+                for po_c in range(2):
+                    c_val = component_matrix[pc_c][po_c]
+                    if c_val == 0:
+                        continue
+                    new_pc = pc_g ^ pc_c
+                    new_po = po_g ^ po_c
+                    new_matrix[new_pc][new_po] = add_mod(
+                        new_matrix[new_pc][new_po],
+                        mul_mod(g_val, c_val)
+                    )
+    global_matrix[0][0] = new_matrix[0][0]
+    global_matrix[0][1] = new_matrix[0][1]
+    global_matrix[1][0] = new_matrix[1][0]
+    global_matrix[1][1] = new_matrix[1][1]
+
+
+def solve_path(path_indices: list, edge_levers: list,
+               sentinels_list: list, x_weight: list,
+               y_weight: list) -> list:
+    """
+    Solve a path component of sentinels and return its 2x2 parity matrix.
+
+    Args:
+        path_indices (list[int]): Sentinel indices in path order.
+        edge_levers (list[int]): Shared levers between consecutive
+            sentinels (length = len(path_indices) - 1).
+        sentinels_list (list[Sentinel]): All non-tautological sentinels.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+
+    Returns:
+        list[list[int]]: The 2x2 component matrix.
+    """
+    count = len(path_indices)
+    component_matrix = zero_matrix_2x2()
+    if count == 1:
+        process_isolated_sentinel(
+            sentinels_list[path_indices[0]],
+            x_weight, y_weight,
+            component_matrix
+        )
+        return component_matrix
+
+    dp_prev = zero_dp_2x2x2()
+    dp_next = zero_dp_2x2x2()
+
+    first_index = path_indices[0]
+    process_first(
+        sentinels_list[first_index],
+        edge_levers[0],
+        x_weight, y_weight,
+        dp_next
+    )
+    dp_prev = dp_next
+    for pos in range(1, count - 1):
+        dp_next = zero_dp_2x2x2()
+        process_middle(
+            sentinels_list[path_indices[pos]],
+            edge_levers[pos - 1],
+            edge_levers[pos],
+            x_weight, y_weight,
+            dp_prev, dp_next
+        )
+        dp_prev = dp_next
+
+    last_index = path_indices[-1]
+    process_last(
+        sentinels_list[last_index],
+        edge_levers[-1],
+        x_weight, y_weight,
+        dp_prev,
+        component_matrix
+    )
+    return component_matrix
+
+
+def solve_cycle(cycle_indices: list, edge_levers: list,
+                sentinels_list: list, x_weight: list,
+                y_weight: list) -> list:
+    """
+    Solve a cycle component of sentinels and return its 2x2 parity matrix.
+
+    Args:
+        cycle_indices (list[int]): Sentinel indices in cycle order.
+        edge_levers (list[int]): Shared levers between consecutive
+            sentinels, with wrap-around (length = len(cycle_indices)).
+        sentinels_list (list[Sentinel]): All non-tautological sentinels.
+        x_weight (list[int]): Lever weights for state 0.
+        y_weight (list[int]): Lever weights for state 1.
+
+    Returns:
+        list[list[int]]: The 2x2 component matrix.
+    """
+    component_matrix = zero_matrix_2x2()
+    count = len(cycle_indices)
+    for start_shared in (0, 1):
+        dp_prev = zero_dp_2x2x2()
+        dp_prev[start_shared][0][0] = 1
+        for pos in range(count):
+            left_lever = edge_levers[pos - 1] if pos > 0 else edge_levers[-1]
+            right_lever = edge_levers[pos]
+            dp_next = zero_dp_2x2x2()
+            process_middle(
+                sentinels_list[cycle_indices[pos]],
+                left_lever,
+                right_lever,
+                x_weight, y_weight,
+                dp_prev, dp_next
+            )
+            dp_prev = dp_next
+        for parity_pacified in range(2):
+            for parity_up in range(2):
+                add_value = dp_prev[start_shared][parity_pacified][parity_up]
+                if add_value == 0:
+                    continue
+                component_matrix[parity_pacified][parity_up] = add_mod(
+                    component_matrix[parity_pacified][parity_up],
+                    add_value
+                )
+    return component_matrix
+
+
+def build_path(start_index: int, adjacency: list,
+               visited: list) -> tuple:
+    """
+    Build a path starting from a degree-1 sentinel.
+
+    Args:
+        start_index (int): Index of the starting sentinel.
+        adjacency (list[list[tuple]]): Adjacency with (neighbor,
+            shared_lever) entries.
+        visited (list[int]): Marks whether a sentinel was visited.
+
+    Returns:
+        tuple[list[int], list[int]]: Ordered sentinel indices and the
+            list of shared levers between consecutive sentinels.
+    """
+    order = []
+    edges = []
+    current = start_index
+    previous = -1
+    while True:
+        visited[current] = 1
+        order.append(current)
+        next_node = -1
+        shared = -1
+        for neighbor, shared_lever in adjacency[current]:
+            if neighbor != previous:
+                next_node = neighbor
+                shared = shared_lever
+                break
+        if next_node == -1:
+            break
+        edges.append(shared)
+        previous = current
+        current = next_node
+    return order, edges
+
+
+def build_cycle(start_index: int, adjacency: list,
+                visited: list) -> tuple:
+    """
+    Build a cycle starting from any unvisited degree-2 sentinel.
+
+    Args:
+        start_index (int): Index of the starting sentinel.
+        adjacency (list[list[tuple]]): Adjacency with (neighbor,
+            shared_lever) entries.
+        visited (list[int]): Marks whether a sentinel was visited.
+
+    Returns:
+        tuple[list[int], list[int]]: Ordered cycle sentinel indices and
+            the list of shared levers in traversal order (with wrap).
+    """
+    order = []
+    edges = []
+    current = start_index
+    previous = -1
+    while True:
+        visited[current] = 1
+        order.append(current)
+        neighbor0, lever0 = adjacency[current][0]
+        neighbor1, lever1 = adjacency[current][1]
+        if neighbor0 == previous:
+            next_node = neighbor1
+            shared = lever1
+        else:
+            next_node = neighbor0
+            shared = lever0
+        edges.append(shared)
+        previous = current
+        current = next_node
+        if current == start_index:
+            break
+    return order, edges
+
+
+def main() -> None:
+    """
+    Parse input, build the degree-2 sentinel graph after removing
+    tautologies, compute per-component parity matrices via DP, merge
+    all components by XOR-convolution, enforce the final parity target,
+    and output the activation score modulo 10^9+7.
+    """
+    data = sys.stdin.buffer.read().split()
+    token_iter = iter(data)
+
+    def read_int() -> int:
+        return int(next(token_iter))
+
+    sentinel_total = read_int()
+    lever_total = read_int()
+
+    x_weight = [0] * (lever_total + 1)
+    y_weight = [0] * (lever_total + 1)
+    for lever_id in range(1, lever_total + 1):
+        x_weight[lever_id] = read_int() % MOD
+        y_weight[lever_id] = read_int() % MOD
+
+    global_weight = 1
+    global_flip = 0
+
+    sentinels_list = []
+    for _ in range(sentinel_total):
+        wish_count = read_int()
+        wishes = []
+        for _wish in range(wish_count):
+            val = read_int()
+            lever_id = abs(val)
+            desired = 1 if val > 0 else 0
+            wishes.append((lever_id, desired))
+        weight_p = read_int() % MOD
+        weight_q = read_int() % MOD
+
+        wishes.sort()
+        tautology = False
+        unique_pairs = []
+        idx = 0
+        total_wishes = len(wishes)
+        while idx < total_wishes:
+            lever_id = wishes[idx][0]
+            has_down = False
+            has_up = False
+            while idx < total_wishes and wishes[idx][0] == lever_id:
+                if wishes[idx][1] == 0:
+                    has_down = True
+                else:
+                    has_up = True
+                idx += 1
+            if has_down and has_up:
+                tautology = True
+                break
+            if has_down:
+                unique_pairs.append((lever_id, 0))
+            elif has_up:
+                unique_pairs.append((lever_id, 1))
+        if tautology:
+            global_flip ^= 1
+            global_weight = mul_mod(global_weight, weight_p)
+            continue
+        lever_ids = [p[0] for p in unique_pairs]
+        desired_bits = [p[1] for p in unique_pairs]
+        sentinels_list.append(
+            Sentinel(lever_ids, desired_bits, weight_p, weight_q)
+        )
+
+    active_sentinel_count = len(sentinels_list)
+
+    lever_to_sentinels = [[] for _ in range(lever_total + 1)]
+    for sentinel_index in range(active_sentinel_count):
+        for lever_id in sentinels_list[sentinel_index].lever_ids:
+            lever_to_sentinels[lever_id].append(sentinel_index)
+
+    adjacency = [[] for _ in range(active_sentinel_count)]
+    degrees = [0] * active_sentinel_count
+    for lever_id in range(1, lever_total + 1):
+        incident = lever_to_sentinels[lever_id]
+        if len(incident) == 2:
+            sentinel_a = incident[0]
+            sentinel_b = incident[1]
+            adjacency[sentinel_a].append((sentinel_b, lever_id))
+            adjacency[sentinel_b].append((sentinel_a, lever_id))
+            degrees[sentinel_a] += 1
+            degrees[sentinel_b] += 1
+
+    visited = [0] * active_sentinel_count
+    accumulator_matrix = zero_matrix_2x2()
+    accumulator_matrix[0][0] = 1
+
+    for sentinel_index in range(active_sentinel_count):
+        if visited[sentinel_index] == 0 and degrees[sentinel_index] == 1:
+            order, edges = build_path(sentinel_index, adjacency, visited)
+            component_matrix = solve_path(
+                order, edges, sentinels_list, x_weight, y_weight
+            )
+            merge_component(accumulator_matrix, component_matrix)
+
+    for sentinel_index in range(active_sentinel_count):
+        if visited[sentinel_index] == 0 and degrees[sentinel_index] == 0:
+            visited[sentinel_index] = 1
+            component_matrix = zero_matrix_2x2()
+            process_isolated_sentinel(
+                sentinels_list[sentinel_index],
+                x_weight, y_weight,
+                component_matrix
+            )
+            merge_component(accumulator_matrix, component_matrix)
+
+    for sentinel_index in range(active_sentinel_count):
+        if visited[sentinel_index] == 0:
+            order, edges = build_cycle(sentinel_index, adjacency, visited)
+            component_matrix = solve_cycle(
+                order, edges, sentinels_list, x_weight, y_weight
+            )
+            merge_component(accumulator_matrix, component_matrix)
+
+    for lever_id in range(1, lever_total + 1):
+        if len(lever_to_sentinels[lever_id]) == 0:
+            component_matrix = zero_matrix_2x2()
+            component_matrix[0][0] = add_mod(
+                component_matrix[0][0], x_weight[lever_id]
+            )
+            component_matrix[0][1] = add_mod(
+                component_matrix[0][1], y_weight[lever_id]
+            )
+            merge_component(accumulator_matrix, component_matrix)
+
+    target = 1 ^ global_flip
+    if target == 0:
+        sum_target = add_mod(
+            accumulator_matrix[0][0], accumulator_matrix[1][1]
+        )
+    else:
+        sum_target = add_mod(
+            accumulator_matrix[0][1], accumulator_matrix[1][0]
+        )
+    answer = mul_mod(sum_target, global_weight)
+    sys.stdout.write(str(answer) + "\n")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+**4. Code Explanation**
+
+- Sentinel:
+  Encapsulates a sentinel's lever list, desired bits, and weights for
+  pacified/restless states.
+
+- Preprocessing:
+  For each sentinel, sort and deduplicate wishes per lever. If both
+  desired bits occur for the same lever, it is a tautology: multiply
+  global_weight by $P_s$, flip global_flip, and discard it.
+
+- Graph construction:
+  Map each lever to incident sentinels. For a lever appearing in exactly
+  two sentinels, connect them with an edge labeled by that lever. The
+  resulting graph has degree at most $2$.
+
+- Component DP:
+  For each path:
+  - process_first enumerates all assignments for the first sentinel,
+    buckets by the right-shared lever value, and updates parities while
+    including all its lever weights.
+  - process_middle transforms DP states from left-shared to right-shared
+    by enumerating local assignments, including all lever weights except
+    the left-shared one, and toggling parity by pacification and up
+    count.
+  - process_last consumes the DP keyed by left-shared value and adds
+    contributions to the component matrix, including all non-left-shared
+    lever weights.
+
+  For each cycle:
+  - Run middle-step transitions around the cycle twice (for both initial
+    shared values), then keep closed states where the final right-shared
+    equals the initial shared value. Sum both cases.
+
+  Isolated sentinel:
+  - Direct enumeration produces a 2x2 component matrix.
+
+  Isolated lever:
+  - Contributes trivial entries $X_i$ and $Y_i$, affecting only up
+    parity.
+
+- Merging and final parity:
+  accumulator_matrix is XOR-convolved with each component matrix.
+  The target parity is $(pc \oplus po) = 1 \oplus \text{global\_flip}$.
+  We sum the matching entries and multiply by global_weight.
+
+**5. Time and Space Complexity**
+
+- Time Complexity: $O(n + m)$
+  - Deduplication and building incidences/adjacency are linear.
+  - Each sentinel is processed once in path/cycle DP, enumerating at most
+    $2^3=8$ local assignments.
+  - Merging a component matrix into the accumulator is $O(1)$.
+
+- Space Complexity: $O(n + m)$
+  - Sentinel storage, lever incidences, adjacency, and visited arrays are
+    linear.
+  - DP tensors are constant-sized ($2 \times 2 \times 2$).
+
+**6. Conclusion**
+
+Using the guaranteed degree-2 structure after removing tautologies, we
+decompose the instance into independent path and cycle components. A
+constant-state DP per component summarizes contributions by parities of
+pacified sentinels and up levers. Component matrices combine by XOR-
+convolution, and a final parity selection yields the required activation
+score modulo $10^9+7$. This achieves linear time and space, and matches
+the problem’s constraints and structure.

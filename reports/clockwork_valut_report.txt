@@ -1,0 +1,614 @@
+📋 COMPLETE EXECUTION LOG
+======================================================================
+
+🔍 Running complete review (AI + GitHub)...
+======================================================================
+🚀 Starting 33 AI reviews...
+🔄 1. Unique Solution Validation - Starting...
+🔄 2. Time Complexity Authenticity Check - Starting...
+🔄 3. Style Guide Compliance - Starting...
+🔄 4. Naming Conventions - Starting...
+🔄 5. Documentation Standards - Starting...
+🔄 6. Response Relevance to Problem - Starting...
+🔄 7. Mathematical Equations Correctness - Starting...
+🔄 8. Problem Constraints Consistency - Starting...
+🔄 9. Missing Approaches in Steps - Starting...
+🔄 10. Code Elements Existence - Starting...
+🔄 11. Example Walkthrough with Optimal Algorithm - Starting...
+🔄 12. Time and Space Complexity Correctness - Starting...
+🔄 13. Conclusion Quality - Starting...
+🔄 14. Problem Statement Consistency - Starting...
+🔄 15. Solution Passability According to Limits - Starting...
+🔄 16. Metadata Correctness - Starting...
+🔄 17. Test Case Validation - Starting...
+🔄 18. Sample Test Case Dry Run Validation - Starting...
+🔄 19. Note Section Explanation Approach - Starting...
+🔄 20. Inefficient Approaches Limitations - Starting...
+🔄 21. Final Approach Discussion - Starting...
+🔄 22. No Code in Reasoning Chains - Starting...
+🔄 23. Subtopic Taxonomy Validation - Starting...
+🔄 24. Time Limit Validation - Starting...
+🔄 25. Memory Limit Validation - Starting...
+🔄 26. Typo and Spelling Check - Starting...
+🔄 27. Subtopic Relevance - Starting...
+🔄 28. Missing Relevant Subtopics - Starting...
+🔄 29. No Predictive Headings in Thoughts - Starting...
+🔄 30. Chain Test Case Analysis Validation - Starting...
+🔄 31. Thought Heading Violations Check - Starting...
+🔄 32. Mathematical Variables and Expressions Formatting - Starting...
+🔄 33. Comprehensive Reasoning Thoughts Review - Starting...
+✅ 8. Problem Constraints Consistency - ✅ PASS (35.3s)
+✅ 1. Unique Solution Validation - ✅ PASS (42.0s)
+❌ 2. Time Complexity Authenticity Check - ❌ FAIL (46.6s)
+✅ 7. Mathematical Equations Correctness - ✅ PASS (61.2s)
+✅ 6. Response Relevance to Problem - ✅ PASS (68.7s)
+❌ 5. Documentation Standards - ❌ FAIL (68.7s)
+❌ 3. Style Guide Compliance - ❌ FAIL (90.4s)
+✅ 10. Code Elements Existence - ✅ PASS (49.2s)
+✅ 9. Missing Approaches in Steps - ✅ PASS (57.2s)
+✅ 4. Naming Conventions - ✅ PASS (93.4s)
+✅ 11. Example Walkthrough with Optimal Algorithm - ✅ PASS (49.9s)
+✅ 13. Conclusion Quality - ✅ PASS (43.6s)
+✅ 12. Time and Space Complexity Correctness - ✅ PASS (60.5s)
+✅ 14. Problem Statement Consistency - ✅ PASS (66.2s)
+✅ 19. Note Section Explanation Approach - ✅ PASS (38.8s)
+❌ 16. Metadata Correctness - ❌ FAIL (50.1s)
+✅ 15. Solution Passability According to Limits - ✅ PASS (59.5s)
+✅ 18. Sample Test Case Dry Run Validation - ✅ PASS (64.0s)
+✅ 24. Time Limit Validation - ✅ PASS (18.8s)
+✅ 25. Memory Limit Validation - ✅ PASS (16.3s)
+✅ 22. No Code in Reasoning Chains - ✅ PASS (31.4s)
+✅ 20. Inefficient Approaches Limitations - ✅ PASS (56.6s)
+❌ 23. Subtopic Taxonomy Validation - ❌ FAIL (45.7s)
+✅ 17. Test Case Validation - ✅ PASS (92.7s)
+✅ 26. Typo and Spelling Check - ✅ PASS (28.3s)
+✅ 21. Final Approach Discussion - ✅ PASS (78.0s)
+✅ 27. Subtopic Relevance - ✅ PASS (45.5s)
+❌ 28. Missing Relevant Subtopics - ❌ FAIL (46.7s)
+✅ 29. No Predictive Headings in Thoughts - ✅ PASS (73.0s)
+❌ 30. Chain Test Case Analysis Validation - ❌ FAIL (86.0s)
+❌ 33. Comprehensive Reasoning Thoughts Review - ❌ FAIL (121.3s)
+❌ 32. Mathematical Variables and Expressions Formatting - ❌ FAIL (248.0s)
+❌ 31. Thought Heading Violations Check - ❌ FAIL (278.2s)
+✅ AI reviews completed: 23 passed, 10 failed
+🔄 Running GitHub validation...
+✅ GitHub validation: 6/8 passed
+
+
+📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS
+======================================================================
+
+📊 SUMMARY: GitHub: 6/8 passed | AI: 23/33 passed
+⚠️  12 review(s) failed (GitHub: 2, AI: 10)
+
+⚠️  OVERALL STATUS: SOME REVIEWS FAILED
+
+======================================================================
+
+📝 1. PROBLEM CONSTRAINTS CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 2. UNIQUE SOLUTION VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 3. TIME COMPLEXITY AUTHENTICITY CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Contains descriptive text "per component" - violates requirement that complexity must NOT contain any descriptive text, approach explanations, or space complexity mentions
+
+• Uses variable L which is not mentioned in the problem statement - violates requirement to use ONLY variables from the problem statement (L is an internal algorithm variable representing component size)
+
+• Correct format should be: "O(2^m(n+m)) -> O(2^n) -> O(n+m)" or "O(2^m(n+m)) -> O(2^(n/2)) -> O(n+m)" without descriptive text and using only problem variables n and m
+
+--------------------------------------------------
+
+📝 4. MATHEMATICAL EQUATIONS CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 5. RESPONSE RELEVANCE TO PROBLEM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 6. DOCUMENTATION STANDARDS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Sentinel.__init__: Missing method docstring
+
+• Sentinel.__init__: lever_ids: list should be lever_ids: list[int]
+
+• Sentinel.__init__: desired_bits: list should be desired_bits: list[int]
+
+• process_first: x_weight: list lacks element type specification
+
+• process_first: y_weight: list lacks element type specification
+
+• process_first: dp_next: list lacks element type specification
+
+• process_middle: x_weight: list lacks element type specification
+
+• process_middle: y_weight: list lacks element type specification
+
+• process_middle: dp_prev: list lacks element type specification
+
+• process_middle: dp_next: list lacks element type specification
+
+• process_last: x_weight: list lacks element type specification
+
+• process_last: y_weight: list lacks element type specification
+
+• process_last: dp_prev: list lacks element type specification
+
+• process_last: component_matrix: list lacks element type specification
+
+• process_isolated_sentinel: x_weight: list lacks element type specification
+
+• process_isolated_sentinel: y_weight: list lacks element type specification
+
+• process_isolated_sentinel: component_matrix: list lacks element type specification
+
+• merge_component: global_matrix: list should specify list[list[int]]
+
+• merge_component: component_matrix: list should specify list[list[int]]
+
+• solve_path: path_indices: list lacks element type specification
+
+• solve_path: edge_levers: list lacks element type specification
+
+• solve_path: sentinels_list: list lacks element type specification
+
+• solve_path: x_weight: list lacks element type specification
+
+• solve_path: y_weight: list lacks element type specification
+
+• solve_cycle: All list parameters lack element type specifications
+
+• build_path: adjacency: list lacks proper element type
+
+• build_path: visited: list lacks proper element type
+
+• build_cycle: adjacency: list lacks proper element type
+
+• build_cycle: visited: list lacks proper element type
+
+--------------------------------------------------
+
+📝 7. STYLE GUIDE COMPLIANCE
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Module Docstring Placement - Lines after `import sys` - Module docstring should be at the very top of the file before imports according to PEP 8 - Move the module docstring to the very first line of the file, before imports
+
+• Vague Abbreviations (General rule c) - Throughout entire codebase (30+ occurrences):
+  - `pc` - vague abbreviation for "parity of pacified count" 
+  - `po` - vague abbreviation for "parity of up levers"
+  - `dp` - vague abbreviation for "dynamic programming"
+  - Fix: Use explicit names like `parity_pacified_count`, `parity_up_levers`, `dynamic_prog_state`
+
+• Vague Abbreviations - Line in `process_first`: `dp_next[shared_val][parity_pacified][parity_up]`
+
+• Vague Abbreviations - Line in `process_middle`: `new_pc = parity_pacified ^ (1 if pacified else 0)`
+
+• Vague Abbreviations - Line in `solve_path`: `dp_prev = zero_dp_2x2x2()`
+
+• Vague Abbreviations - Multiple functions:
+  - `idx_left`, `idx_right`, `idx` - vague abbreviation for "index"
+  - Line in `process_middle`: `idx_left = index_of_lever(sentinel.lever_ids, left_lever)`
+  - Line in `process_last`: `idx_left = index_of_lever(sentinel.lever_ids, left_lever)`
+  - Fix: Use `index_left`, `index_right`, `index`
+
+• Unclear Naming (General rule a) - Function definitions:
+  - Line defining `zero_matrix_2x2()` - embeds dimensions in name
+  - Line defining `zero_dp_2x2x2()` - embeds dimensions in name
+  - Fix: Use more descriptive names like `create_empty_parity_matrix()` and `create_empty_dp_tensor()`
+
+• Unnatural Structure Without Explanation (General rule b) - Sentinel class definition - Use of `__slots__` optimization without explanation - Fix: Either remove `__slots__` or add a comment explaining why this optimization is necessary
+
+--------------------------------------------------
+
+📝 8. CODE ELEMENTS EXISTENCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 9. MISSING APPROACHES IN STEPS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 10. NAMING CONVENTIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 11. EXAMPLE WALKTHROUGH WITH OPTIMAL ALGORITHM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 12. CONCLUSION QUALITY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 13. TIME AND SPACE COMPLEXITY CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 14. PROBLEM STATEMENT CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 15. NOTE SECTION EXPLANATION APPROACH
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 16. METADATA CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• FATAL: Fields are in wrong order - GitHub URL should be second position, not last
+
+• FATAL: Field name is "GitHub" instead of required "GitHub URL"
+
+• Required order: 1. Category, 2. GitHub URL, 3. Topic, 4. Subtopic, 5. Difficulty, 6. Languages, 7. Number of Approaches, 8. Number of Chains
+
+• Actual order in document: 1. Category, 2. Topic, 3. Subtopic, 4. Difficulty, 5. Languages, 6. Number of Approaches, 7. Number of Chains, 8. GitHub
+
+--------------------------------------------------
+
+📝 17. SOLUTION PASSABILITY ACCORDING TO LIMITS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 18. SAMPLE TEST CASE DRY RUN VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 19. TIME LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 20. MEMORY LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 21. NO CODE IN REASONING CHAINS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 22. INEFFICIENT APPROACHES LIMITATIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 23. SUBTOPIC TAXONOMY VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• "Hash Tables" - While present in the taxonomy, this is not actually used or relevant to the solution. The code uses only arrays and lists with direct indexing, no hash-based structures.
+
+--------------------------------------------------
+
+📝 24. TEST CASE VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 25. TYPO AND SPELLING CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 26. FINAL APPROACH DISCUSSION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 27. SUBTOPIC RELEVANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 28. MISSING RELEVANT SUBTOPICS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Missing subtopic: "Memoization" - The dynamic programming solution explicitly uses memoization to store intermediate states (dp_prev, dp_next tensors) and avoid recomputation when processing paths and cycles. The DP carries forward computed values for each (shared_lever, pc, po) state combination.
+
+• Missing subtopic: "Computational Complexity Theory" - The problem heavily relies on structural guarantees (degree-2 graph, at most 2 mentions per lever) that make it tractable. The solution exploits these theoretical constraints to achieve O(n+m) time complexity instead of exponential. The problem statement explicitly discusses these complexity-theoretic aspects.
+
+--------------------------------------------------
+
+📝 29. NO PREDICTIVE HEADINGS IN THOUGHTS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 30. CHAIN TEST CASE ANALYSIS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_02, THOUGHT_02_04: "enumerate its $2^k$ assignments ($k \in \{1,2,3\}$), accumulate contributions to $(pc,po)$ buckets" - Suggests enumeration without showing actual step-by-step execution
+
+• CHAIN_02, THOUGHT_02_05: "construct cases where the shared lever either suffices to pacify both, or only one, or none" - Suggests construction of test cases without actual execution
+
+• CHAIN_02, THOUGHT_02_06: "tests the 'closure' requirement that the state of the first shared lever must match at the end" - Suggests what to test without executing
+
+• CHAIN_02, THOUGHT_02_07: "ensure the algorithm nullifies configurations appropriately and no spurious contributions remain. Also test the all-zero case" - Suggestions without execution details
+
+• CHAIN_02, THOUGHT_02_08: "Sentinel with repeated identical wishes: $\{+3,+3,+3\}$ collapses to a single wish" - Describes behavior without executing a complete test case
+
+• CHAIN_02, THOUGHT_02_09: "Large-scale stress: long path with $10^5$ sentinels and $10^5$ levers, alternating desires, to validate linear-time behavior" - Suggests a stress test without execution
+
+• CHAIN_02 has 6 out of 9 thoughts (THOUGHT_02_04 through THOUGHT_02_09) that are primarily suggestions or descriptions without actual step-by-step execution
+
+--------------------------------------------------
+
+📝 31. COMPREHENSIVE REASONING THOUGHTS REVIEW
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_09:
+  - "to validate linear-time behavior and memory usage" - Chain 2 should not contain information about approaches that are efficient or inefficient in solving the problem according to criterion 1(d).
+
+• THOUGHT_04_01:
+  - "Meet-in-the-middle (MITM) can reduce this to roughly $O(2^{L/2})$ per component" - This is a presentation-style conclusion about MITM's effectiveness stated before any analysis of how or why MITM achieves this reduction. The mechanism and analysis should come first before stating the complexity improvement.
+
+--------------------------------------------------
+
+📝 32. MATHEMATICAL VARIABLES AND EXPRESSIONS FORMATTING
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Section: Prompt (Note section) - Violation: "sentinel 1 watches lever 1; sentinel 2 watches levers 1 and 2; sentinel 3 watches 2 and 3; sentinel 4 watches 3 and 4; sentinel 5 watches 4" - Should be: "sentinel $1$ watches lever $1$; sentinel $2$ watches levers $1$ and $2$; sentinel $3$ watches $2$ and $3$; sentinel $4$ watches $3$ and $4$; sentinel $5$ watches $4$"
+
+• Section: Prompt (Note section) - Violation: "S1: lever 1 up;" - Should be: "S1: lever $1$ up;"
+
+• Section: Prompt (Note section) - Violation: "S2: lever 1 down or lever 2 up;" - Should be: "S2: lever $1$ down or lever $2$ up;"
+
+• Section: Prompt (Note section) - Violation: "S3: lever 2 down or lever 3 up;" - Should be: "S3: lever $2$ down or lever $3$ up;"
+
+• Section: Prompt (Note section) - Violation: "S4: lever 3 down or lever 4 up;" - Should be: "S4: lever $3$ down or lever $4$ up;"
+
+• Section: Prompt (Note section) - Violation: "S5: lever 4 down." - Should be: "S5: lever $4$ down."
+
+• Section: Prompt (Note section) - Violation: "A representative contributing configuration is levers \((1,0,0,0)\) (up/down for levers \(1\)–\(4\))" - Should be: "A representative contributing configuration is levers $(1,0,0,0)$ (up/down for levers $1$–$4$)"
+
+• Section: Prompt (Note section) - Violation: "\(\#\text{up}=1\);" - Should be: "$\#\text{up}=1$;"
+
+• Section: Prompt (Note section) - Violation: "so \(\#\text{pacified}=4\) and \((4+1)\bmod 2=1\)" - Should be: "so $\#\text{pacified}=4$ and $(4+1)\bmod 2=1$"
+
+• Section: Prompt (Note section) - Violation: "Summing the contributions of all configurations with odd \((\#\text{pacified}+\#\text{up})\)" - Should be: "Summing the contributions of all configurations with odd $(\#\text{pacified}+\#\text{up})$"
+
+• Section: Prompt (Note section) - Violation: "four sentinels forming a 4-cycle" - Should be: "four sentinels forming a $4$-cycle"
+
+• Section: Prompt (Note section) - Violation: "S1 watches \(\{1,2\}\), S2 \(\{2,3\}\), S3 \(\{3,4\}\), S4 \(\{4,1\}\)." - Should be: "S1 watches $\{1,2\}$, S2 $\{2,3\}$, S3 $\{3,4\}$, S4 $\{4,1\}$."
+
+• Section: Prompt (Note section) - Violation: "S1: lever 1 up or lever 2 up;" - Should be: "S1: lever $1$ up or lever $2$ up;"
+
+• Section: Prompt (Note section) - Violation: "S2: lever 2 down or lever 3 up;" - Should be: "S2: lever $2$ down or lever $3$ up;"
+
+• Section: Prompt (Note section) - Violation: "S3: lever 3 down or lever 4 up;" - Should be: "S3: lever $3$ down or lever $4$ up;"
+
+• Section: Prompt (Note section) - Violation: "S4: lever 4 down or lever 1 down." - Should be: "S4: lever $4$ down or lever $1$ down."
+
+• Section: Prompt (Note section) - Violation: "All down \((0,0,0,0)\): \(\#\text{up}=0\);" - Should be: "All down $(0,0,0,0)$: $\#\text{up}=0$;"
+
+• Section: Prompt (Note section) - Violation: "S1 restless, S2–S4 pacified, so \(\#\text{pacified}=3\) and \((3+0)\bmod 2=1\)" - Should be: "S1 restless, S2–S4 pacified, so $\#\text{pacified}=3$ and $(3+0)\bmod 2=1$"
+
+• Section: Prompt (Note section) - Violation: "All up \((1,1,1,1)\): \(\#\text{up}=4\);" - Should be: "All up $(1,1,1,1)$: $\#\text{up}=4$;"
+
+• Section: Prompt (Note section) - Violation: "S1–S3 pacified, S4 restless, so \(\#\text{pacified}=3\) and \((3+4)\bmod 2=1\)" - Should be: "S1–S3 pacified, S4 restless, so $\#\text{pacified}=3$ and $(3+4)\bmod 2=1$"
+
+• Section: CHAIN_05 (title) - Violation: "We build a linear-time DP on degree-2 sentinel graphs." - Should be: "We build a linear-time DP on degree-$2$ sentinel graphs."
+
+• Section: Response - Violation: "Build the degree-2 sentinel graph:" - Should be: "Build the degree-$2$ sentinel graph:"
+
+• Section: Response - Violation: "Using the guaranteed degree-2 structure" - Should be: "Using the guaranteed degree-$2$ structure"
+
+--------------------------------------------------
+
+📝 33. THOUGHT HEADING VIOLATIONS CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_02_01: "Single lever, single sentinel (up wish):" - colon-formatted heading violation
+
+• THOUGHT_02_02: "Single lever, tautology sentinel:" - colon-formatted heading violation
+
+• THOUGHT_02_03: "Isolated lever not watched by any sentinel:" - colon-formatted heading violation
+
+• THOUGHT_02_04: "Isolated sentinel (degree $0$) with up to $3$ levers, none shared with other sentinels:" - colon-formatted heading violation
+
+• THOUGHT_02_05: "Two sentinels sharing exactly one lever (a path of length $2$):" - colon-formatted heading violation
+
+• THOUGHT_02_06: "Cycle of $3$ sentinels, each sharing one lever with the next:" - colon-formatted heading violation
+
+• THOUGHT_02_07: "Weights with zeros:" - colon-formatted heading violation
+
+• THOUGHT_02_08: "Sentinel with repeated identical wishes:" - colon-formatted heading violation
+
+• THOUGHT_02_09: "Large-scale stress:" - colon-formatted heading violation
+
+• THOUGHT_03_06: "The failure highlights two couplings:" - colon-formatted heading violation
+
+• THOUGHT_04_03: "The join operation uses a small convolution:" - colon-formatted heading violation
+
+• THOUGHT_05_01: "The per-step state is constant-sized:" - colon-formatted heading violation
+
+• THOUGHT_05_02: "Preprocess sentinels:" and "mark the sentinel as tautological:" - colon-formatted heading violations
+
+• THOUGHT_05_03: "Construct the sentinel adjacency:" - colon-formatted heading violation
+
+• THOUGHT_05_04: "Path DP:" - colon-formatted heading violation
+
+• THOUGHT_05_05: "Cycle DP:" - colon-formatted heading violation
+
+• THOUGHT_05_06: "Isolated entities:" and "A lever not watched by any non-tautological sentinel forms a trivial component:" - colon-formatted heading violations
+
+• THOUGHT_05_07: "Combine components:" and "perform XOR-convolution:" - colon-formatted heading violations
+
+• THOUGHT_05_08: "Finalize:" - colon-formatted heading violation
+
+• THOUGHT_06_02: "Components are independent:" and "parities compose via XOR across components:" - colon-formatted heading violations
+
+• THOUGHT_06_03: "The combination rule is an XOR-convolution over $\mathbb{Z}_2 \times \mathbb{Z}_2$:" - colon-formatted heading violation
+
+• THOUGHT_06_05: "Modular arithmetic preserves correctness:" - colon-formatted heading violation
+
+• THOUGHT_07_01: "Reproduce the provided examples to validate parity logic:" - colon-formatted heading violation
+
+• THOUGHT_07_02: "Multiple tautologies:" - colon-formatted heading violation
+
+• THOUGHT_07_03: "Isolated lever set:" - colon-formatted heading violation
+
+• THOUGHT_07_04: "Path of length $k=3$:" - colon-formatted heading violation
+
+• THOUGHT_07_05: "Cycle of length $k=4$:" - colon-formatted heading violation
+
+• THOUGHT_07_06: "Zero weights:" - colon-formatted heading violation
+
+• THOUGHT_07_07: "Stress scenario:" - colon-formatted heading violation
+
+• THOUGHT_08_01: "Represent lever weights in two arrays of size $m+1$:" - colon-formatted heading violation
+
+• THOUGHT_08_02: "Build a lever-to-sentinels incidence list:" - colon-formatted heading violation
+
+• THOUGHT_08_04: "Carefully include lever weights only once:" - colon-formatted heading violation
+
+• THOUGHT_08_06: "Recheck corner cases within implementation:" - colon-formatted heading violation
+
+--------------------------------------------------
+
+📝 34. GITHUB URL EXTRACTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 35. GITHUB URL PARSING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 36. REPOSITORY CLONING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 37. OVERALL.MD FILE DETECTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 38. HUNYUAN CPP FILES CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 39. OVERALL.MD FORMAT VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+overall.md format validation failed: Missing required sections: ### Model: `hunyuan-t1-dev-20250822`, ### Model: `standard.cpp`
+
+--------------------------------------------------
+
+📝 40. SOLUTION.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+solution.md validation failed: solution.md file not found in repository
+
+--------------------------------------------------
+
+📝 41. PROBLEM STATEMENT.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------

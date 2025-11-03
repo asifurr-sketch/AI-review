@@ -1,0 +1,710 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/orbital_graveyard_stabilizer_rush
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Heaps and Priority Queues", "Sorting Algorithms", "Arrays and Lists", "Algorithm Complexity and Big O Notation", "Basic Data Structures"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - 4, $O(n^M)$ -> $O(2^n)$ -> $O(nM)$ -> $O((n + M) \log n)$
+
+**Number of Chains:** - 8
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Orbital Graveyard: Stabilizer Rush**
+
+**Time Limit:** **$1$ seconds**
+
+**Memory Limit:** **$32$ MB**
+
+Your patched-up frigate drifts through a dense field of derelict star hulks. Each hulk can be boarded only if your ship’s current Stabilizer Index is high enough to tolerate its turbulence threshold. Salvaging a hulk reforges your hull with scavenged bulkheads, permanently boosting your Stabilizer Index for future boardings. Time is scarce—you can attempt only a limited number of boardings before the patrols arrive. Plot a sequence of boardings that leaves your ship as sturdy as possible.
+
+You are given $n$ hulks. Hulk $i$ requires at least $s_i$ Stabilizer Index to board. Salvaging it increases your Stabilizer Index by $f_i$ permanently. You start with Stabilizer Index $C$. You may board at most $M$ distinct hulks. You cannot board a hulk if $s_i > C$ at the moment you attempt it.
+
+Your task is to maximize your Stabilizer Index after at most $M$ boardings.
+
+
+
+### **Input Format:-**
+
+* The first line contains an integer $T$, the number of test cases.
+* For each test case:
+
+  * A line with three integers $n$, $M$, $C$.
+  * A line with $n$ integers $s_1, s_2, \dots, s_n$ (turbulence thresholds).
+  * A line with $n$ integers $f_1, f_2, \dots, f_n$ (stabilizer gains).
+
+
+
+### **Output Format:-**
+
+For each test case, output a single integer: the maximum Stabilizer Index achievable after boarding at most $M$ hulks.
+
+
+
+### **Constraints:-**
+
+* $1 \le T \le 2 \times 10^5$
+* $1 \le n \le 2 \times 10^5$ per test case
+* $0 \le M \le 2 \times 10^5$
+* $1 \le C \le 10^{18}$
+* $1 \le s_i \le 10^{18}$
+* $1 \le f_i \le 10^{18}$
+* The sum of $n$ over all test cases $\le 2 \times 10^5$
+* The sum of $M$ over all test cases $\le 2 \times 10^5$
+
+
+
+### **Examples:-**
+
+#### **Input:-**
+
+```
+1
+3 10 5
+1 100 101
+2 3 4
+```
+
+#### **Output:-**
+
+```
+7
+```
+
+#### **Input:-**
+
+```
+3
+4 2 50
+60 10 50 20
+100 1 2 3
+5 5 1000000000000000000
+999999999999999999 1000000000000000000 1 500000000000000000 42
+1000000000000000000 999999999999999999 123456789012345678 555555555555555555 1
+6 6 7
+20 15 9 7 6 1
+5 4 3 2 1 10
+```
+
+#### **Output:-**
+
+```
+55
+3679012344567901233
+32
+```
+
+
+
+### **Note:-**
+
+In the first example, you start with $C = 5$. Only the hulk with $s = 1$ is boardable (since $s \le C$). Boarding it adds $f = 2$, so $C$ becomes $7$. The other hulks require $s > 7$ and remain unreachable within the limit $M = 10$, so the final Stabilizer Index is $7$.
+
+In the second example, for the first test case ($n = 4$, $M = 2$, $C = 50$):
+
+* Initially boardable hulks have $s \in {10, 20, 50}$ with gains ${1, 3, 2}$. Pick the maximum gain first: $+3 \Rightarrow C = 53$.
+* Newly boardable set still excludes $s = 60$; pick the next best among remaining: $+2 \Rightarrow C = 55$.
+* You used $2$ boardings ($M = 2$), so the answer is $55$.
+
+In the third example, for the second test case ($n = 5$, $M = 5$, $C = 10^{18}$):
+
+* All hulks are boardable at the start (each $s_i \le C$), so you can take all five gains.
+* Final $C = 10^{18} + (10^{18} + 999999999999999999 + 123456789012345678 + 555555555555555555 + 1) = 3679012344567901233$.
+
+In the fourth example, for the third test case ($n = 6$, $M = 6$, $C = 7$):
+
+* Initially boardable: $s \in {1, 6, 7}$ with gains ${10, 1, 2}$. Take $+10 \Rightarrow C = 17$.
+* Newly boardable adds $s \in {9, 15}$ with gains ${3, 4}$. Take $+4 \Rightarrow C = 21$, then $+5$ (as $s = 20$ becomes boardable) $\Rightarrow C = 26$.
+* Take remaining best gains in order: $+3 \Rightarrow 29$, $+2 \Rightarrow 31$, $+1 \Rightarrow 32$.
+* Six boardings used; final $C = 32$.
+
+
+
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying objectives and constraints
+
+
+**[THOUGHT_01_01]**
+
+We are given $n$ hulks, each with a turbulence threshold $s_i$ and a stabilizer gain $f_i$.
+We start with a Stabilizer Index $C$ and can board at most $M$ distinct hulks.
+At any point, we can board a hulk only if $s_i \le C$. Boarding that hulk increases $C$ by $f_i$ permanently.
+The task is to maximize the final value of $C$ after at most $M$ boardings.
+
+
+
+**[THOUGHT_01_02]**
+
+At each step, the set of accessible hulks depends on the current $C$.
+Once a hulk becomes accessible, it remains accessible thereafter since $C$ is non-decreasing.
+Thus, the set of boardable hulks expands monotonically as $C$ increases.
+
+
+**[THOUGHT_01_03]**
+
+Accessibility monotonicity implies that any gain chosen now cannot restrict future choices—choosing higher gains earlier can only improve or maintain future accessibility.
+
+
+**[THOUGHT_01_04]**
+
+The budget constraint ($M$) means we cannot board indefinitely; thus, ordering matters.
+Selecting small gains early may prevent reaching large-gain hulks within the $M$ limit.
+
+
+**[THOUGHT_01_05]**
+
+Given the large numeric ranges ($C, s_i, f_i \le 10^{18}$), arithmetic operations must use 128-bit integers to avoid overflow when summing large stabilizer gains.
+
+
+**[THOUGHT_01_06]**
+
+With up to $T \le 2\times10^5$ test cases and $\sum n, \sum M \le 2\times10^5$, the total input size demands near-linear time.
+Therefore, the target time complexity per test case should be $O((n+M)\log n)$ or better.
+
+
+
+**[THOUGHT_01_07]**
+
+If no hulk is boardable at some step (heap empty), the process terminates early even if $M$ is not exhausted.
+The final $C$ must reflect the best achievable value at that point.
+
+
+
+---
+
+**[CHAIN_02]**
+
+Designing comprehensive test categories
+
+**[THOUGHT_02_01]**
+
+Minimal input tests:
+
+- $n=1, M=0$: No action possible → final $C$ unchanged.
+
+- $n=1, M=1$: Test both $s_1 \le C$ and $s_1 > C$ to confirm proper gating.
+
+
+
+**[THOUGHT_02_02]**
+
+All unreachable hulks:
+If $\forall i,\ s_i > C$, no boardings can occur. The algorithm must detect this and immediately output $C$.
+
+
+**[THOUGHT_02_03]**
+
+All accessible initially:
+If all $s_i \le C$, we can board any $M$ hulks. The optimal strategy is to pick the $M$ largest $f_i$ values.
+This tests the selection policy in a purely greedy environment.
+
+
+
+**[THOUGHT_02_04]**
+
+Chained unlocking scenario:
+When boarding one hulk unlocks another (e.g., $(s,f) = (3,3)$ then $(6,100)$), verify the algorithm chooses the correct unlocking order and doesn’t get stuck with suboptimal smaller gains.
+
+
+**[THOUGHT_02_05]**
+
+Budget-limited unlocking:
+Example: $(C=2, M=2)$, hulks $[(1,1), (2,3), (5,100)]$.
+Correct behavior: pick $(2,3)$ → unlock $(5,100)$ → final $C=105$.
+Tests proper greedy prioritization.
+
+
+**[THOUGHT_02_06]**
+
+Overflow scenario:
+$C = 10^{18}$ and all $f_i = 10^{18}$, verifying 128-bit safety and correct large-number printing.
+
+
+
+**[THOUGHT_02_07]**
+
+Duplicate thresholds and gains:
+Ensure stable behavior when multiple hulks have identical $s_i$ and/or $f_i$; heap operations must consistently extract the largest gain.
+
+
+
+**[THOUGHT_02_08]**
+
+Edge cardinalities:
+- When $M \ge n$, all hulks can be boarded; when $M=0$, no steps occur.
+- Tests early exit and bound adherence.
+
+
+
+---
+
+**[CHAIN_03]**
+
+Brute force formulation and infeasibility
+
+**[THOUGHT_03_01]**
+
+Naive enumeration explores all possible boarding sequences of up to $M$ hulks, checking feasibility at each step.
+It captures the dynamic accessibility but grows combinatorially.
+
+
+**[THOUGHT_03_02]**
+
+Worst case complexity is $O(n^M)$ since every hulk may be boardable at each step.
+Even small $n$ and $M$ (e.g., 20) lead to astronomical sequence counts, making this infeasible.
+
+
+
+**[THOUGHT_03_03]**
+
+Even with pruning (skip $s_i > C$), many test cases still retain large accessible frontiers.
+Exponential branching remains unavoidable.
+
+
+**[THOUGHT_03_04]**
+
+Hence, brute force and backtracking approaches are discarded.
+We must rely on monotonicity and structure to design a polynomial-time greedy solution.
+
+
+
+---
+
+**[CHAIN_04]**
+
+Attempting dynamic programming and identifying failure
+
+**[THOUGHT_04_01]**
+
+A DP over subsets (bitmask) or orderings would have $2^n$ states — completely infeasible for $n$ up to $2\times10^5$.
+
+
+**[THOUGHT_04_02]**
+
+A DP over $(k, C)$, where $k$ is the number of picks and $C$ is current stabilizer, is continuous in $C$ (up to $\sim10^{23}$).
+Discretization is impossible without loss of correctness.
+
+
+
+**[THOUGHT_04_03]**
+
+Knapsack analogies fail because capacity ($C$) is dynamic — it grows with each action and affects feasibility of future items.
+Thus, standard DP transitions do not apply.
+
+
+
+**[THOUGHT_04_04]**
+
+Conclusion: DP approaches are computationally intractable and structurally unsuitable.
+We must find an approach leveraging monotonic unlocking and greedy maximization principles.
+
+
+---
+
+**[CHAIN_05]**
+
+Testing naïve greedy heuristics and counterexamples
+
+**[THOUGHT_05_01]**
+
+Heuristic 1: Pick smallest $s_i$ first.
+Fails because picking a low-threshold, low-gain hulk may not raise $C$ enough to unlock high-value hulks before $M$ is exhausted.
+Example: $(C=2, M=2)$, hulks $[(1,1),(2,3),(5,100)]$.
+Smallest-$s_i$ picks $(1,1)\rightarrow C=3$, then $(2,3)\rightarrow C=6$, missing the 100-gain hulk. Optimal order is $(2,3)\rightarrow(5,100)$.
+
+
+**[THOUGHT_05_02]**
+
+Heuristic 2: Pick globally largest $f_i$.
+Fails because many of those hulks may be inaccessible early ($s_i > C$), stalling progress entirely.
+
+
+
+**[THOUGHT_05_03]**
+
+Heuristic 3: Maximize $f_i/s_i$ ratio.
+Fails in some cases where absolute gain matters more for unlocking thresholds.
+Example: $(C=10, M=2)$, hulks $[(1,5),(10,6),(15,100)]$.
+Ratio-first picks $(1,5)\rightarrow C=15$, then $(15,100)\rightarrow C=115$.
+But picking $(10,6)$ first yields $C=16$, then $(15,100)\rightarrow C=116$ (better).
+Thus, ratio-based heuristics can misfire.
+
+
+**[THOUGHT_05_04]**
+
+Observation: among all accessible hulks, choosing the one with the largest $f_i$ yields the highest immediate growth in $C$, and never harms future accessibility because $C$ only increases.
+This points to a globally correct greedy invariant.
+
+
+
+---
+
+**[CHAIN_06]**
+
+Transition from Conceptual Greedy Idea to Efficient Implementation.
+
+**[THOUGHT_06_01]**
+
+Defining the Greedy Core Principle:
+
+Idea: iteratively choose the largest $f_i$ among currently accessible hulks, since this maximizes $C$ growth per step.
+
+
+
+**[THOUGHT_06_02]**
+
+Constructing the Iterative Selection Framework:
+
+Implementation outline:
+
+- Sort hulks by $s_i$ ascending.
+
+- At each step, collect all hulks with $s_i \le C$ into a pool.
+
+- From that pool, select the hulk with the largest $f_i$.
+
+- Repeat up to $M$ times or until no hulks are accessible.
+
+
+**[THOUGHT_06_03]**
+
+A direct scan of accessible hulks each iteration is $O(n)$ per step → total $O(nM)$, which is infeasible.
+
+
+
+**[THOUGHT_06_04]**
+
+Introducing the Heap for Efficient Gain Retrieval:
+
+To achieve efficiency, we need a data structure that supports fast:
+
+- insertion of new accessible hulks,
+
+- extraction of the maximum gain.
+A max-heap (priority queue) satisfies both in $O(\log n)$ per operation, reducing total complexity to $O((n+M)\log n)$.
+
+
+
+---
+
+**[CHAIN_07]**
+
+Establishing final greedy algorithm and correctness proof
+
+**[THOUGHT_07_01]**
+
+Formulating the Final Greedy Algorithm:
+
+Algorithm steps:
+
+- Sort hulks by $s_i$ ascending.
+
+- Maintain index pointer idx over sorted hulks and a max-heap of $f_i$ for all accessible hulks.
+
+- Initialize $C$ as given.
+
+- Repeat up to $M$ times:
+
+    - Push into heap all hulks with $s_i \le C$.
+
+    - If heap empty → stop early.
+
+    - Pop max $f_i$, add to $C$
+
+
+**[THOUGHT_07_02]**
+
+Correctness (exchange argument):
+Suppose an optimal sequence chooses a smaller gain $x$ while a larger available gain $y$ was accessible.
+Swapping $x$ and $y$ increases $C$ earlier, never reduces accessibility (monotone property), and cannot decrease final $C$.
+Repeatedly applying this transformation yields a sequence identical to the heap-greedy strategy.
+
+
+
+**[THOUGHT_07_03]**
+
+Time complexity:
+
+- Sorting: $O(n\log n)$
+
+- Each hulk pushed once: $O(n\log n)$
+
+- Each iteration (up to $M$): heap pop $O(M\log n)$
+Total per test: $O((n+M)\log n)$, matching required limits.
+
+
+
+**[THOUGHT_07_04]**
+
+Space complexity:
+
+- Hulks array: $O(n)$
+
+- Heap: $O(n)$
+
+- Scalars: $O(1)$
+Total $O(n)$ per test.
+
+**[THOUGHT_07_05]**
+
+Since $C$, $s_i$, $f_i$ can reach $10^{18}$ and sum over many additions, use __int128_t for all cumulative operations to prevent overflow.
+
+
+**[THOUGHT_07_06]**
+
+Termination correctness:
+
+- If $M=0$, no steps → output $C$.
+
+- If heap empties, no further hulks accessible → output current $C$.
+
+- If $M > n$, process naturally ends after all $n$ hulks used.
+
+
+---
+
+**[CHAIN_08]**
+
+Validation through concrete test walkthroughs
+
+**[THOUGHT_08_01]**
+
+
+Example: $(C=3, M=3)$, hulks $[(s,f)]=[(1,1),(2,5),(3,1),(3,1),(10,100)]$
+Accessible initially: four hulks → pick max $f=5$, $C=8$
+Still can’t board $(10,100)$ ($s=10>8$) → pick next two small $f=1,1$,
+reaching $C=10$.
+No further moves allowed ($M=3$ exhausted).
+
+Final output: $C=10$ (correct).
+
+
+
+
+**[THOUGHT_08_02]**
+
+All hulks unreachable: $(C=1)$, $(s=[2,3,4])$. Heap stays empty, algorithm exits immediately → $C=1$ (correct).
+
+
+
+**[THOUGHT_08_03]**
+
+$(n=3, M=10)$: algorithm stops after 3 boardings; further iterations skipped automatically → efficiency verified.
+
+
+
+**[THOUGHT_08_04]**
+
+Large values: $(C=10^{18})$, $f_i=10^{18}$. Two hulks boarded → $C=3\times10^{18}$ safely computed via 128-bit arithmetic.
+
+
+**[THOUGHT_08_05]**
+
+Simultaneous unlocks: when several hulks share the same $s_i$, they are all pushed into the heap in one batch, ensuring correct selection of the largest $f_i$.
+
+
+
+
+**[THOUGHT_08_06]**
+
+Across mixed test sizes, the algorithm’s amortized complexity remains within $(\sum n + \sum M)\log n \le 10^6$ operations — comfortably within 1-second limits.
+
+
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+You are given $n$ derelict hulks. Each hulk $i$ has a turbulence threshold $s_i$ and yields a stabilizer gain $f_i$ upon boarding. You start with a Stabilizer Index $C$. You may board at most $M$ distinct hulks, each at most once, and you can only board a hulk when it is accessible, i.e., when $s_i \le C$ at the moment you attempt it. After boarding, $C$ increases by $f_i$ permanently, potentially unlocking more hulks. If no hulks are accessible before using all $M$ attempts, you must stop early.
+
+Goal: Maximize the final Stabilizer Index $C$ after at most $M$ boardings.
+
+Key observations:
+- Accessibility is monotonic in $C$: increasing $C$ never reduces the set of accessible hulks.
+- Among accessible hulks, choosing the largest gain $f_i$ is never worse because it increases $C$ the most and can only unlock more options.
+- Numerical values can be up to $10^{18}$; repeated additions may exceed 64-bit, so accumulation should use 128-bit integers.
+
+
+**2. Optimal Approach**
+
+We use a greedy strategy with a max-heap and an ordering by thresholds:
+1. Sort all hulks by nondecreasing $s_i$.
+2. Maintain:
+   - An index scanning the sorted hulks to add newly accessible hulks.
+   - A max-heap containing gains $f_i$ of all currently accessible, untaken hulks.
+3. Repeat up to $M$ times:
+   - Add to the heap every hulk whose $s_i \le C$ and has not been considered yet.
+   - If the heap is empty, stop early.
+   - Pop the maximum $f_i$ from the heap and add it to $C$.
+
+Correctness intuition (exchange argument):
+- If at any step a smaller gain is chosen while a larger one is available, swapping to take the larger first yields a $C$ that is at least as large at every subsequent step, preserving or expanding accessibility. Repeating such swaps converts an optimal sequence to one that always takes the largest accessible gain.
+
+Complexity:
+- Sorting costs $O(n \log n)$.
+- Each hulk enters the heap once and up to $M$ pops occur, giving $O((n + M) \log n)$ time and $O(n)$ space.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <string>
+
+/**
+ * @brief Prints a signed 128-bit integer to std::cout.
+ *
+ * @param value The value to print.
+ * @return void
+ */
+static void printI128(__int128_t value) {
+    if (value == 0) {
+        std::cout << 0;
+        return;
+    }
+    if (value < 0) {
+        std::cout << '-';
+        value = -value;
+    }
+    std::string digits;
+    while (value > 0) {
+        int digit = static_cast<int>(value % 10);
+        digits.push_back(static_cast<char>('0' + digit));
+        value /= 10;
+    }
+    std::reverse(digits.begin(), digits.end());
+    std::cout << digits;
+}
+
+/**
+ * @brief Represents a hulk's threshold and gain.
+ */
+struct Hulk {
+    /** Turbulence threshold required to board. */
+    long long threshold;
+    /** Stabilizer gain obtained after boarding. */
+    long long gain;
+};
+
+/**
+ * @brief Processes test cases to compute the maximum Stabilizer Index after at most M boardings.
+ *
+ * @return Exit status code.
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int testCount;
+    if (!(std::cin >> testCount)) {
+        return 0;
+    }
+
+    while (testCount--) {
+        int hulkCount, maxBoardings;
+        long long initialStabilizerIndex;
+        std::cin >> hulkCount >> maxBoardings >> initialStabilizerIndex;
+
+        std::vector<long long> thresholds(hulkCount), gains(hulkCount);
+        for (int i = 0; i < hulkCount; ++i) {
+            std::cin >> thresholds[i];
+        }
+        for (int i = 0; i < hulkCount; ++i) {
+            std::cin >> gains[i];
+        }
+
+        std::vector<Hulk> hulks(hulkCount);
+        for (int i = 0; i < hulkCount; ++i) {
+            hulks[i] = Hulk{thresholds[i], gains[i]};
+        }
+
+        std::sort(hulks.begin(), hulks.end(), [](const Hulk &left, const Hulk &right) {
+            return left.threshold < right.threshold;
+        });
+
+        std::priority_queue<long long> accessibleGains;
+        int nextHulkIndex = 0;
+        __int128_t currentStabilizerIndex = static_cast<__int128_t>(initialStabilizerIndex);
+
+        for (int attempt = 0; attempt < maxBoardings; ++attempt) {
+            while (nextHulkIndex < hulkCount &&
+                   static_cast<__int128_t>(hulks[nextHulkIndex].threshold) <= currentStabilizerIndex) {
+                accessibleGains.push(hulks[nextHulkIndex].gain);
+                ++nextHulkIndex;
+            }
+
+            if (accessibleGains.empty()) {
+                break;
+            }
+
+            currentStabilizerIndex += static_cast<__int128_t>(accessibleGains.top());
+            accessibleGains.pop();
+        }
+
+        printI128(currentStabilizerIndex);
+        std::cout << '\n';
+    }
+
+    return 0;
+}
+
+```
+
+**4. Code Explanation**
+
+- Input is read per test case: number of hulks, maximum boardings, initial $C$, arrays of thresholds $s_i$ and gains $f_i$.
+- Hulks are stored as pairs of $(s_i, f_i)$ and sorted by $s_i$ ascending so that a single linear scan can admit newly accessible hulks.
+- A max-heap maintains the gains of all currently accessible hulks.
+- For up to $M$ iterations, the algorithm:
+  - Pushes all newly accessible hulks (those with $s_i \le C$) into the heap.
+  - Stops if the heap is empty (no accessible hulks).
+  - Otherwise, extracts the largest gain and adds it to $C$.
+- $C$ is stored in 128-bit to avoid overflow during repeated additions.
+- The final $C$ is printed using a helper function that formats 128-bit integers.
+
+Brief example of the process:
+- Suppose $C = 3$, $M = 3$, thresholds $[2, 3, 10, 1, 3]$, gains $[5, 1, 100, 1, 1]$.
+- Initially accessible gains are $\{5, 1, 1, 1\}$. Take $5$ to get $C = 8$.
+- Remaining accessible gains are $\{1, 1, 100\}$, but $100$ is not yet accessible since its $s = 10$. Take $1$ twice to reach $C = 10$. Final $C = 10$.
+
+
+**5. Time and Space Complexity**
+
+- Time per test case: $O(n \log n + M \log n)$ due to sorting and heap operations.
+- Space per test case: $O(n)$ for the sorted hulks and the heap.
+- Across all test cases, with $\sum n \le 2 \times 10^5$ and $\sum M \le 2 \times 10^5$, the total runtime is within practical limits.
+
+
+**6. Conclusion**
+
+The greedy approach of always selecting the maximum gain among currently accessible hulks is optimal due to the monotonicity of accessibility with respect to $C$. Sorting hulks by thresholds and maintaining a max-heap delivers an efficient $O((n + M) \log n)$ algorithm that handles large values safely by using 128-bit accumulation. This method maximizes the final Stabilizer Index within the allowed number of boardings and adheres to the problem’s constraints.

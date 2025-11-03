@@ -1,0 +1,569 @@
+# Metadata
+
+**Category:** - Coding
+
+**GitHub URL:** - https://github.com/NOI-gen/resonant_beacon_array_2
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Greedy Algorithms", "Arrays and Lists", "Sorting Algorithms", "Backtracking Algorithms", "Algorithm Complexity and Big O Notation", "Control Structures and Loops"]
+
+**Difficulty:** - Hard
+
+**Languages:** - C++
+
+**Number of Approaches:** - $3,$ Combinatorial (exponential) -> $O(K^2) -> O(K)$
+
+**Number of Chains:** - $10$
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Resonant Beacon Array**
+
+Time Limit: **1 seconds**
+
+Memory Limit: **256 MB**
+
+To stabilize a drifting wormhole, an engineer must tune exactly $(K)$ beacon towers to unique positive integer frequencies. Some towers must hum in night-phase (odd frequencies), while the rest must hum in day-phase (even frequencies). The total resonance must be exactly $(R).$ For safety, the control panel insists on the earliest possible sorted frequency plan in lexicographic order. If such a plan cannot exist, the engineer must report failure.
+
+Task:
+Given $(R)$ (required total resonance), $(K$) (number of towers), and $(T)$ (how many towers must be night-phase/odd), decide whether there is a way to assign $(K$) distinct positive integers whose sum is exactly $(R),$ with exactly $(T)$ odd numbers and $(K - T)$ even numbers. If possible, output the lexicographically smallest nondecreasing sequence satisfying all constraints; otherwise, output $NO.$
+
+Lexicographic order:
+Between two nondecreasing sequences $(A)$ and $(B),$ $(A)$ is lexicographically smaller if at the first position where they differ, $(A[i] < B[i]).$
+
+**Input Format:-**
+- The first line contains an integer $(Q),$ the number of test cases.
+- Each of the next $(Q)$ lines contains three integers: $(R) (K) (T).$
+
+**Output Format:-**
+For each test case:
+- If no valid assignment exists, print $NO.$
+- Otherwise, print $YES$ on one line, and on the next line print $(K)$ integers in nondecreasing order: the lexicographically smallest valid plan.
+
+**Constraints:-**
+- $(1 \le Q \le 100000)$
+- $(1 \le K \le 200000)$
+- $(0 \le T \le K)$
+- $(1 \le R \le 10^{18})$
+- Sum of $(K)$ over all test cases $(\le 200000)$
+
+**Examples:-**
+
+ - **Input:**
+```
+1
+20 5 4
+```
+
+ - **Output:**
+```
+YES
+1 2 3 5 9
+```
+
+ - **Input:**
+```
+1
+15 4 1
+```
+
+ - **Output:**
+```
+YES
+1 2 4 8
+```
+
+**Note:-**
+In the first example, we have $R = 20, K = 5, T = 4$ (so $E = 1$ even).
+- Minimal base set uses the $T$ smallest odds ${1,3,5,7}$ and the $E$ smallest evens ${2},$ giving the sorted sequence $[1, 2, 3, 5, 7]$ with $Smin = 4^2 + 1·2 = 18.$
+- $R$ and $T$ have the same parity $(20 ≡ 4 mod 2),$ so it's feasible with surplus $D = 20 - 18 = 2.$
+- To get the lexicographically smallest plan, keep the first $K-1$ values minimal and add $D$ to the current largest element: $7 \rightarrow 9.$ Final sequence: $1 2 3 5 9.$
+
+In the second example, we have $R = 15, K = 4, T = 1$ (so $E = 3$ evens).
+- Minimal base set is the smallest odd ${1}$ and the smallest evens ${2,4,6},$ giving $[1, 2, 4, 6]$ with $Smin = 1^2 + 3·4 = 13.$
+- $R$ and $T$ have the same parity $(15 ≡ 1 mod 2),$ so it's feasible with surplus $D = 2.$
+- Add $D$ to the current largest element only: $6 \rightarrow 8.$ Final sequence: $1 2 4 8.$
+
+Additional clarification:
+- Let $E = K - T.$ The minimal achievable sum with distinct positives and the required parities is $Smin = T^2 + E(E+1). A$ solution exists iff $R ≥ Smin$ and $R ≡ T (mod 2).$ In that case, $D = R - Smin$ is even; adding all of $D $ to the largest element of the base set preserves parity, distinctness, and sorted order, and yields the lexicographically smallest sequence.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding Requirements And Constraints
+
+**[THOUGHT_01_01]**
+
+Restating the problem clearly: For each test case, we need to determine whether there exists a nondecreasing sequence of $(K)$ distinct positive integers that sums to $(R),$ with exactly $(T)$ odd numbers and $(K - T)$ even numbers. If it exists, we must output the lexicographically smallest such sequence; otherwise, output NO. The lexicographic order compares sequences element-wise from left to right, picking the smaller sequence at the first position they differ.
+
+**[THOUGHT_01_02]**
+
+Clarifying parity constraints: The parity (odd or even) of a sum of integers equals the parity of the count of odd addends. Therefore, the sum of exactly $(T)$ odd and $(K - T)$ even distinct positive integers must have parity $(T \bmod 2).$ Hence a necessary condition is $(R \equiv T \pmod{2}).$
+
+**[THOUGHT_01_03]**
+
+Clarifying distinctness and minimal feasible values: The lexicographically smallest sequence with given parity counts intuitively uses the smallest distinct odds and evens. The $(T)$ smallest distinct positive odd numbers are $(1, 3, 5, \dots, 2T - 1),$ and the $(K - T)$ smallest distinct positive even numbers are $(2, 4, 6, \dots, 2(K - T)).$ Any lexicographically smaller attempt would violate parity counts or distinctness.
+
+**[THOUGHT_01_04]**
+
+Deriving the minimal sum bound: The sum of the first $(T)$ odd numbers is $(1 + 3 + \dots + (2T - 1) = T^2).$ The sum of the first $(K - T)$ even numbers is $(2 + 4 + \dots + 2(K - T) = (K - T)(K - T + 1)).$ Therefore, any feasible sequence must satisfy $(R \ge S)$ where $(S = T^2 + (K - T)(K - T + 1)).$
+
+**[THOUGHT_01_05]**
+
+Understanding feasibility and leftover: If $(R \ge S)$ and $(R \equiv T \pmod{2}),$ then $(L = R - S)$ is a nonnegative even integer. This leftover can be distributed to maintain parity and distinctness. The primary question for lexicographic minimality becomes how to place $(L)$ without increasing earlier elements unnecessarily.
+
+**[THOUGHT_01_06]**
+
+Recognizing output optimality: Lexicographic minimality requires keeping earlier elements as small as possible. Thus, if we start with the minimal multiset that satisfies parity counts and distinctness, any increase to earlier elements harms lexicographic order. A key insight is that pushing all the leftover to the largest element preserves distinctness and parity while keeping the sequence lexicographically smallest.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing Thorough Test Coverage
+
+**[THOUGHT_02_01]**
+
+Testing parity mismatch cases: When $(R \not\equiv T \pmod{2}),$ it must be impossible. Examples: $((R, K, T) = (7, 3, 2))$ is impossible because $(7)$ is odd but $(T = 2)$ implies an even sum. Also $((10, 3, 3))$ is impossible since $(10)$ is even but $(T = 3)$ implies an odd sum.
+
+**[THOUGHT_02_02]**
+
+Testing minimal bound violations: When $(R < S),$ it is impossible regardless of parity. For instance, $((R, K, T) = (5, 3, 2)).$ Here the smallest valid sequence is odds $(1, 3)$ and one even $(2),$ sum $(1 + 3 + 2 = 6 > R),$ so impossible.
+
+**[THOUGHT_02_03]**
+
+Testing exact minimal sum cases: When $(R = S),$ the base sequence itself is the answer (no leftover). Example: $((R, K, T) = (10, 4, 2))$ yields base odds $(1, 3),$ evens $(2, 4),$ sum $(10),$ and the sequence is $([1, 2, 3, 4]).$
+
+**[THOUGHT_02_04]**
+
+Testing leftover distribution: When $(R > S)$ and parity matches, the leftover is even and should be added entirely to the last element. Example: $((R, K, T) = (20, 4, 2)).$ Base $([1, 2, 3, 4]),$ sum $(10),$ leftover $(10),$ final $([1, 2, 3, 14]).$
+
+**[THOUGHT_02_05]**
+
+Testing edge counts: Consider $((K = 1))$ with $(T \in \{0, 1\}).$ For $(T = 1),$ the only sequence is $([R])$ if $(R)$ is odd; for $(T = 0),$ the only sequence is $([R])$ if $(R)$ is even. Distinctness is vacuous. Also test $(T = 0)$ or $(T = K),$ where all numbers are even or all are odd and the base formula reduces accordingly.
+
+**[THOUGHT_02_06]**
+
+Testing large values and overflow: With $(R)$ up to $(10^{18})$ and $(K)$ up to $(2 \cdot 10^5),$ the minimal sum $(S)$ can approach the magnitude of $(K^2),$ requiring $128$-bit intermediate arithmetic to avoid overflow when computing $(S)$ and $(L).$ Validate with $((R, K, T) = (10^{18}, 200000, 100000)).$
+
+**[THOUGHT_02_07]**
+
+Testing adversarial lexicographic cases: Ensure the method does not inadvertently increase earlier positions. For example $((R, K, T) = (11, 3, 1))$ should output $([1, 2, 8]).$ Any solution like $([1, 4, 6])$ has the same sum and parity counts but is lexicographically larger due to increasing the second element.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing Brute Force
+
+**[THOUGHT_03_01]**
+
+Outlining the naive enumeration: A direct approach would enumerate all $(K)$-tuples of distinct positive integers, filter those with exactly $(T)$ odds and sum $(R),$ sort each tuple, and select the lexicographically smallest. This might proceed by backtracking with choices for each position from $1$ upwards, ensuring distinctness and increasing order.
+
+**[THOUGHT_03_02]**
+
+Analyzing the state space: Even restricting to values not exceeding $(R),$ the number of strictly increasing $(K)$-tuples of positive integers up to $(R)$ is $(\binom{R}{K}),$ which is astronomically large for the given constraints. The parity constraint only prunes half the space on average, which is negligible.
+
+**[THOUGHT_03_03]**
+
+Understanding pruning challenges: Attempts to prune based on remaining sum bounds help little. The minimal possible suffix sum grows linearly in remaining positions, but the branching factor remains too large. Ensuring exactly $(T)$ odds introduces more combinatorial branching without sufficient reduction.
+
+**[THOUGHT_03_04]**
+
+Recognizing time complexity infeasibility: For $(K)$ up to $(2 \cdot 10^5),$ any approach with exponential or combinatorial enumeration is impossible. Even $(O(R))$ per test case is not viable when $(R)$ can be $(10^{18}).$ The brute force approach is discarded due to prohibitive time complexity and memory use.
+
+**[THOUGHT_03_05]**
+
+Identifying lexicographic complications: Choosing lexicographically smallest sequences via brute force would require exploring candidates in lexicographic order, which does not reduce the worst-case complexity because the first valid sequence might lie deep in the search space.
+
+
+---
+
+**[CHAIN_04]**
+
+Attempting Greedy Increments Without Parity Awareness
+
+**[THOUGHT_04_01]**
+
+Proposing a simplistic greedy: Start from the trivial strictly increasing baseline $([1, 2, 3, \dots, K])$ and keep increasing the last element to match sum $(R).$ Then post-adjust the sequence to match $(T)$ odds by shifting parity locally. This seems attractive for lexicographic minimality but ignores the parity composition.
+
+**[THOUGHT_04_02]**
+
+Exposing parity mismatch: The baseline has a fixed mix of odds and evens dependent on $(K),$ not on $(T).$ Trying to convert an even to an odd by adding $1$ cascades into collisions with neighbors, forcing further increments and violating lexicographic optimality through ripple effects.
+
+**[THOUGHT_04_03]**
+
+Illustrating collision chains: Suppose $(K = 5), (T = 3).$ The baseline $([1, 2, 3, 4, 5])$ has three odds already. If $(T)$ differs, parity changes induce increments that break distinctness and may require re-sorting or re-spacing, growing complexity and potentially overshooting $(R).$
+
+**[THOUGHT_04_04]**
+
+Quantifying unpredictable corrections: Adjusting parity one element at a time can lead to multiple elements moving, and the total sum change does not stay controlled. Enforcing strict increasing order requires extra space between neighbors, which increases the sum beyond the target and demands compensatory decreases that conflict with lexicographic minimality.
+
+**[THOUGHT_04_05]**
+
+Concluding failure: This greedy lacks a global invariant tying parity, distinctness, and sum together. It neither guarantees feasibility nor lexicographic minimality and can enter correction loops. Therefore, this approach is discarded.
+
+
+---
+
+**[CHAIN_05]**
+
+Establishing Feasibility With Parity And Minimal Sum
+
+**[THOUGHT_05_01]**
+
+Deriving parity necessity: If a valid sequence exists, its sum parity equals the parity of the number of odd elements, i.e., $(R \equiv T \pmod{2}).$ This is an immediate necessary condition. If it fails, we can conclude $NO$ without further computation.
+
+**[THOUGHT_05_02]**
+
+Constructing the minimal parity-respecting base: To minimize the sequence lexicographically and in sum, choose the $(T)$ smallest odd numbers $(1, 3, \dots, 2T - 1)$ and the $(K - T)$ smallest even numbers $(2, 4, \dots, 2(K - T)).$ Merging these two sorted lists produces a strictly increasing sequence that respects parity counts.
+
+**[THOUGHT_05_03]**
+
+Computing the minimal sum: The odds sum to $(T^2),$ and the evens sum to $((K - T)(K - T + 1)).$ Therefore, any valid sequence must have sum $(R \ge S)$ with $(S = T^2 + (K - T)(K - T + 1)).$ Otherwise, the target is unreachable due to distinctness and parity requirements.
+
+**[THOUGHT_05_04]**
+
+Reasoning about leftover parity: If $(R \ge S)$ and $(R \equiv T \pmod{2}),$ then $(L = R - S)$ is even. Adding an even number to any element preserves its parity, which is crucial to not disturb the odd or even counts when we adjust to hit the exact sum.
+
+**[THOUGHT_05_05]**
+
+Selecting a distribution strategy: To maintain lexicographic minimality, we must keep earlier elements as small as possible. Distributing any positive amount of $(L)$ to an earlier position would strictly increase the sequence lexicographically. Thus, the rational strategy is to add the entire $(L)$ to the last element.
+
+
+---
+
+**[CHAIN_06]**
+
+Constructing The Lexicographically Smallest Valid Plan
+
+**[THOUGHT_06_01]**
+
+Building the base sequence: Create two sequences: odds $(1, 3, \dots, 2T - 1)$ and evens $(2, 4, \dots, 2(K - T)).$ Merge them as in a two-pointer merge because each is already sorted. The result is strictly increasing and satisfies the required counts with minimal sum $(S).$
+
+**[THOUGHT_06_02]**
+
+Applying the leftover: Compute $(L = R - S).$ Since feasibility guarantees $(L)$ is an even nonnegative integer, add $(L)$ to the last element of the merged sequence. This preserves parity and distinctness because only the largest element grows and cannot collide with previous elements.
+
+**[THOUGHT_06_03]**
+
+Arguing lexicographic minimality: Suppose another valid sequence is lexicographically smaller. At the first position where it differs from the base, it must use a value smaller than our base. However, the base uses the smallest feasible value at each position given the parity counts and distinctness constraints. Any reduction would violate feasibility, so no such sequence exists. Therefore, all surplus must be placed at the end.
+
+**[THOUGHT_06_04]**
+
+Handling ties and counts: The merge order is deterministic because odd numbers start at $1$ and even numbers start at $2;$ at each step, the smaller next number is chosen. This ensures a canonical minimal base ordering without ambiguity or ties.
+
+**[THOUGHT_06_05]**
+
+Ensuring numerical safety: Since $(R)$ can be as large as $(10^{18})$ and $(S)$ can be on the order of $(K^2),$ intermediate calculations for $(S)$ and $(L)$ must use $128$-bit integers to avoid overflow before finally storing the resulting last element in $64$-bit, which is safe because output values do not exceed $(R).$
+
+**[THOUGHT_06_06]**
+
+Completing per-test processing: For each test case, the steps are: validate $(0 \le T \le K),$ check parity $(R \equiv T \pmod{2}),$ compute $(S),$ compare $(R \ge S).$ If any check fails, print $NO.$ Otherwise, build the base sequence in $(O(K)),$ add $(L)$ to the last element, and print $YES$ followed by the sequence.
+
+
+---
+
+**[CHAIN_07]**
+
+Validating Correctness And Addressing Edge Cases
+
+**[THOUGHT_07_01]**
+
+Proving necessity: If a valid sequence exists, it must meet $(R \equiv T \pmod{2})$ because the sum parity equals the count of odd terms modulo $2.$ Also, distinctness plus parity constraints imply the sum cannot be below $(S),$ the sum of the minimal odd and even sets respecting counts. Hence both conditions are necessary.
+
+**[THOUGHT_07_02]**
+
+Proving sufficiency: If $(R \ge S)$ and parity matches, $(L = R - S)$ is even. Adding $(L)$ to the largest element preserves its parity and maintains strict increasing order since the largest element only increases. Therefore, the constructed sequence is valid and achieves sum $(R).$
+
+**[THOUGHT_07_03]**
+
+Justifying lexicographic optimality: The merged base sequence is the lexicographically smallest among all sequences satisfying parity counts and distinctness because it greedily takes the smallest available value at each position. Any attempt to reduce an early element violates parity counts or distinctness. Therefore, any surplus must be placed at the end, keeping earlier positions minimal.
+
+**[THOUGHT_07_04]**
+
+Handling $(T = 0) or (T = K):$ When $(T = 0),$ the base consists of the first $(K)$ evens, sum $((K)(K + 1)).$ When $(T = K),$ the base consists of the first $(K)$ odds, sum $(K^2).$ In both cases, feasibility and construction proceed identically with the leftover added to the last element.
+
+**[THOUGHT_07_05]**
+
+Considering $(K = 1):$ There is a single element which must be $(R)$ itself. Parity condition reduces to: if $(T = 1), (R)$ must be odd; if $(T = 0), (R)$ must be even. The minimal base is either $([1]) or ([2])$ with leftover $(R - 1) or (R - 2),$ which is added to the only element, matching the direct reasoning.
+
+**[THOUGHT_07_06]**
+
+Avoiding collisions after adjustment: Since the leftover is added only to the last element, and all other elements are unchanged minimal distinct values, no equality arises. The new last element is strictly greater than the previous last element, maintaining strict increasing order.
+
+
+---
+
+**[CHAIN_08]**
+
+Analyzing Time And Space Complexity
+
+**[THOUGHT_08_01]**
+
+Per-test time complexity: Computing $(S)$ and checking parity and inequalities is $(O(1)).$ Building the base sequence by merging two arithmetic progressions of sizes $(T)$ and $(K - T)$ is $(O(K))$. Adding the leftover to the last element is $(O(1)).$ Therefore, the per-test complexity is $(O(K)).$
+
+**[THOUGHT_08_02]**
+
+Total time complexity across tests: Given the constraint that the sum of $(K)$ over all test cases is at most $(2 \cdot 10^5),$ the overall time is $(O\big(\sum K\big)),$ which comfortably fits typical time limits.
+
+**[THOUGHT_08_03]**
+
+Space complexity: Storing the answer requires $(O(K))$ space per test case, with negligible additional overhead. Intermediate computations use constant space regardless of $(K).$
+
+**[THOUGHT_08_04]**
+
+$I/O$ considerations: Using fast input-output is advisable due to potentially large $(Q),$ even though the total produced integers are bounded by $(\sum K).$ Streaming outputs without unnecessary buffering avoids memory spikes.
+
+
+---
+
+**[CHAIN_09]**
+
+Refining With Additional Edge And Adversarial Cases
+
+**[THOUGHT_09_01]**
+
+Case with large leftover: $((R, K, T) = (10^{12}, 3, 1)).$ Base is $([1, 2, 4])$ with sum $(7).$ Leftover $(10^{12} - 7)$ is even and large; adding to the last element yields $([1, 2, 10^{12} - 3]).$ Distinctness holds and lexicographic minimality is ensured.
+
+**[THOUGHT_09_02]**
+
+Case with zero leftover: $((R, K, T) = (K^2, K, K)).$ The base is $([1, 3, \dots, 2K - 1])$ summing to $(K^2).$ No addition is needed; this serves as a sanity check for all-odd configurations.
+
+**[THOUGHT_09_03]**
+
+Case at feasibility threshold: $((R, K, T) = (S + 2, K, T)).$ This is the smallest positive leftover. The algorithm must add exactly $2$ to the last element; any other distribution would either alter parity or hurt lexicographic optimality.
+
+**[THOUGHT_09_04]**
+
+Case with $(T = 0): ((R, K, T) = (8, 2, 0)).$ Base $([2, 4]),$ sum $(6),$ leftover $(2),$ final $([2, 6]).$ Confirms correct handling of all-even sequences.
+
+**[THOUGHT_09_05]**
+
+Case demonstrating impossibility: $((R, K, T) = (5, 2, 0)).$ Minimal sum for two evens is $ (2 + 4 = 6 > 5).$ The algorithm rejects due to $(R < S),$ which matches the mathematical impossibility.
+
+**[THOUGHT_09_06]**
+
+Case stressing ordering merge: $((R, K, T) = (11, 3, 1)).$ Merging odds $([1])$ and evens $([2, 4])$ results in $([1, 2, 4]),$ leftover $(4),$ final $([1, 2, 8]).$ Ensures the two-pointer merge yields the correct base order.
+
+
+---
+
+**[CHAIN_10]**
+
+Consolidating Implementation Decisions And Safeguards
+
+**[THOUGHT_10_01]**
+
+Ensuring safe arithmetic: Implement $(S = T^2 + (K - T)(K - T + 1))$ and $(L = R - S)$ using $128$-bit integers to prevent overflow. Casting back to $64$-bit is safe for the final sequence values because they do not exceed $(R)$ and are positive.
+
+**[THOUGHT_10_02]**
+
+Preserving invariants in code flow: The check ordering should be $(0 \le T \le K),$ parity $(R \equiv T \pmod{2}),$ and then $(R \ge S).$ Early exits on failure minimize unnecessary work and prevent building sequences for impossible cases.
+
+**[THOUGHT_10_03]**
+
+Constructing the base deterministically: Generate odds and evens implicitly using indices rather than materializing both lists, and perform a single pass merge using two counters. This reduces memory churn and keeps the construction simple and linear.
+
+**[THOUGHT_10_04]**
+
+Formatting the output: Print $YES$ followed by the constructed sequence in nondecreasing order. Maintain exactly one space between numbers and a newline at the end. In impossible cases, print only $NO.$ This consistent formatting is crucial for automated judging.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given $(Q)$ test cases. Each test case provides integers $(R)$ (required total sum), $(K)$ (number of elements), and $(T)$ (number of odd elements required). We must decide whether we can create a nondecreasing sequence of $(K)$ distinct positive integers that sums to $(R),$ with exactly $(T)$ odd numbers and $(K - T)$ even numbers. If possible, we must output the lexicographically smallest such sequence; otherwise, output $NO.$
+
+Key observations:
+- The parity of the sum equals the parity of the count of odd elements. Therefore, a necessary condition is that $(R)$ and $(T)$ have the same parity, i.e., $(R \equiv T \pmod{2}).$
+- The lexicographically smallest base configuration that meets counts and distinctness uses the smallest $(T)$ odd numbers $([1, 3, \dots, 2T - 1])$ and the smallest $(K - T)$ even numbers $([2, 4, \dots, 2(K - T)]).$
+- The minimal achievable sum under these constraints is $(S = T^2 + (K - T)(K - T + 1)).$ If $(R < S),$ it is impossible.
+- If $(R \ge S)$ and parity matches, the leftover $(L = R - S)$ is a nonnegative even number. To preserve lexicographic minimality, add all of $(L)$ to the largest element only.
+
+**2. Optimal Approach**
+
+We proceed with a direct constructive method:
+- Check feasibility:
+  - Ensure $(0 \le T \le K).$
+  - Ensure $(R \equiv T \pmod{2}).$
+  - Compute $(S = T^2 + (K - T)(K - T + 1))$ using $128$-bit intermediate arithmetic. If $(R < S),$ print $NO.$
+- Build the base sequence:
+  - Take the $(T)$ smallest odd numbers and the $(K - T)$ smallest even numbers.
+  - Merge them into a single strictly increasing sequence (already sorted by value).
+- Distribute leftover:
+  - Let $(L = R - S).$ Add $(L)$ to the last element. This preserves parity and distinctness and yields the lexicographically smallest valid sequence.
+- Output:
+  - Print $YES$ and the constructed sequence.
+
+This approach is linear in $(K)$ per test case and safe with $128$-bit intermediate arithmetic.
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <cstdint>
+
+using i128 = __int128_t;
+using namespace std;
+
+/**
+ * @brief Computes the minimal possible sum given counts of total elements and required odds.
+ *
+ * @param k Total number of elements to construct.
+ * @param t Required number of odd elements.
+ * @return The minimal sum S as a 128-bit integer.
+ */
+i128 computeMinimalSum(long long k, long long t) {
+    i128 tt = static_cast<i128>(t);
+    i128 e = static_cast<i128>(k - t);
+    // S = t^2 + e * (e + 1)
+    return tt * tt + e * (e + 1);
+}
+
+/**
+ * @brief Builds the lexicographically smallest strictly increasing base sequence
+ *        that contains exactly t odd numbers and (k - t) even numbers.
+ *
+ * @param k Total number of elements to construct.
+ * @param t Required number of odd elements.
+ * @param out Output vector to be filled with the base sequence.
+ */
+void buildBaseSequence(long long k, long long t, vector<long long> &out) {
+    out.clear();
+    out.reserve(static_cast<size_t>(k));
+    long long oddNeeded = t;
+    long long evenNeeded = k - t;
+    long long oddIdx = 1;  // Generates next odd as 2*oddIdx - 1
+    long long evenIdx = 1; // Generates next even as 2*evenIdx
+
+    while (oddIdx <= oddNeeded && evenIdx <= evenNeeded) {
+        long long nextOdd = 2 * oddIdx - 1;
+        long long nextEven = 2 * evenIdx;
+        if (nextOdd < nextEven) {
+            out.push_back(nextOdd);
+            ++oddIdx;
+        } else {
+            out.push_back(nextEven);
+            ++evenIdx;
+        }
+    }
+    while (oddIdx <= oddNeeded) {
+        out.push_back(2 * oddIdx - 1);
+        ++oddIdx;
+    }
+    while (evenIdx <= evenNeeded) {
+        out.push_back(2 * evenIdx);
+        ++evenIdx;
+    }
+}
+
+/**
+ * @brief Prints a sequence of integers separated by single spaces and ending with a newline.
+ *
+ * @param seq The vector of integers to print.
+ */
+void printSequence(const vector<long long> &seq) {
+    for (size_t i = 0; i < seq.size(); ++i) {
+        if (i) cout << ' ';
+        cout << seq[i];
+    }
+    cout << '\n';
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int testCount;
+    if (!(cin >> testCount)) {
+        return 0;
+    }
+    while (testCount--) {
+        long long r, k, t;
+        cin >> r >> k >> t;
+
+        // Validate counts
+        if (t < 0 || t > k) {
+            cout << "NO\n";
+            continue;
+        }
+
+        // Parity check: sum parity must equal count of odds parity
+        if ((r & 1LL) != (t & 1LL)) {
+            cout << "NO\n";
+            continue;
+        }
+
+        // Compute minimal sum safely in 128-bit
+        i128 s = computeMinimalSum(k, t);
+        if (s > static_cast<i128>(r)) {
+            cout << "NO\n";
+            continue;
+        }
+
+        // Construct base and add leftover to the last element
+        vector<long long> ans;
+        buildBaseSequence(k, t, ans);
+        i128 leftover = static_cast<i128>(r) - s;
+        long long add = static_cast<long long>(leftover); // Nonnegative and fits in 64-bit
+        ans.back() += add;
+
+        cout << "YES\n";
+        printSequence(ans);
+    }
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- Feasibility checks:
+  - If $(T)$ is not in $([0, K]),$ it is impossible.
+  - If the parity of $(R)$ differs from the parity of $(T),$ it is impossible because the sum of $(T)$ odd and $(K - T)$ even numbers has the same parity as $(T).$
+  - Compute the minimal possible sum $(S = T^2 + (K - T)(K - T + 1)).$ If $(R < S),$ it is impossible.
+- Base sequence construction:
+  - Generate the $(T)$ smallest odd numbers and the $(K - T)$ smallest even numbers and merge them in increasing order using two pointers. This yields a strictly increasing sequence with minimal sum and correct parity counts.
+- Final adjustment:
+  - Compute the leftover $(L = R - S),$ which is guaranteed to be an even nonnegative number when feasible. Add $(L)$ to the largest element. This preserves parity and distinctness while keeping earlier elements minimal, ensuring the lexicographically smallest sequence.
+- Output:
+  - Print $YES$ and the sequence when feasible; otherwise, print $NO.$
+
+Example execution on test $"20 4 2":$
+- Base odds: $([1, 3]),$ base evens: $([2, 4]).$ Merged base: $([1, 2, 3, 4])$ with $(S = 10).$
+- Leftover $(L = 20 - 10 = 10).$ Add to last: $([1, 2, 3, 14]).$
+
+**5. Time and Space Complexity**
+
+- Per test case:
+  - Feasibility checks and minimal sum computation are $(O(1)).$
+  - Constructing the base sequence is $(O(K)).$
+  - Adding the leftover and printing are $(O(K))$ due to output size.
+- Total over all test cases:
+  - The sum of $(K)$ over all test cases is bounded, so the overall time is $(O\big(\sum K\big)).$
+- Space:
+  - $(O(K))$ to store the sequence per test case, with constant extra space otherwise.
+
+**6. Conclusion**
+
+The problem reduces to a parity and minimal-sum feasibility check followed by a simple constructive strategy. Starting from the smallest possible odds and evens and assigning the entire leftover to the last element guarantees correctness, preserves distinctness and parity, and achieves the lexicographically smallest sequence in $(O(K))$ time per test case.

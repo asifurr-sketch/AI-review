@@ -1,0 +1,882 @@
+# Metadata
+
+**Category:** - Coding
+
+**Topic:** - Competitive Programming
+
+**Subtopic:** - ["Graph Algorithms", "Trees and Tries", "Algorithm Complexity and Big O Notation", "Stacks and Queues", "Arrays and Lists"]
+
+**Difficulty:** - Hard
+
+**Languages:** - Python
+
+**Number of Approaches:** - 5, (O(C(n,k) * k * n) -> O(n^3) -> O(n^2) -> O(n log n) -> O(n))
+
+**Number of Chains:** - 7
+
+**GitHub:** - https://github.com/NOI-gen/earliest_drip_index
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+**[Prompt]**
+
+**Earliest Drip Index**
+
+Time Limit: **2 seconds**
+
+Memory Limit: **32 MB**
+
+Given a tree with $n$ vertices labeled $1$ to $n$ and $n-1$ undirected edges, each edge $(u, v)$ having a positive integer weight $w$, exactly $k$ vertices contain drips. For each vertex $i$, you are given $Echo[i]$, the sum of the weighted distances from $i$ to all $k$ drip vertices (distance is the sum of edge weights along the unique path).
+
+Determine whether the given $Echo$ array is consistent with some placement of exactly $k$ drips. If it is, output the smallest index of a vertex that contains a drip; otherwise, output $-1$.
+
+**Input Format:-**
+
+- The first line contains an integer $T$, the number of test cases.
+- For each test case:
+  - The first line contains two integers $n$ and $k$.
+  - The next $n-1$ lines each contain three integers $u$, $v$, and $w$, denoting an edge of weight $w$ between $u$ and $v$.
+  - The last line contains $n$ integers: $Echo[1], Echo[2], \dots, Echo[n]$.
+
+**Output Format:-**
+
+For each test case, print a single integer: the smallest index of a vertex that contains a drip if the data is consistent, or $-1$ otherwise.
+
+**Constraints:-**
+
+- $2 \le n \le 2 \cdot 10^5$ per test case
+- $1 \le k \le n$
+- $1 \le w \le 10^9$
+- $0 \le Echo[i] \le 9 \cdot 10^{18}$
+- The sum of $n$ over all test cases does not exceed $2 \cdot 10^5$
+**Examples:-**
+ - **Input:**
+```
+1
+3 2
+1 2 1
+1 3 1
+5 7 7
+```
+
+ - **Output:**
+```
+-1
+```
+
+ - **Input:**
+```
+1
+4 2
+1 2 1
+2 3 1
+3 4 1
+5 3 1 1
+```
+
+ - **Output:**
+```
+3
+```
+
+**Note:-**
+In the first example, the tree is a star with center 1 and unit weights. Let \(\Delta_{1\to2} = Echo[2] - Echo[1] = 7 - 5 = 2\) on edge \((1,2)\) with \(w=1\). Using \(\Delta = w \cdot (k - 2c)\), we get \(2 = 1 \cdot (2 - 2c)\) so \(c = 0\): no drips lie in the component of vertex 2 after cutting \((1,2)\). Similarly on \((1,3)\), \(\Delta_{1\to3} = 7 - 5 = 2 \Rightarrow c = 0\). Thus both leaf components contain 0 drips, forcing all drips to be on the side of vertex 1 alone, which is impossible for \(k=2\) (drips must be on distinct vertices). Therefore the data is inconsistent and the answer is \(-1\).
+
+In the second example, the tree is a path \(1-2-3-4\) with unit weights. Placing drips at vertices \(\{3,4\}\) yields:
+- \(Echo[1] = d(1,3) + d(1,4) = 2 + 3 = 5\),
+- \(Echo[2] = d(2,3) + d(2,4) = 1 + 2 = 3\),
+- \(Echo[3] = d(3,3) + d(3,4) = 0 + 1 = 1\),
+- \(Echo[4] = d(4,3) + d(4,4) = 1 + 0 = 1\),
+which matches the given array. Among the drip vertices \(\{3,4\}\), the smallest index is \(3\), so the output is \(3\).
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Clarifying the problem requirements
+
+**[THOUGHT_01_01]**
+
+We are given a connected, acyclic, undirected graph with $n$ vertices
+(labeled $1$ to $n$) and $n-1$ edges; hence, the input structure is a
+tree. Each edge $(u, v)$ has a positive integer weight $w$ representing
+a tunnel length. The graph has exactly $k$ special vertices called
+"drips."
+
+
+**[THOUGHT_01_02]**
+
+For every vertex $i$, there is a provided value $Echo[i]$ equal to the
+sum of weighted distances from $i$ to all $k$ drip vertices. The
+weighted distance between two vertices is the sum of edge weights along
+their unique path in the tree.
+
+
+**[THOUGHT_01_03]**
+
+Our task is to verify consistency: determine whether there exists a set
+of exactly $k$ vertices that can act as drips such that for every vertex
+$i$, the sum of distances to these drips equals the given $Echo[i]$.
+
+
+**[THOUGHT_01_04]**
+
+If the data is consistent, we must output the smallest numbered vertex
+that contains a drip; otherwise, we output $-1$. The smallest index is
+well-defined because the placement, if it exists, is unique under the
+problem’s constraints.
+
+
+**[THOUGHT_01_05]**
+
+The input may contain multiple test cases. The constraints specify that
+the sum of $n$ across all test cases does not exceed $2 \cdot 10^5$,
+which implies that any per-test approach must be close to linear or
+$O(n \log n)$ to run within time limits.
+
+
+**[THOUGHT_01_06]**
+
+Edge weights can be large (up to $10^9$), and $Echo[i]$ can be as large
+as $9 \cdot 10^{18}$, necessitating careful handling of integer overflow
+in intermediate computations when validating or reconstructing values.
+
+
+---
+
+**[CHAIN_02]**
+
+Designing comprehensive test coverage
+
+**[THOUGHT_02_01]**
+
+Single drip ($k=1$): If there is a single drip at vertex $t$, then
+$Echo[i]$ should equal the distance from $i$ to $t$. This is a basic
+sanity case that can be used to check if the provided $Echo$ forms a
+valid tree distance profile to a single source.
+
+
+**[THOUGHT_02_02]**
+
+All vertices drip ($k=n$): Every vertex is a drip. Then $Echo[i]$
+becomes the sum of distances from $i$ to all vertices. Symmetry in
+trees implies consistent structural constraints; this stresses large
+accumulated values and overflow safety.
+
+
+**[THOUGHT_02_03]**
+
+Star topology: One center connected to all leaves. Distances are simple,
+and $Echo$ values tend to reflect linear combinations of edge weights and
+drip counts on leaves versus the center. This topology is ideal for
+catching parity and divisibility constraints.
+
+
+**[THOUGHT_02_04]**
+
+Chain topology (path graph): Distances are cumulative along the chain.
+This exposes corner cases where consecutive differences of $Echo$ might
+not align with edge weights, revealing inconsistencies.
+
+
+**[THOUGHT_02_05]**
+
+Zero entries in $Echo$: If some $Echo[i]=0$, then all drips must be at
+vertex $i$. This is only possible when $k=1$ with the drip at $i$. This
+tests extreme consistency constraints.
+
+
+**[THOUGHT_02_06]**
+
+Large weights and mixed scales: Use edges with weights both small and
+large. This helps uncover integer overflows, especially when computing
+differences and products contributing to anchors or checks.
+
+
+**[THOUGHT_02_07]**
+
+Parity traps: Construct inputs where $Echo[u]-Echo[p]$ is not divisible
+by the edge weight, or its parity contradicts $k$. Such cases must be
+rejected quickly and reliably.
+
+
+**[THOUGHT_02_08]**
+
+Multiple identical $Echo$ values across different vertices: Especially
+in symmetric trees, this validates that uniqueness of drip placement is
+not falsely broken by symmetric $Echo$ arrays.
+
+
+**[THOUGHT_02_09]**
+
+Random consistent instances: Generate random trees, choose $k$ drip
+vertices uniformly, compute $Echo$, and feed the result back to ensure
+acceptance.
+
+
+**[THOUGHT_02_10]**
+
+Random inconsistent instances: Randomize $Echo$ independently of the
+tree and $k$ to ensure rejection and to check robustness against
+spurious acceptances.
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing brute force
+
+**[THOUGHT_03_01]**
+
+First attempt: Enumerate every $k$-subset $S \subseteq \{1,\dots,n\}$ as
+a candidate set of drips. For each $S$, compute for every vertex $i$ the
+sum of distances to all vertices in $S$ and compare against $Echo[i]$.
+If there is a match for all $i$, return $\min(S)$; otherwise, continue.
+If no subset matches, return $-1$.
+
+
+**[THOUGHT_03_02]**
+
+Distance computation within the tree can be done via rerooting or
+precomputing pairwise distances. Without precomputation, for each
+candidate set, one might perform $k$ depth-first searches (DFS) or
+breadth-first searches (BFS) to accumulate distances, leading to
+$O(k \cdot n)$ per candidate while storing $O(n)$.
+
+
+**[THOUGHT_03_03]**
+
+Time complexity is dominated by the number of $k$-subsets:
+$O\big(\binom{n}{k} \cdot k \cdot n\big)$ if we recompute distances each
+time. Even with precomputed all-pairs distances, it becomes
+$O\big(\binom{n}{k} \cdot n\big)$. This is exponential in $n$ and
+infeasible for $n$ up to $2 \cdot 10^5$.
+
+
+**[THOUGHT_03_04]**
+
+Limitations: The combinatorial explosion renders this approach impossible
+even for modest $n$ (e.g., $n=50$). Memory for all-pairs distances is
+also prohibitive ($O(n^2)$) at maximum constraints. This failure
+necessitates an approach that avoids enumerating candidate sets entirely.
+
+
+---
+
+**[CHAIN_04]**
+
+Formulating and solving a linear system by Gaussian elimination
+
+**[THOUGHT_04_01]**
+
+Second attempt: Introduce indicator variables $x_j \in \{0,1\}$ for each
+vertex $j$, where $x_j=1$ if and only if vertex $j$ has a drip. For each
+vertex $i$, impose the equation
+$$
+\sum_{j=1}^{n} x_j \cdot dist(i,j) = Echo[i],
+$$
+along with the constraint
+$$
+\sum_{j=1}^{n} x_j = k.
+$$
+
+
+**[THOUGHT_04_02]**
+
+If we relax integrality and treat $x_j$ as real variables, we obtain a
+linear system with $n$ or $n+1$ equations and $n$ variables. One might
+apply Gaussian elimination in $O(n^3)$ time (or better with sparse
+methods, but still super-quadratic) to find a solution, then check if it
+is integral and binary.
+
+
+**[THOUGHT_04_03]**
+
+Challenges: The coefficient matrix is dense if we use all-pairs
+distances, consuming $O(n^2)$ memory. Numerical stability is a concern
+with large weights, and exact arithmetic would require big integers or
+rationals. Enforcing integrality after solving a relaxed system is
+nontrivial and can fail even when a real solution exists.
+
+
+**[THOUGHT_04_04]**
+
+Complexity: $O(n^3)$ time and $O(n^2)$ space. Although this is a
+significant improvement over the exponential brute force, it is still
+utterly infeasible for $n$ up to $2 \cdot 10^5$, and it does not
+naturally exploit the tree structure.
+
+
+**[THOUGHT_04_05]**
+
+Conclusion: Despite formal elegance, this approach is computationally
+intractable at the given scale and fails to leverage crucial tree
+identities. We must pivot to a method that capitalizes on tree edges and
+local relations.
+
+
+---
+
+**[CHAIN_05]**
+
+Precomputing all distances and validating by global recomposition
+
+**[THOUGHT_05_01]**
+
+Third attempt: Exploit the tree structure to compute distances from each
+vertex to all others with $n$ DFS runs, yielding an $n \times n$
+distance matrix in $O(n^2)$ time (and memory). The goal is to accelerate
+validation once we propose a candidate assignment for drips.
+
+
+**[THOUGHT_05_02]**
+
+Strategy: Use edge-based local relations (e.g., differences between
+neighboring vertices’ $Echo$) to infer counts or partial structure, then
+reconstruct a candidate drip set. After obtaining a candidate set,
+verify by recomputing $Echo$ from the all-pairs distances matrix:
+$$
+Echo'[i] = \sum_{j: x_j=1} dist(i,j),
+$$
+and check $Echo'[i] = Echo[i]$ for all $i$.
+
+
+**[THOUGHT_05_03]**
+
+Complexity: Distance precomputation is $O(n^2)$ time and space; final
+verification is $O(n^2)$ per test case in the worst case (since it
+requires summing over $k$ entries for $n$ vertices with $k=O(n)$). This
+is a strict improvement over $O(n^3)$ but remains far too slow for the
+given constraints and will exceed memory limits for $n=2 \cdot 10^5$.
+
+
+**[THOUGHT_05_04]**
+
+Limitations: Memory usage of $O(n^2)$ distances is prohibitive; time
+complexity $O(n^2)$ across up to $2 \cdot 10^5$ total $n$ is
+intractable. Moreover, this approach still over-verifies by recomputing
+global sums when local edge constraints might suffice.
+
+
+**[THOUGHT_05_05]**
+
+Conclusion: While closer to leveraging the tree, using all-pairs
+distances is still excessive. We need to reduce verification to near
+linear-time by relying only on edge-local identities and a small number
+of global checks.
+
+
+---
+
+**[CHAIN_06]**
+
+Applying heavy-light decomposition to accelerate path validations
+
+**[THOUGHT_06_01]**
+
+Fourth attempt: Use heavy-light decomposition (HLD) with a segment tree
+or Fenwick tree to handle path aggregations efficiently in $O(\log n)$
+time per query. The idea is to accelerate any necessary path sum or
+difference computations that arise during validation of $Echo$ values.
+
+
+**[THOUGHT_06_02]**
+
+Approach outline: Root the tree and compute local quantities along edges
+to infer substructure (e.g., counts flowing across edges). Use HLD to
+support any required path queries for validating $Echo$ values at each
+vertex or for aggregating contributions efficiently.
+
+
+**[THOUGHT_06_03]**
+
+Complexity: Preprocessing the HLD and segment tree is $O(n)$. Each path
+query or update becomes $O(\log n)$. Validating $n$ vertices or $n$ edges
+results in $O(n \log n)$ time. This strictly improves over $O(n^2)$ and
+fits within typical time constraints for $n$ up to $2 \cdot 10^5$.
+
+
+**[THOUGHT_06_04]**
+
+Limitations: Despite good asymptotics, this machinery may be
+over-engineering. The problem structure indicates that local
+edge-difference identities might allow pure $O(n)$ processing without
+any heavy data structures.
+
+
+**[THOUGHT_06_05]**
+
+Conclusion: This approach is viable but not minimal. The next step is to
+look for a linear-time solution using direct edge-local arithmetic,
+eliminating the need for HLD or segment trees while preserving correctness.
+
+
+---
+
+**[CHAIN_07]**
+
+Implementing linear-time edge-difference reconstruction
+
+**[THOUGHT_07_01]**
+
+Core insight: Root the tree at vertex $1$. For any edge between a
+parent $p$ and child $u$ with weight $w$, let $inside[u]$ be the number
+of drips in the subtree rooted at $u$. The $Echo$ difference identity is
+$$
+Echo[u] - Echo[p] = w \cdot (k - 2 \cdot inside[u]).
+$$
+This holds because drips inside $u$’s subtree get $w$ closer from $u$
+compared to $p$, while drips outside get $w$ farther.
+
+
+**[THOUGHT_07_02]**
+
+Recovering $inside[u]$: Define
+$$
+s = \frac{Echo[u] - Echo[p]}{w}.
+$$
+Then
+$$
+inside[u] = \frac{k - s}{2}.
+$$
+This demands three checks for every non-root node $u$:
+1) $Echo[u] - Echo[p]$ must be divisible by $w$,
+2) $(k - s)$ must be even,
+3) $0 \le inside[u] \le k$.
+If any check fails, the instance is inconsistent.
+
+
+**[THOUGHT_07_03]**
+
+Reconstructing drips from $inside$: If $C(v)$ denotes the set of
+children of $v$,
+- For non-root $v$,
+$$
+drip[v] = inside[v] - \sum_{c \in C(v)} inside[c].
+$$
+- For the root,
+$$
+drip[1] = k - \sum_{c \in C(1)} inside[c].
+$$
+Each $drip[v]$ must be either $0$ or $1$. If any is negative or larger
+than $1$, reject.
+
+
+**[THOUGHT_07_04]**
+
+Anchoring absolute values: The edge differences determine $Echo$ up to a
+constant shift. The anchor is $Echo[1]$. From inferred $inside$ values,
+the implied root echo is
+$$
+Echo'[1] = \sum_{u \ne 1} w(parent[u], u) \cdot inside[u].
+$$
+Consistency requires $Echo'[1] = Echo[1]$. If not, reject.
+
+
+**[THOUGHT_07_05]**
+
+Uniqueness and minimal index: The edge differences uniquely determine
+every $inside[u]$ and hence every $drip[v]$, resulting in a unique
+placement. The answer is the smallest index $i$ with $drip[i]=1$, or
+$-1$ if any prior check failed.
+
+
+**[THOUGHT_07_06]**
+
+Complexities:
+- Time: $O(n)$ per test case. One BFS/DFS to set parents and weights,
+one pass to compute $inside$, one pass to compute $drip$ and anchor.
+- Space: $O(n)$ for adjacency lists and arrays.
+Use $128$-bit integers in languages with fixed-width integers for
+differences and products. In Python, built-in integers suffice.
+
+
+**[THOUGHT_07_07]**
+
+Corner cases revisited under this method:
+- Parity/Divisibility mismatches on any edge immediately reject.
+- $k=1$: $inside[u]$ becomes $0$ or $1$, reconstructing a unique single
+drip; $Echo'[1]$ anchors the solution.
+- $k=n$: Every vertex is a drip; $inside$ counts saturate, and $drip[v]$
+becomes $1$ for all $v$ if consistent.
+- Zero $Echo[i]$: Only possible if $k=1$ and the drip is at $i$;
+otherwise rejection follows from parity/anchor.
+
+
+**[THOUGHT_07_08]**
+
+Presenting a compact Python helper for reconstruction:
+```python
+from collections import deque
+
+def compute_min_drip_index(n: int, k: int,
+                           edges: list[tuple[int, int, int]],
+                           echo: list[int]) -> int:
+    """
+    Reconstruct the drip placement using edge-difference identities and
+    return the smallest-indexed drip, or -1 if inconsistent.
+
+    Parameters:
+        n: number of vertices (1-indexed)
+        k: number of drips
+        edges: list of (u, v, w) edges with positive weights
+        echo: 1-based list where echo[i] is the sum of distances to drips
+
+    Returns:
+        Smallest i with drip at i if consistent; -1 otherwise.
+    """
+    g: list[list[tuple[int, int]]] = [[] for _ in range(n + 1)]
+    for u, v, w in edges:
+        g[u].append((v, w))
+        g[v].append((u, w))
+
+    parent: list[int] = [0] * (n + 1)
+    p_w: list[int] = [0] * (n + 1)
+    vis: list[bool] = [False] * (n + 1)
+    order: list[int] = []
+
+    q = deque([1])
+    vis[1] = True
+    while q:
+        u = q.popleft()
+        order.append(u)
+        for v, w in g[u]:
+            if not vis[v]:
+                vis[v] = True
+                parent[v] = u
+                p_w[v] = w
+                q.append(v)
+    if not all(vis[1:]):
+        return -1
+
+    inside: list[int] = [0] * (n + 1)
+    sum_child: list[int] = [0] * (n + 1)
+    anchor: int = 0
+
+    for u in order[1:]:
+        p = parent[u]
+        w = p_w[u]
+        delta = echo[u] - echo[p]
+        if delta % w != 0:
+            return -1
+        s = delta // w
+        t = k - s
+        if t & 1:
+            return -1
+        cu = t // 2
+        if cu < 0 or cu > k:
+            return -1
+        inside[u] = cu
+        sum_child[p] += cu
+        anchor += w * cu
+
+    drip: list[int] = [0] * (n + 1)
+    for u in reversed(order[1:]):
+        val = inside[u] - sum_child[u]
+        if val not in (0, 1):
+            return -1
+        drip[u] = val
+
+    root_val = k - sum_child[1]
+    if root_val not in (0, 1):
+        return -1
+    drip[1] = root_val
+
+    if sum(drip) != k:
+        return -1
+    if anchor != echo[1]:
+        return -1
+
+    for i in range(1, n + 1):
+        if drip[i] == 1:
+            return i
+    return -1
+```
+
+
+**[THOUGHT_07_09]**
+
+Improvements over prior attempts:
+- Eliminates enumeration of candidate sets entirely.
+- Avoids building or storing all-pairs distances.
+- Replaces global validation with a single anchor check and local edge
+constraints.
+- Reduces complexity from $O(n^2)$ or worse to $O(n)$ time and $O(n)$
+space per test case, aligned with input size constraints.
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+You are given a connected, acyclic, undirected weighted tree with
+$n$ vertices labeled $1$ to $n$. Each edge $(u, v)$ has a positive
+integer weight $w$. Exactly $k$ vertices contain drips.
+
+For each vertex $i$, you are given $Echo[i]$, the sum of weighted
+distances from $i$ to all $k$ drip vertices. The distance between two
+vertices is the sum of edge weights along their unique path.
+
+Task: Determine whether there exists a placement of exactly $k$ drips
+that matches the provided $Echo$ array. If consistent, return the
+smallest index of a vertex containing a drip; otherwise, return $-1$.
+
+Key observations:
+- Trees have unique simple paths, enabling local edge reasoning.
+- Differences of $Echo$ along edges reveal counts of drips in subtrees.
+
+
+**2. Optimal Approach**
+
+We use a linear-time reconstruction based on edge differences.
+
+1) Root the tree at vertex $1$ and compute parent pointers and the
+   parent edge weights. For a child $u$ with parent $p$ and edge weight
+   $w$, let $inside[u]$ denote the number of drips in $u$'s subtree.
+   The identity is:
+   $$
+   Echo[u] - Echo[p] = w \cdot (k - 2 \cdot inside[u]).
+   $$
+
+2) Solve for $inside[u]$:
+   $$
+   s = \frac{Echo[u] - Echo[p]}{w}, \quad inside[u] = \frac{k - s}{2}.
+   $$
+   Validate for each non-root $u$:
+   - $Echo[u] - Echo[p]$ is divisible by $w$,
+   - $(k - s)$ is even,
+   - $0 \le inside[u] \le k$.
+
+3) Reconstruct drips from subtree counts:
+   - For non-root $v$:
+     $$
+     drip[v] = inside[v] - \sum_{c \in children(v)} inside[c].
+     $$
+   - For the root:
+     $$
+     drip[1] = k - \sum_{c \in children(1)} inside[c].
+     $$
+   Ensure each $drip[v] \in \{0, 1\}$ and that $\sum_v drip[v] = k$.
+
+4) Anchor absolute values at the root:
+   $$
+   Echo'[1] = \sum_{u \ne 1} w(parent[u], u) \cdot inside[u].
+   $$
+   Require $Echo'[1] = Echo[1]$.
+
+5) If all checks pass, output the smallest vertex index with
+   $drip[v] = 1$; otherwise, output $-1$.
+
+
+**3. Code**
+```python
+from collections import deque
+import sys
+
+
+def compute_min_drip_index(
+        vertex_count: int,
+        drip_count: int,
+        edge_list: list[tuple[int, int, int]],
+        echo_values: list[int]
+) -> int:
+    """
+    Determine the smallest-indexed drip vertex if the Echo values are
+    consistent, otherwise return -1.
+
+    Parameters:
+        vertex_count: Total number of vertices in the tree (1-indexed).
+        drip_count: Exact number of vertices that must contain drips.
+        edge_list: List of edges as (u, v, w) with positive integer w.
+        echo_values: List of length vertex_count + 1, where echo_values[i]
+            is the given sum of distances from i to all drips. Index 0
+            is unused.
+
+    Returns:
+        The smallest vertex index containing a drip if consistent,
+        or -1 if no valid configuration exists.
+    """
+    if drip_count < 1 or drip_count > vertex_count:
+        return -1
+
+    graph: list[list[tuple[int, int]]] = [
+        [] for _ in range(vertex_count + 1)
+    ]
+    for left_vertex, right_vertex, edge_weight in edge_list:
+        graph[left_vertex].append((right_vertex, edge_weight))
+        graph[right_vertex].append((left_vertex, edge_weight))
+
+    parent_of: list[int] = [0] * (vertex_count + 1)
+    weight_to_parent: list[int] = [0] * (vertex_count + 1)
+    visited: list[bool] = [False] * (vertex_count + 1)
+    bfs_order: list[int] = []
+
+    bfs_queue: deque[int] = deque([1])
+    visited[1] = True
+    while bfs_queue:
+        current_vertex = bfs_queue.popleft()
+        bfs_order.append(current_vertex)
+        for neighbor_vertex, edge_weight in graph[current_vertex]:
+            if not visited[neighbor_vertex]:
+                visited[neighbor_vertex] = True
+                parent_of[neighbor_vertex] = current_vertex
+                weight_to_parent[neighbor_vertex] = edge_weight
+                bfs_queue.append(neighbor_vertex)
+
+    if not all(visited[1:]):
+        return -1
+
+    inside_count: list[int] = [0] * (vertex_count + 1)
+    sum_children_inside: list[int] = [0] * (vertex_count + 1)
+    anchor_root_echo: int = 0
+
+    for current_vertex in bfs_order[1:]:
+        parent_vertex = parent_of[current_vertex]
+        edge_weight = weight_to_parent[current_vertex]
+        delta_echo = (
+            echo_values[current_vertex] - echo_values[parent_vertex]
+        )
+
+        if delta_echo % edge_weight != 0:
+            return -1
+
+        s_value = delta_echo // edge_weight
+        t_value = drip_count - s_value
+        if t_value & 1:
+            return -1
+
+        inside_value = t_value // 2
+        if inside_value < 0 or inside_value > drip_count:
+            return -1
+
+        inside_count[current_vertex] = inside_value
+        sum_children_inside[parent_vertex] += inside_value
+        anchor_root_echo += edge_weight * inside_value
+
+    drip_indicator: list[int] = [0] * (vertex_count + 1)
+    for current_vertex in reversed(bfs_order[1:]):
+        value_here = (
+            inside_count[current_vertex] - sum_children_inside[current_vertex]
+        )
+        if value_here not in (0, 1):
+            return -1
+        drip_indicator[current_vertex] = value_here
+
+    root_value = drip_count - sum_children_inside[1]
+    if root_value not in (0, 1):
+        return -1
+    drip_indicator[1] = root_value
+
+    if sum(drip_indicator) != drip_count:
+        return -1
+
+    if anchor_root_echo != echo_values[1]:
+        return -1
+
+    for vertex_index in range(1, vertex_count + 1):
+        if drip_indicator[vertex_index] == 1:
+            return vertex_index
+    return -1
+
+
+def main() -> None:
+    """
+    Read input, process each test case, and write results to stdout.
+    """
+    token_generator = (
+        int(token)
+        for line in sys.stdin
+        for token in line.strip().split()
+    )
+
+    try:
+        test_count = next(token_generator)
+    except StopIteration:
+        return
+
+    output_lines: list[str] = []
+    for case_index in range(test_count):
+        vertex_count = next(token_generator)
+        drip_count = next(token_generator)
+
+        edge_list: list[tuple[int, int, int]] = []
+        for edge_index in range(vertex_count - 1):
+            left_vertex = next(token_generator)
+            right_vertex = next(token_generator)
+            edge_weight = next(token_generator)
+            edge_list.append((left_vertex, right_vertex, edge_weight))
+
+        echo_values: list[int] = [0]
+        for vertex_index in range(vertex_count):
+            echo_values.append(next(token_generator))
+
+        answer = compute_min_drip_index(
+            vertex_count,
+            drip_count,
+            edge_list,
+            echo_values
+        )
+        output_lines.append(str(answer))
+
+    sys.stdout.write("\n".join(output_lines))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+**4. Code Explanation**
+
+- The function compute_min_drip_index constructs the adjacency list
+  and performs a BFS from vertex 1 to compute parent_of, weight_to_parent,
+  and bfs_order.
+- For each non-root vertex current_vertex with parent parent_vertex and
+  edge_weight, it uses the identity
+  $Echo[u] - Echo[p] = w \cdot (k - 2 \cdot inside[u])$ to compute
+  inside_count[current_vertex], verifying divisibility, parity, and
+  bounds.
+- It accumulates sum_children_inside for each parent to enable drip
+  reconstruction and computes anchor_root_echo, the implied $Echo[1]$.
+- It reconstructs drip_indicator by subtracting child inside sums from
+  the node inside count, ensuring each value is $0$ or $1$. The root
+  drip is computed as $k$ minus the sum over its children.
+- It validates that exactly $k$ drips are present and that
+  anchor_root_echo matches echo_values[1].
+- It returns the smallest index where drip_indicator equals $1$.
+
+Example walkthrough:
+- Suppose on edge $(p, u)$ with weight $w$, $Echo[u] - Echo[p] = 3w$ and
+  $k = 5$. Then $s = 3$ and $inside[u] = (5 - 3)/2 = 1$. This indicates
+  exactly one drip within $u$'s subtree; it contributes $w$ to the root
+  anchor sum.
+
+
+**5. Time and Space Complexity**
+
+- Time complexity per test case: $O(n)$. BFS is $O(n)$; computing
+  inside counts is $O(n)$; reconstructing drips and checks is $O(n)$.
+- Space complexity per test case: $O(n)$ for the adjacency list and
+  auxiliary arrays.
+
+
+**6. Conclusion**
+
+By leveraging a local edge-difference identity intrinsic to trees, we
+reconstruct subtree drip counts and deduce a unique drip assignment (if
+consistent) in linear time. A single root anchor check validates the
+absolute scale of $Echo$. This approach efficiently decides consistency
+and returns the smallest-indexed drip or $-1$.

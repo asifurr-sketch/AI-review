@@ -1,0 +1,800 @@
+# Metadata
+
+**Category:** Coding
+
+**GitHub URL:** https://github.com/NOI-gen/the_night_watch_on_the_ember_rail
+
+**Topic:** Competitive Programming
+
+**Subtopic:** [Arrays and Lists, Graph Algorithms, Greedy Algorithms, Searching Algorithms, Algorithm Complexity and Big O Notation]
+
+**Difficulty Level:** Hard
+
+**Programming Language:** C++
+
+**Number of Approaches:** $4$, $O(2k\times k)$ per query, $O(k)$ per query, $O(1)$ per query (not correct), $O(n)$ preprocessing + $O(logn)$ per query.
+
+**Number of Chains:** $9$
+
+---
+
+**[User]**
+
+*Demark the start of the User's activity*
+
+---
+
+# Night Watch on the Ember Rail
+
+Time Limit: **1 second**
+
+Memory Limit: **32 MB**
+
+You are given an array $a$ of length $n$ and a safety "threshold $T$". The risk score between adjacent positions $i$ and $i+1$ equals $a[i] \times a[i+1]$. For each query "$[L, R]$", you may modify only $a[L..R]$, and each modified value must be an integer in $[1..T]$. Each query is independent. For each query, output the minimum number of recalibrations needed so that for all $L \le i < R$, the risk score $a[i] \times a[i+1] \le T$.
+
+## Input Format
+- Multiple test cases.
+- First line: $t$ — the number of test cases.
+- For each test case:
+  - Line: $n$ $q$ $T$
+  - Line: $a_1\ a_2\ \dots\ a_n$
+  - Next $q$ lines: $L\ R$
+
+## Output Format
+- For each test case, output one line with $q$ integers. The $i$-th integer is the minimum number of recalibrations for the $i$-th query.
+
+## Constraints
+- $1 \le t \le 200000$
+- $2 \le n \le 100000$
+- $1 \le q \le 100000$
+- $1 \le T \le 10^{12}$
+- $1 \le a_i \le T$
+- $1 \le L < R \le n$
+- Sum of $n$ over all test cases $\le 200000$
+- Sum of $q$ over all test cases $\le 200000$
+
+## Examples
+
+### Example 1
+Input:
+```
+1
+3 3 1000000000000
+1000000000000 1000000000000 1
+1 2
+2 3
+1 3
+```
+
+Output:
+```
+1 0 1
+```
+
+Notes:
+- For query $[1, 2],$ edge $(1,2)$ has product $10^12 · 10^12 > T,$ so one recalibration (set $a[1]$ $or$ $a[2]$ to $1$) suffices → $1.$
+- For query $[2, 3],$ edge $(2,3)$ has product $10^12 · 1 ≤ T,$ already safe → $0.$
+- For query $[1, 3],$ only edge $(1,2)$ is hot; one recalibration inside $[1,3]$ is enough → $1.$
+
+### Example 2
+Input:
+```
+5
+2 1 2
+2 2
+1 2
+3 2 6
+1 6 1
+1 3
+2 3
+3 2 5
+2 3 2
+1 3
+1 2
+4 3 8
+2 4 1 8
+1 4
+2 3
+3 4
+4 3 7
+2 4 2 4
+1 4
+1 2
+2 4
+```
+
+Output:
+```
+1
+0 0
+1 1
+0 0 0
+2 1 1
+```
+
+Notes:
+- Each line corresponds to a separate test case. For every query "$[L, R]",$ consider the edges between $L..R−1.$ A recalibration sets any value in $[1..T]$ (setting to $1$ neutralizes adjacent products). In this example, two recalibrations are sufficient to ensure that every pair of adjacent pods satisfies the safety threshold. The printed outputs match these minimal counts per query in order.
+
+---
+
+**[Assistant]**
+
+Demark the start of the Assistant's activity
+
+---
+
+**[CHAIN_01]**
+
+Understanding the Problem
+→ explains what pods and risks mean.
+
+**[THOUGHT_01_01]**
+
+Restating the task precisely helps identify the core computational object. We are given an array $a$ of length $n$ and a global "threshold $T$". For any adjacent positions $i$ and $i+1$, the "risk score" is $a[i] \times a[i+1]$. A query specifies a window $[L, R]$. Within this window only, we may recalibrate some positions by assigning them any integer from $[1, T]$, and each query is independent of others. The goal is to minimize the number of recalibrations so that for every $i$ with $L \le i < R$, the inequality $a[i] \times a[i+1] \le T$ holds.
+
+
+
+**[THOUGHT_01_02]**
+
+Reframing the constraints by converting values to edges exposes the structure. Define an "edge array" over indices $1 \dots n-1$, where edge $i$ connects vertices $i$ and $i+1$. An edge $i$ is "hot" if $a[i] \times a[i+1] > T$, and "cool" otherwise. For any query $[L, R]$, only edges in the index range $[L, R-1]$ matter. The question becomes: how many vertices in $[L, R]$ must we recalibrate so that every hot edge within $[L, R-1]$ is incident to at least one recalibrated vertex?
+
+
+**[THOUGHT_01_03]**
+
+Clarifying what recalibration achieves is crucial. When we set a position $x$ to any value in $[1, T]$, the strongest choice is $1$ because $1 \times a[y] \le T$ for any $a[y] \in [1, T]$. There is no penalty for setting to $1$, and it minimizes risk products. Therefore, without loss of generality, we assume recalibration sets a value to $1$. This simplifies reasoning, since recalibrating $x$ fixes at most the two edges incident on $x$.
+
+
+
+**[THOUGHT_01_04]**
+
+Exploring the structure of the requirement helps clarify what is being asked. Inside a query’s edge interval $[L, R-1]$, we must identify a set of vertices in $[L, R]$ such that every hot edge has at least one recalibrated endpoint. This restatement emphasizes the coverage requirement without invoking external reductions or approach choices.
+
+
+**[THOUGHT_01_05]**
+
+It is useful to recognize that cool edges act as natural separators. They break the path into independent hot segments. As a result, a query’s outcome can be reasoned about by examining each of these hot segments separately, since the recalibrations chosen for one segment do not influence those for another.
+
+
+**[THOUGHT_01_06]**
+
+Examining the limits of the input highlights the scale of the challenge. The sums of $n$ and $q$ across test cases are each bounded by $200000$. This indicates that queries can be both large in number and length, so any reasoning about the task must take into account the difficulty of handling such volumes of data. Another technical detail is that products $a[i] \times a[i+1]$ can exceed the 64-bit range, so higher precision arithmetic is required for safety.
+
+
+
+---
+
+**[CHAIN_02]**
+
+Constructing Comprehensive Test Cases
+
+**[THOUGHT_02_01]**
+
+Cover degenerate windows to validate edge indexing. A window of length one $[L, L]$ or input windows with $R = L+1$ yield an edge interval of size zero. The answer must be zero. Ensure that converting vertex interval $[L, R]$ to edge interval $[L, R-1]$ is correct and that boundary checks do not underflow or overflow indices.
+
+
+**[THOUGHT_02_02]**
+
+Include scenarios where all edges are cool. For example, $a = [1, 1, \dots, 1]$ or $a$ chosen so every product is $\le T$. All queries should return zero. This tests that we do not accidentally count non-hot edges and that the algorithm short-circuits appropriately.
+
+
+
+**[THOUGHT_02_03]**
+Test single long hot run. For instance, $a = [T, T, \dots, T]$ with $n \ge 3$ and $T \ge 2$ so that every adjacent product is $> T$ except possibly near bounds. For a query covering the entire array, the answer should be $\lceil (n-1)/2 \rceil$. This validates the run-based contribution $\lceil \ell / 2 \rceil$.
+
+
+
+**[THOUGHT_02_04]**
+
+Check multiple hot runs separated by cool edges. Example: risks pattern like $1, 1, 0, 1, 0, 1, 1, 1$ over edges. A query covering the whole range should equal the sum of $\lceil \ell/2 \rceil$ over each maximal run of ones. This verifies independence of disjoint components.
+
+
+**[THOUGHT_02_05]**
+
+Exercise partial overlap at both ends. Choose a query $[L, R]$ that starts and ends in the middle of hot runs. The answer should combine two partial-run contributions computed with $\lceil \text{partialLength} / 2 \rceil$ plus the full contributions of any runs completely inside. This tests the logic that counts at most two partial runs per query.
+
+
+**[THOUGHT_02_06]**
+
+Stress-test constraints and overflow handling. Use large $n$ and $q$ with adversarial data, such as alternating values causing many short runs, and values near $10^{12}$, to force $128$-bit multiplication when checking $a[i] \times a[i+1] > T$. Randomized tests should be compared with a slow checker on small arrays to confirm correctness.
+
+
+
+---
+
+**[CHAIN_03]**
+
+Implementing Brute Force
+
+**[THOUGHT_03_01]**
+
+Starting from first principles, we might try enumerating all subsets of positions in $[L, R]$ to recalibrate. For each subset, we test whether all edges in $[L, R-1]$ are safe after setting those positions to $1$, taking the smallest successful subset size as the answer. This is conceptually simple and directly solves the stated goal without further modeling.
+
+
+**[THOUGHT_03_02]**
+
+However, the combinatorial explosion is immediate. The window contains $k = R-L+1$ positions, so there are $2^k$ subsets to try. Even modest windows, say $k = 30$, lead to one billion trials per query, which is intractable. Since $q$ can be as large as $200000$ over all tests, this approach is not viable.
+
+
+
+**[THOUGHT_03_03]**
+
+Attempting to prune the search with heuristics (e.g., only recalibrate vertices adjacent to hot edges) still leaves exponential worst-case behavior because each vertex may or may not be chosen, and constraints propagate in interdependent ways along the path. We cannot safely and efficiently prune enough combinations in the worst case.
+
+
+
+**[THOUGHT_03_04]**
+
+Time and space complexity analysis underscores the limitation. Time is $O(2^{R-L+1} \cdot (R-L))$ per query due to subset enumeration and edge checking, and space is $O(1)$ aside from input. With $R-L$ potentially as large as $n-1$, the approach is fundamentally incompatible with the problem’s constraints.
+
+
+
+**[THOUGHT_03_05]**
+
+The conclusion from this exploration is that brute-force enumeration cannot handle the problem’s input limits. Even though it directly represents the task, the exponential growth of subsets makes it infeasible in both time and space when windows grow moderately large. Thus, brute force is ruled out as a practical method for this problem.
+
+
+
+---
+
+**[CHAIN_04]**
+
+Applying Per-Query Linear DP or Greedy on the Path.
+
+**[THOUGHT_04_01]**
+
+Recognizing that the underlying graph is a path suggests using classical results: the minimum vertex cover on a path equals the maximum matching, and both can be computed in linear time on the size of the component. A simple greedy for maximum matching on a path is to scan left to right and match an edge if both its endpoints are unmatched.
+
+
+
+**[THOUGHT_04_02]**
+
+In this setting, we can restrict attention to the subgraph induced by hot edges within $[L, R-1]$. We scan that edge interval, and where we encounter a hot run of length $\ell$, we add $\lceil \ell/2 \rceil$ to the answer. This can be done by identifying contiguous segments of hot edges within the window and summing their contributions.
+
+
+**[THOUGHT_04_03]**
+
+Correctness of this per-query linear approach follows from path properties. On any path segment, greedy maximum matching that matches the current edge and then skips the next yields an optimal solution. The size of that matching equals the minimum vertex cover, which is precisely the number of recalibrations when each recalibrated vertex is set to $1$.
+
+
+**[THOUGHT_04_04]**
+
+The issue is performance across many queries. Computing hot runs from scratch for each query entails scanning up to $R-L$ edges, making the per-query cost $O(R-L)$. In the worst case with many large windows, this leads to $O\!\left(\sum (R-L)\right)$, which can be $O(nq)$. With $n, q$ each up to $200000$ over all tests, this approach can exceed $10^{10}$ operations and time out.
+
+
+
+**[THOUGHT_04_05]**
+
+While this approach is theoretically sound and simple to implement, the constraints demand a faster per-query time. We need to amortize the work of identifying hot runs across queries, rather than re-derive them for each window.
+
+
+
+**[THOUGHT_04_06]**
+
+Edge cases are handled well by this approach (windows of size $1$, already-safe intervals, and mixed runs), but the time complexity remains the blocking factor. Thus, we must shift toward preprocessing that enables sublinear query time.
+
+
+
+**[THOUGHT_04_07]**
+
+The conclusion here is that a per-query linear scan or greedy method produces correct answers but becomes too slow under worst-case query loads. While it handles small cases and boundary conditions properly, its cost grows with the size of each query window, which does not align well with the given constraints.
+
+
+
+---
+
+**[CHAIN_05]**
+
+Attempting Prefix Sum Optimization
+
+**[THOUGHT_05_01]**
+
+A natural next thought is to precompute a prefix sum over the hot array $hot[1..n-1]$, so that any query could quickly count the number of hot edges in $[L, R-1]$. If the answer were simply the number of hot edges, prefix sums would suffice.
+
+
+
+**[THOUGHT_05_02]**
+
+However, the answer is not the number of hot edges. For a contiguous run of $\ell$ hot edges, the minimal recalibration count is $\lceil \ell/2 \rceil$, not $\ell$. Summing hot edges fails to account for the fact that one recalibration can fix two adjacent hot edges when placed at their shared vertex.
+
+
+
+**[THOUGHT_05_03]**
+
+A counterexample illustrates the limitation. Consider two separate single hot edges: pattern $1, 0, 1$ over edges. The correct answer is $1 + 1 = 2$. Now consider one run of two hot edges: pattern $1, 1$. The correct answer is $\lceil 2/2 \rceil = 1$. Both have two hot edges, but different answers. Therefore, a raw prefix sum over hot edges cannot distinguish runs and will miscount.
+
+
+
+**[THOUGHT_05_04]**
+
+One might attempt to annotate the prefix sums with additional state, such as whether positions end/start a run. But capturing the full run structure within a single prefix array becomes unwieldy, especially when queries can start and end inside runs, requiring careful partial-run accounting.
+
+
+**[THOUGHT_05_05]**
+
+The previous brute-force per-query scan $(O(n \times q))$ times out.
+Instead, precompute a binary array $“hot[i]” = 1$ if product $(i,i+1) > T.$ Prefix sums enable $O(1)$ range queries.
+
+---
+
+**[CHAIN_06]**
+
+Preprocessing Consecutive Hot Runs for Reuse
+
+**[THOUGHT_06_01]**
+
+We now precompute the global hot structure once per test case. First, build $hot[i]$ for all $i = 1 \dots n-1$: $hot[i] = 1$ if and only if $a[i] \times a[i+1] > T$. Since $T$ and $a[i]$ can be up to $10^{12}$, compute products in 128-bit integer space to avoid overflow when comparing to $T$.
+
+
+
+**[THOUGHT_06_02]**
+
+Next, decompose $hot$ into maximal runs of ones. For each run, record its edge-space start and end as $runStart[r]$ and $runEnd[r]$ (using a consistent index base). The length of run $r$ is $len_r = runEnd[r] - runStart[r] + 1$, and its contribution to any query fully covering the run is $contrib[r] = \lceil len_r / 2 \rceil$.
+
+
+
+**[THOUGHT_06_03]**
+
+Maintain a mapping $runId[i]$ from edge index $i$ to the run index $r$ if $hot[i] = 1$, or $-1$ if $hot[i] = 0$. This allows constant-time identification of whether a query’s boundary edge lies inside a run and, if so, which run it belongs to.
+
+
+
+**[THOUGHT_06_04]**
+
+Build a prefix sum array $pref[r]$ over $contrib[r]$ across runs in increasing order of $runStart$. With this, the sum of contributions for all runs whose entire edge intervals lie inside a query subrange can be obtained in $O(1)$ after binary searches for the leftmost and rightmost fully covered runs.
+
+
+**[THOUGHT_06_05]**
+
+The data structures required are simple arrays: $hot$ of size $n-1$, vectors for $runStart$, $runEnd$, $contrib$, $pref$, and $runId$ of size $n-1$. This keeps memory linear in $n$ and implementations straightforward.
+
+
+**[THOUGHT_06_06]**
+
+This preprocessing is $O(n)$ time per test case: one pass for computing $hot$, one pass to extract runs and fill $runId$, and one pass to build $pref$. It is done once per test case and reused for all queries.
+
+
+**[THOUGHT_06_07]**
+
+The payoff is that a query reduces to at most two partial-run computations (for the possibly cut runs at the window’s left and right edges) plus summing contributions of fully covered runs via two binary searches on $run Start$ and $run End$. This achieves $O(\log \text{n})$ per query time.
+
+
+**[THOUGHT_06_08]**
+
+Corner conditions in preprocessing: If $n = 1$, there are no edges. If $n \ge 2$ but $hot$ has no ones, then there are zero runs and $pref$ is empty. All such cases should be gracefully handled so that queries return zero without special branching beyond standard checks.
+
+
+---
+
+**[CHAIN_07]**
+
+Answering Queries with Partial Runs and Prefix Sums
+
+**[THOUGHT_07_01]**
+
+Convert a vertex window $[L, R]$ to the corresponding edge interval $[E_L, E_R] = [L, R-1]$. If $E_L > E_R$, the window contains no edges, and the answer is zero. This conversion centralizes all subsequent logic on the edge index line.
+
+
+**[THOUGHT_07_02]**
+
+Handle the left boundary: If edge $E_L$ lies inside a hot run (i.e., $runId[E_L] \neq -1$), compute the partial length from $E_L$ up to $\min(E_R, runEnd[runId[E_L]])$. Its contribution is $\lceil \text{partialLength} / 2 \rceil$. Then, advance the left pointer to just past that run’s end to avoid double counting.
+
+
+**[THOUGHT_07_03]**
+
+Handle the right boundary: If after processing the left boundary there remain edges and edge $E_R$ lies inside a hot run (i.e., $runId[E_R] \neq -1$), compute the partial length from $\max(\text{left}, runStart[runId[E_R]])$ to $E_R$, again contributing $\lceil \text{partialLength} / 2 \rceil$. Then, retreat the right pointer to just before that run’s start.
+
+
+**[THOUGHT_07_04]**
+
+Sum fully covered runs: Now the remaining interval $[\text{left}, \text{right}]$ (if any) contains only complete runs or cool areas. Use binary search on $runStart$ to find the first run with $runStart \ge \text{left}$, and on $runEnd$ to find the last run with $runEnd \le \text{right}$. Sum their $contrib$ using the $pref$ array in $O(1)$.
+
+
+**[THOUGHT_07_05]**
+
+This procedure counts at most two partial runs (left and right boundary overlaps) and any number of complete runs in between. Since runs are disjoint and cover all hot edges, every hot edge in the query is counted exactly once, and cool edges contribute zero.
+
+
+**[THOUGHT_07_06]**
+
+The overall per-query time is $O(\log \text{numberOfRuns})$ due to the two binary searches. In the worst case, the number of hot runs is at most $n-1$, but typically it is much smaller. The constant factors are low because the operations are array lookups and arithmetic.
+
+
+
+**[THOUGHT_07_07]**
+
+Each query is independent by design. We never mutate $a$ or $hot$; we only compute how many recalibrations would be necessary under an optimal strategy. This strictly adheres to the problem constraint that changes do not persist across queries.
+
+
+**[THOUGHT_07_08]**
+
+Boundary correctness checks: Ensure that the left partial run processing does not overshoot beyond $E_R$, and that when the same run touches both boundaries, it is not counted twice. This is handled by advancing and retreating the pointers around runs before summing full runs.
+
+
+---
+
+**[CHAIN_08]**
+
+Verifying Correctness and Guarding Against Pitfalls
+
+**[THOUGHT_08_01]**
+
+Correctness follows from a reduction to minimum vertex cover on a path. For any set of hot edges inside $[L, R-1]$, any feasible recalibration set must cover every hot edge. On a path, the minimum vertex cover equals the maximum matching. On a contiguous $\ell$-edge path, the matching size is $\lceil \ell/2 \rceil$. Our run-based contributions directly sum these optimal values across connected components.
+
+
+**[THOUGHT_08_02]**
+
+Partial-run contributions are also optimal. When a query cuts a run, we are effectively solving minimum vertex cover on a shorter path (the intersection). The same formula $\lceil \text{length}/2 \rceil$ applies, so independently computing contributions for the left and right cut segments is correct.
+
+
+**[THOUGHT_08_03]**
+
+Setting recalibrated positions to $1$ suffices and is safe. For any chosen set of vertices covering hot edges, setting each to $1$ ensures all covered hot edges become safe. Edges not covered and not hot remain safe because their risks do not increase when a neighbor is set to $1$. Edges partially outside the query window are irrelevant by definition of the task, which only constrains edges fully inside $[L, R-1]$.
+
+
+**[THOUGHT_08_04]**
+
+Avoiding double counting is mandatory. We guarantee this by at most counting two partial segments and by removing the corresponding run regions from the interval before summing full runs. If the entire edge interval lies within one run, we count it once via the left partial-run logic and skip further summations.
+
+
+**[THOUGHT_08_05]**
+
+Handling large values demands careful arithmetic. Since $a[i]$ and $T$ can be up to $10^{12}$, multiplying two $a[i]$ values may exceed $64$-bit range. We avoid overflow by performing the product in $128$-bit space and comparing against $T$ promoted to $128$-bit.
+
+
+
+**[THOUGHT_08_06]**
+
+Indexing discipline prevents off-by-one errors. Vertices are indexed $1 \dots n$, edges $1 \dots n-1$. Implementation commonly uses zero-based arrays, so converting $[L, R]$ to edge indices $[L-1, R-2]$ must be done consistently. All $runStart$ and $runEnd$ should be in the same index base as the edge interval and $runId$.
+
+
+**[THOUGHT_08_07]**
+
+Robustness across degenerate cases: If there are no hot runs, queries return zero quickly. If a query consists of one edge and it is hot, the answer is $\lceil 1/2 \rceil = 1$. If the query interval is empty in edge-space, the answer is zero. These sanity checks match expectations and support reliability.
+
+
+---
+
+**[CHAIN_09]**
+
+Analysing Time Complexity and Comparing Approaches
+
+
+**[THOUGHT_09_01]**
+
+Brute force enumeration has time $O(2^{R−L+1} · (R−L))$ per query and is infeasible for the given constraints.
+
+
+
+**[THOUGHT_09_02]**
+
+Per-query linear DP/greedy on the path is correct but can be $O(R−L)$ per query. In the worst case this leads to $O(n \times q)$ total work and is unacceptable for $n,q$ up to $2 \times 10^5.$
+
+
+
+
+**[THOUGHT_09_03]**
+
+A raw prefix sum over the hot array (counting hot edges) yields $O(1)$ range counts but is **incorrect** as shown in Chain_$05$: it cannot distinguish runs vs. separate edges and therefore miscomputes answers (the $⌈ℓ/2⌉$ nonlinearity per run matters).
+
+
+**[THOUGHT_09_04]**
+
+
+The run-decomposition approach (Chains_$06–07$) remedies this: decompose hot edges into maximal runs, precompute each run's contribution contrib$[r] = ⌈len_r/2⌉,$ store $runStart/runEnd/runId,$ and build a prefix sum over contrib. This captures the nonlinearity exactly while keeping preprocessing linear.
+
+
+**[THOUGHT_09_05]**
+
+Per query, handle at most two partial runs (left and right boundaries) in $O(1)$ each, and sum full runs’ contributions via two binary searches on $runStart/runEnd$ using the run-prefix in $O(log R)$ where $R$ is the number of runs. Thus each query is $O(log R)$ time $(O(log n)$ worst case).
+
+
+
+**[THOUGHT_09_06]**
+
+Complexities summary:
+- Preprocessing: $O(n)$ per test case (compute isHot, extract runs, compute run contributions and prefix).
+- Per query: $O(1)$ for boundary partials + $O(log R)$ for summing full runs → $O(log R)$ per query (worst-case $O(log n)).$
+- Total: $O(∑n + ∑q·log n)$ across all tests, which fits the constraints.
+
+
+
+**[THOUGHT_09_07]**
+
+A segment tree that stores richer per-segment info (contribution + boundary run flags) can also answer queries in $O(log n).$ However, it is more complex to implement and offers no asymptotic advantage for this static, offline setting: run decomposition + run-prefix achieves the same or better simplicity and performance. Therefore the run-decomposition + prefix approach is the preferred solution.
+
+
+
+---
+
+---
+
+**[RESPONSE]**
+
+**1. Problem Understanding**
+
+We are given an array $a$ of length $n$ and a threshold $T$. For each pair of adjacent positions $i$ and $i+1$, the risk is $a[i] \times a[i+1]$. A query specifies a window $[L, R]$. Within this window only, we may recalibrate some positions by assigning them any integer in $[1, T]$. Each query is independent and does not affect the array for other queries. The goal is to minimize the number of recalibrations so that, after recalibration, every edge within the window satisfies $a[i] \times a[i+1] \le T$ for all $L \le i < R$.
+
+**Constraints:**
+- $1 \leq t \leq 200000$ (number of test cases)
+- $2 \leq n \leq 100000$
+- $1 \leq q \leq 100000$
+- $1 \leq T \leq 10^{12}$
+- $1 \leq a_i \leq T$
+- $1 \leq L < R \leq n$
+- Sum of $n$ across all test cases $\leq 200000$
+- Sum of $q$ across all test cases $\leq 200000$
+
+Key observations:
+- Recalibrating a position to $1$ is always optimal, since $1 \times x \leq T$ for any $x \in [1, T]$.
+- Define hot edges: edge $(i, i+1)$ is hot if $a[i] \times a[i+1] > T$.
+- Recalibrating one vertex can fix up to two hot edges, so the problem reduces to covering hot edges with the minimum number of recalibrated vertices.
+- On a path, this is equivalent to finding the minimum vertex cover, which equals the maximum matching; for a contiguous run of $\ell$ hot edges, the answer is $\lceil \ell / 2 \rceil$.
+- Different runs are independent, so the result is the sum over runs intersecting the query window.
+
+
+**2. Optimal Approach**
+
+- **Step 1: Identify risky edges.**  
+  Look at every pair of neighbors in the array. If their product is greater than the threshold $T$, mark that edge as $“hot.”$ To avoid overflow, use a large enough integer type for the multiplication.
+
+- **Step 2: Group hot edges into runs.**  
+  Hot edges that appear consecutively form a run. For example, three hot edges in a row make a run of length $3.$ Each run is independent from others because safe edges break the chain.
+
+- **Step 3: Assign a cost to each run.**  
+  A run of length $\ell$ always needs $\lceil \ell / 2 \rceil$ recalibrations. This works because recalibrating one pod in the middle can fix two hot edges at once.
+
+- **Step 4: Precompute contributions.**  
+  For each run, store its start and end positions and its cost. Build a prefix sum over these costs so that later you can quickly add up the recalibration counts of multiple full runs.
+
+- **Step 5: Answer queries.**  
+  - Convert the query $[L, R]$ into an edge interval $[L, R-1]$.  
+  - If the interval cuts through the middle of a run at the left edge, calculate how many recalibrations are needed for that partial segment and move the left boundary past it.  
+  - Do the same if the interval cuts into a run at the right edge.  
+  - Any complete runs left in the middle can be summed directly using the prefix sums.  
+
+- **Step 6: Efficiency.**  
+  Preprocessing the array takes linear time in the number of edges. Each query only checks at most two partial runs and uses two binary searches for the prefix sums, giving logarithmic query time. This is efficient for the large constraints.
+
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstdint>
+
+/**
+ * @brief Returns the sum of contributions for runs fully within [leftEdge, rightEdge] in edge-space.
+ *
+ * Runs are represented by parallel arrays runStart and runEnd, and their precomputed contributions'
+ * prefix sums in prefixContrib. This function performs two binary searches to locate the index range
+ * of runs that lie fully within the given edge interval and returns the sum of their contributions.
+ */
+static long long sumFullRuns(const std::vector<int>& runStart,
+                             const std::vector<int>& runEnd,
+                             const std::vector<long long>& prefixContrib,
+                             int leftEdge,
+                             int rightEdge) {
+    if (leftEdge > rightEdge || runStart.empty()) {
+        return 0;
+    }
+    int runCount = static_cast<int>(runStart.size());
+
+    // First run that starts at or after leftEdge
+    int leftIndex = static_cast<int>(
+        std::lower_bound(runStart.begin(), runStart.end(), leftEdge) - runStart.begin()
+    );
+    // Last run that ends at or before rightEdge
+    int rightIndex = static_cast<int>(
+        std::upper_bound(runEnd.begin(), runEnd.end(), rightEdge) - runEnd.begin()
+    ) - 1;
+
+    if (leftIndex > rightIndex || leftIndex >= runCount || rightIndex < 0) {
+        return 0;
+    }
+    return prefixContrib[rightIndex] - (leftIndex ? prefixContrib[leftIndex - 1] : 0);
+}
+
+/**
+ * @brief Computes the minimal recalibrations for a query window [leftVertex, rightVertex].
+ *
+ * Converts the vertex window to an edge interval, accounts for at most two partial
+ * hot runs touching the edges, and sums contributions of fully covered runs using prefix sums.
+ */
+static long long answerQuery(int leftVertex,
+                             int rightVertex,
+                             int edgeCount,
+                             const std::vector<int>& runStart,
+                             const std::vector<int>& runEnd,
+                             const std::vector<long long>& prefixContrib,
+                             const std::vector<int>& runId) {
+    int edgeLeft = leftVertex - 1;
+    int edgeRight = rightVertex - 2;
+    if (edgeLeft > edgeRight) {
+        return 0;
+    }
+
+    long long recalibrations = 0;
+    int left = edgeLeft;
+    int right = edgeRight;
+
+    // Handle left partial run
+    if (left <= right && edgeCount > 0 && runId[left] != -1) {
+        int runIndex = runId[left];
+        int takeRight = std::min(right, runEnd[runIndex]);
+        int length = takeRight - left + 1;
+        recalibrations += (length + 1) / 2;
+        left = runEnd[runIndex] + 1;
+    }
+
+    // Handle right partial run
+    if (left <= right && edgeCount > 0 && runId[right] != -1) {
+        int runIndex = runId[right];
+        int takeLeft = std::max(left, runStart[runIndex]);
+        if (takeLeft <= right) {
+            int length = right - takeLeft + 1;
+            recalibrations += (length + 1) / 2;
+            right = runStart[runIndex] - 1;
+        }
+    }
+
+    // Add contributions of full runs in between
+    if (left <= right) {
+        recalibrations += sumFullRuns(runStart, runEnd, prefixContrib, left, right);
+    }
+
+    return recalibrations;
+}
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int testCaseCount;
+    if (!(std::cin >> testCaseCount)) {
+        return 0;
+    }
+
+    while (testCaseCount--) {
+        int vertexCount, queryCount;
+        long long threshold;
+        std::cin >> vertexCount >> queryCount >> threshold;
+
+        std::vector<long long> vertexValues(vertexCount);
+        for (int i = 0; i < vertexCount; ++i) {
+            std::cin >> vertexValues[i];
+        }
+
+        int edgeCount = vertexCount - 1;
+        std::vector<char> isHot(edgeCount, 0);
+
+        // Mark hot edges
+        for (int i = 0; i < edgeCount; ++i) {
+            __int128 product = static_cast<__int128>(vertexValues[i]) * static_cast<__int128>(vertexValues[i + 1]);
+            isHot[i] = (product > static_cast<__int128>(threshold));
+        }
+
+        // Decompose hot edges into runs
+        std::vector<int> runStart;
+        std::vector<int> runEnd;
+        std::vector<long long> runContribution;
+        std::vector<int> runId(edgeCount, -1);
+
+        for (int i = 0; i < edgeCount;) {
+            if (!isHot[i]) {
+                ++i;
+                continue;
+            }
+            int start = i;
+            int runIndex = static_cast<int>(runStart.size());
+            while (i < edgeCount && isHot[i]) {
+                runId[i] = runIndex;
+                ++i;
+            }
+            int end = i - 1;
+            runStart.push_back(start);
+            runEnd.push_back(end);
+            int length = end - start + 1;
+            runContribution.push_back((length + 1) / 2);
+        }
+
+        // Build prefix sums over run contributions
+        int runCount = static_cast<int>(runStart.size());
+        std::vector<long long> prefixContrib(runCount, 0);
+        for (int i = 0; i < runCount; ++i) {
+            prefixContrib[i] = runContribution[i] + (i ? prefixContrib[i - 1] : 0);
+        }
+
+        std::vector<long long> answers(queryCount, 0);
+        for (int i = 0; i < queryCount; ++i) {
+            int leftVertex, rightVertex;
+            std::cin >> leftVertex >> rightVertex;
+            answers[i] = answerQuery(leftVertex, rightVertex, edgeCount, runStart, runEnd, prefixContrib, runId);
+        }
+
+        // Output answers
+        for (int i = 0; i < queryCount; ++i) {
+            if (i) {
+                std::cout << ' ';
+            }
+            std::cout << answers[i];
+        }
+        std::cout << '\n';
+    }
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- We first convert the input array $vertexValues`$ into a hot-edge array where an edge is marked hot. if the product of its two endpoints exceeds threshold. To avoid overflow in this check, we use $128$-bit multiplication.
+- We then decompose the hot-edge array into maximal consecutive runs of hot edges. Each run contributes $\lceil \ell / 2 \rceil$ recalibrations if it is fully covered by a query.
+- For every run, we store its start index, end index, and contribution. We also build a prefix sum array over the contributions so that the recalibration counts of fully covered runs can be added quickly.
+- For each query $[leftVertex, rightVertex],$ we convert the window into the corresponding edge interval $[edgeLeft, edgeRight] = [leftVertex - 1, rightVertex - 2].$ We then:
+  - Add the contribution of the left partial run if the interval starts inside a hot run, then move the left boundary past that run.
+  - Add the contribution of the right partial run if the interval ends inside a hot run, then move the right boundary before that run.
+  - For any complete runs left in between, we add their contributions directly using binary searches and the prefix sum array.
+- This way, every hot edge is counted exactly once, and the result equals the minimum number of recalibrations needed in that query window.
+
+
+**Example execution**
+
+Input:
+
+```
+1
+3 3 1000000000000
+1000000000000 1000000000000 1
+1 2
+2 3
+1 3
+```
+
+Explanation:
+
+
+- We have $vertexCount = 3, queryCount = 3, and threshold = 10^12.$  
+- The array of values is $vertexValues = [10^12, 10^12, 1].$  
+- There are $edgeCount = 2$ edges:  
+  - Edge $0$ (between vertices $1$ and $2$): product = $10^{12} \times 10^{12} = 10^{24}$ → **hot**.  
+  - Edge $1$ (between vertices $2$ and $3$): product = $10^{12} \times 1 = 10^{12}$ → **safe**.  
+- So the hot-edge array is $[1, 0].$ This forms one run of length $1$ (edge $0$ only).
+
+Now process the queries:
+
+$1.$ **Query $[1, 2]$** → edge interval $[0, 0].$  
+   - Only edge 0 is included, which is hot.  
+   - Contribution = $\lceil 1/2 \rceil = 1$.  
+   - **Answer = 1**.
+
+$2.$ **Query $[2, 3]$** → edge interval $[1, 1].$  
+   - Only edge $1$ is included, which is safe.  
+   - No recalibrations needed.  
+   - **Answer = 0**.
+
+$3.$ **Query $[1, 3]$** → edge interval $[0, 1].$  
+   - Includes edge $0$ (hot) and edge $1$ (safe).  
+   - Only one hot edge is inside.  
+   - Contribution = $1$ recalibration.  
+   - **Answer = 1**.
+
+Final output for this test case:  
+```
+1 0 1
+```
+
+**5. Time and Space Complexity**
+
+- Preprocessing per test case:
+  - Building hot edges: $O(n)$.
+  - Decomposing into runs and mapping run ids: $O(n)$.
+  - Building prefix sums: $O(\text{numberOfRuns}) \le O(n)$.
+- Per query:
+  - Handling at most two partial runs: $O(1)$.
+  - Summing fully covered runs via two binary searches: $O(\log \text{numberOfRuns})$.
+- Total across all tests: $O\big(\sum n\big) + O\big(\sum q \cdot \log n\big)$.
+- Space complexity: $O(n)$ for hot edges, runs, mapping, and prefix sums.
+
+**6. Conclusion**
+
+By reducing the problem to minimum vertex cover on path segments of hot edges, we exploit the fact that on a path the optimal cover size equals the maximum matching size. Precomputing maximal hot runs and their contributions, and answering queries by counting at most two partial runs plus fully covered runs via prefix sums and binary searches, yields an efficient and clean $O(n)$ preprocessing and $O(\log n)$ per-query solution. The approach is both theoretically sound and practical within the given constraints.

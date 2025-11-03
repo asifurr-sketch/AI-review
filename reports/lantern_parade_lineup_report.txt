@@ -1,0 +1,795 @@
+📋 COMPLETE EXECUTION LOG
+======================================================================
+
+🔍 Running complete review (AI + GitHub)...
+======================================================================
+🚀 Starting 33 AI reviews...
+🔄 1. Unique Solution Validation - Starting...
+🔄 2. Time Complexity Authenticity Check - Starting...
+🔄 3. Style Guide Compliance - Starting...
+🔄 4. Naming Conventions - Starting...
+🔄 5. Documentation Standards - Starting...
+🔄 6. Response Relevance to Problem - Starting...
+🔄 7. Mathematical Equations Correctness - Starting...
+🔄 8. Problem Constraints Consistency - Starting...
+🔄 9. Missing Approaches in Steps - Starting...
+🔄 10. Code Elements Existence - Starting...
+🔄 11. Example Walkthrough with Optimal Algorithm - Starting...
+🔄 12. Time and Space Complexity Correctness - Starting...
+🔄 13. Conclusion Quality - Starting...
+🔄 14. Problem Statement Consistency - Starting...
+🔄 15. Solution Passability According to Limits - Starting...
+🔄 16. Metadata Correctness - Starting...
+🔄 17. Test Case Validation - Starting...
+🔄 18. Sample Test Case Dry Run Validation - Starting...
+🔄 19. Note Section Explanation Approach - Starting...
+🔄 20. Inefficient Approaches Limitations - Starting...
+🔄 21. Final Approach Discussion - Starting...
+🔄 22. No Code in Reasoning Chains - Starting...
+🔄 23. Subtopic Taxonomy Validation - Starting...
+🔄 24. Time Limit Validation - Starting...
+🔄 25. Memory Limit Validation - Starting...
+🔄 26. Typo and Spelling Check - Starting...
+🔄 27. Subtopic Relevance - Starting...
+🔄 28. Missing Relevant Subtopics - Starting...
+🔄 29. No Predictive Headings in Thoughts - Starting...
+🔄 30. Chain Test Case Analysis Validation - Starting...
+🔄 31. Thought Heading Violations Check - Starting...
+🔄 32. Mathematical Variables and Expressions Formatting - Starting...
+🔄 33. Comprehensive Reasoning Thoughts Review - Starting...
+✅ 1. Unique Solution Validation - ✅ PASS (37.4s)
+❌ 5. Documentation Standards - ❌ FAIL (43.5s)
+✅ 4. Naming Conventions - ✅ PASS (44.7s)
+✅ 6. Response Relevance to Problem - ✅ PASS (56.4s)
+❌ 7. Mathematical Equations Correctness - ❌ FAIL (61.9s)
+❌ 8. Problem Constraints Consistency - ❌ FAIL (62.6s)
+✅ 3. Style Guide Compliance - ✅ PASS (64.1s)
+❌ 2. Time Complexity Authenticity Check - ❌ FAIL (86.7s)
+✅ 10. Code Elements Existence - ✅ PASS (56.8s)
+❌ 11. Example Walkthrough with Optimal Algorithm - ❌ FAIL (58.1s)
+❌ 9. Missing Approaches in Steps - ❌ FAIL (67.6s)
+✅ 12. Time and Space Complexity Correctness - ✅ PASS (63.9s)
+✅ 15. Solution Passability According to Limits - ✅ PASS (58.7s)
+✅ 13. Conclusion Quality - ✅ PASS (73.4s)
+❌ 16. Metadata Correctness - ❌ FAIL (61.2s)
+❌ 19. Note Section Explanation Approach - ❌ FAIL (49.4s)
+✅ 22. No Code in Reasoning Chains - ✅ PASS (35.3s)
+✅ 24. Time Limit Validation - ✅ PASS (17.7s)
+✅ 23. Subtopic Taxonomy Validation - ✅ PASS (32.4s)
+✅ 14. Problem Statement Consistency - ✅ PASS (118.9s)
+✅ 21. Final Approach Discussion - ✅ PASS (61.3s)
+✅ 25. Memory Limit Validation - ✅ PASS (19.0s)
+✅ 17. Test Case Validation - ✅ PASS (97.6s)
+❌ 26. Typo and Spelling Check - ❌ FAIL (30.3s)
+✅ 20. Inefficient Approaches Limitations - ✅ PASS (87.2s)
+✅ 29. No Predictive Headings in Thoughts - ✅ PASS (57.0s)
+❌ 27. Subtopic Relevance - ❌ FAIL (63.4s)
+❌ 28. Missing Relevant Subtopics - ❌ FAIL (73.0s)
+❌ 30. Chain Test Case Analysis Validation - ❌ FAIL (66.4s)
+✅ 31. Thought Heading Violations Check - ✅ PASS (70.5s)
+✅ 18. Sample Test Case Dry Run Validation - ✅ PASS (171.6s)
+❌ 33. Comprehensive Reasoning Thoughts Review - ❌ FAIL (92.2s)
+❌ 32. Mathematical Variables and Expressions Formatting - ❌ FAIL (205.4s)
+✅ AI reviews completed: 19 passed, 14 failed
+🔄 Running GitHub validation...
+✅ GitHub validation: 4/8 passed
+
+
+📋 FINAL SUMMARY REPORT - ULTIMATE POINT ANALYSIS
+======================================================================
+
+📊 SUMMARY: GitHub: 4/8 passed | AI: 19/33 passed
+⚠️  18 review(s) failed (GitHub: 4, AI: 14)
+
+⚠️  OVERALL STATUS: SOME REVIEWS FAILED
+
+======================================================================
+
+📝 1. UNIQUE SOLUTION VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 2. DOCUMENTATION STANDARDS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Global constants (lines 6-8) missing Doxygen documentation:
+  - `static const int kMod = 1'000'000'007;`
+  - `static const int kMaxRating = 10;`
+  - `static const int kMaxF = 50;`
+
+• Main function (starting line 35) lacks Doxygen documentation - should document purpose, return value, and overall algorithm flow
+
+• Lambda function `getIndex` (lines 84-86) lacks documentation explaining purpose and parameters:
+  ```cpp
+  auto getIndex = [&](int state, int adv) -> int {
+      return state * width + (adv + offset);
+  };
+  ```
+
+--------------------------------------------------
+
+📝 3. NAMING CONVENTIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 4. RESPONSE RELEVANCE TO PROBLEM
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 5. MATHEMATICAL EQUATIONS CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Metadata section error: Under "Number of Approaches", the progression "$O(n! \cdot n) \to O(n \log n) \to O(n^2 \cdot 2^n) \to O(S \cdot n \cdot R)$" includes $O(n \log n)$ complexity that doesn't correspond to any valid approach described in the document
+
+• The document explicitly states greedy approaches (which would have $O(n \log n)$ sorting complexity) are "fundamentally unsuitable for enumerating or counting all lineups" and don't solve the problem
+
+• Only three valid approaches are described: Brute force enumeration $O(n! \cdot n)$, Bitmask DP $O(n^2 \cdot 2^n)$, and Rating-count DP $O(S \cdot n \cdot R)$
+
+• The $O(n \log n)$ reference in metadata contradicts the content's explanation of why greedy approaches fail for this counting problem
+
+--------------------------------------------------
+
+📝 6. PROBLEM CONSTRAINTS CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Missing constraint on number of test cases: Response only mentions "t can be large in practice" but never states the specific bound "1 ≤ t ≤ 100"
+
+• Missing time limit constraint: 2 seconds is never mentioned anywhere in the response
+
+• Missing memory limit constraint: 256 MB is never mentioned anywhere in the response
+
+• No formal constraints section: Response lacks a consolidated section that lists all problem constraints together
+
+• Incomplete constraint specification in THOUGHT_01_04: States "The number of test cases t can be large in practice" instead of providing the exact bound "1 ≤ t ≤ 100"
+
+• Incomplete constraint specification in Problem Understanding section: Only mentions "n ≤ 14, ratings in {1, ..., 10}" but omits the bounds on t and the time/memory limits
+
+--------------------------------------------------
+
+📝 7. STYLE GUIDE COMPLIANCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 8. TIME COMPLEXITY AUTHENTICITY CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Metadata includes incorrect approach: The greedy O(n log n) is listed but Chain 04 explicitly states it "is fundamentally unsuitable for enumerating or counting all lineups" and Chain 10 confirms it's "incorrect for counting and discarded"
+
+• Count inconsistency: Claims 4 approaches and lists 4 complexities, but only 3 are valid solutions
+
+• Extra text violation: The format includes "-$4,$" mixed with the complexity expressions, violating the requirement for no extra text
+
+• Variable-based requirement violation: The final complexity O(S · n · R) uses S (state count) and R (rating count) which are implementation-specific derived variables, not problem variables. Problem statement only mentions t (test cases) and n (number of lanterns, 1 ≤ n ≤ 14)
+
+• Correctness violation: The greedy approach O(n log n) doesn't solve the counting problem correctly, as explicitly stated in the document
+
+• Field placement issue: The complexities are embedded in the "Number of Approaches" field rather than a dedicated "Time Complexity" field
+
+--------------------------------------------------
+
+📝 9. CODE ELEMENTS EXISTENCE
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 10. EXAMPLE WALKTHROUGH WITH OPTIMAL ALGORITHM
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• FAIL - Inadequate Example Walkthrough: Response includes only trivial example in Section 4 (Code Explanation) using n=1 with Northlight [5] and Southwind [4], showing s=1, result=1
+
+• FAIL - Missing detailed walkthrough: Problem provides two examples (n=5 yielding 14, and n=7 yielding 1200) but response fails to walk through either
+
+• FAIL - Insufficient demonstration for Hard difficulty problem: Single n=1 example is inadequate for complex state transitions and multi-dimensional DP algorithm
+
+• FAIL - Missing step-by-step process demonstration: Should show how DP states are initialized, step-by-step processing of Southwind lanterns, how used-count vector U evolves, how advantage s changes with each pairing decision, factorial multiplication for label restoration, and verification of final answer
+
+• FAIL - Missing n=5 case walkthrough: Should demonstrate initial frequency counts A=[1:1, 2:1, 3:1, 5:1, 7:1], B=[2:1, 3:1, 4:1, 5:1, 6:1], processing each Southwind lantern with state transitions, different pairing choices leading to different advantages, final multiplication by factorials, and arriving at answer of 14
+
+--------------------------------------------------
+
+📝 11. MISSING APPROACHES IN STEPS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• MISSING APPROACH: O(n log n) approach listed in metadata is not explained in the document
+
+• LOCATION: Metadata claims 4 approaches including O(n log n), but document only explains 3 valid approaches
+
+• SPECIFIC ISSUE: CHAIN_04 discusses "greedy pairing heuristics" involving sorting, but document correctly identifies that greedy/sorting approaches can only find ONE optimal lineup, not COUNT all winning lineups
+
+• CRITICAL GAP: No valid O(n log n) counting algorithm is explained anywhere in the document
+
+• METADATA MISMATCH: Document jumps from explaining why greedy doesn't work directly to bitmask DP, leaving the claimed O(n log n) approach unexplained
+
+• THEORETICAL ISSUE: For a counting problem with potentially O(n!) valid outputs, an O(n log n) algorithm seems theoretically implausible unless there's a special structure not discussed
+
+--------------------------------------------------
+
+📝 12. TIME AND SPACE COMPLEXITY CORRECTNESS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 13. SOLUTION PASSABILITY ACCORDING TO LIMITS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 14. CONCLUSION QUALITY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 15. METADATA CORRECTNESS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Number of Approaches field - FORMAT ERROR: Missing space between dash and value (shows "-$4,$" instead of "- 4," or "- $4,$")
+
+• Number of Approaches field - CONTENT ERROR: The complexity progression includes O(n log n) which doesn't match any approach in the document. The document discusses:
+  1. Brute force: O(n! · n) 
+  2. Greedy heuristics (not a valid counting approach, no complexity given)
+  3. Bitmask DP: O(n² · 2^n)
+  4. Rating-count DP: O(S · n · R)
+
+--------------------------------------------------
+
+📝 16. NOTE SECTION EXPLANATION APPROACH
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Note section reveals algorithmic strategy: "fix Northlight's order and permute Southwind's lanterns" - directly exposes solution approach
+
+• Note section provides decomposition methodology: identifies "guaranteed loss and guaranteed win" lanterns and explains focusing on subset that "matter" - reveals problem decomposition insights
+
+• Note section shows counting patterns: explicitly breaks down successful lineups into specific patterns with detailed counting ("2 × 3 × 2 = 12") - exposes combinatorial counting methodology
+
+• Note section demonstrates systematic enumeration: explains "Count by the B given to A=6" and shows how to multiply by permutations (4! = 24) - reveals systematic approach to solving
+
+• Note section provides step-by-step solution walkthrough: lists specific cases like "If A=6 gets 2 (2 choices)..." with exact counting for each scenario - essentially a solution sketch
+
+--------------------------------------------------
+
+📝 17. NO CODE IN REASONING CHAINS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 18. TIME LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 19. SUBTOPIC TAXONOMY VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 20. PROBLEM STATEMENT CONSISTENCY
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 21. FINAL APPROACH DISCUSSION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 22. MEMORY LIMIT VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 23. TEST CASE VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 24. TYPO AND SPELLING CHECK
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Typo Found: The word "Demark" appears twice in the document:
+  - Line: "Demark the start of the User's activity"
+  - Line: "Demark the start of the Assistant's activity"
+
+• "Demark" is not a standard English word. The correct word should be either "Demarcate" (meaning to set boundaries or mark the limits of something) or "Mark" (simpler alternative)
+
+• FINAL VERDICT: FAIL
+
+--------------------------------------------------
+
+📝 25. INEFFICIENT APPROACHES LIMITATIONS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 26. NO PREDICTIVE HEADINGS IN THOUGHTS
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 27. SUBTOPIC RELEVANCE
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• "Backtracking Algorithms" - Not genuinely relevant. While Chain 03 discusses brute force enumeration that could theoretically use backtracking for generating permutations, this approach is explicitly rejected as infeasible. None of the viable solutions (the DP approaches) use backtracking. This subtopic doesn't contribute to solving the problem.
+
+• "Sorting Algorithms" - Not relevant to the actual solution. Only mentioned briefly in Chain 04 when discussing a greedy heuristic that sorts both sides before pairing. This approach is explicitly rejected as inadequate for the counting problem. The viable DP solutions don't use sorting at all.
+
+• Metadata claims one approach has O(n log n) complexity, but this complexity never appears in any of the reasoning chains. The actual progression discussed is O(n! · n) → O(n^2 · 2^n) → O(S · n · R). This suggests a mismatch between the metadata and the actual content.
+
+• Two of the five subtopics ("Backtracking Algorithms" and "Sorting Algorithms") are only tangentially mentioned in approaches that were explicitly rejected as inadequate or infeasible. They don't contribute to understanding the actual solution.
+
+--------------------------------------------------
+
+📝 28. MISSING RELEVANT SUBTOPICS
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Missing subtopic: "Memoization" - The dynamic programming solution uses memoization to store and reuse computed subproblems. The DP table (dp[state][advantage]) is fundamentally a memoization structure that avoids recomputing solutions for the same state.
+
+• Missing subtopic: "Greedy Algorithms" - Explicitly discussed in Chain 04 where greedy pairing heuristics are explored as a potential approach. While ultimately rejected for the counting problem, this exploration is a significant part of the solution development process.
+
+• Missing subtopic: "Computational Complexity Theory" - While "Algorithm Complexity and Big O Notation" is included, the document goes deeper into computational complexity theory concepts like counting problems, the infeasibility of factorial-time algorithms, and state space reduction techniques.
+
+--------------------------------------------------
+
+📝 29. CHAIN TEST CASE ANALYSIS VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• CHAIN_02, THOUGHT_02_01: Lists test cases with expected results but provides no execution trace or walkthrough
+
+• CHAIN_02, THOUGHT_02_02: States "every lineup ties all pairs" without demonstrating the actual pairing process
+
+• CHAIN_02, THOUGHT_02_03: Provides expected answers (2, 6) without showing how these are calculated step-by-step
+
+• CHAIN_02, THOUGHT_02_04: Claims "every pairing gives one win and one loss" without actually walking through the pairings
+
+• CHAIN_02, THOUGHT_02_05: Discusses what "should" be handled but doesn't perform actual test case execution
+
+• CHAIN_02, THOUGHT_02_06: Only suggests constructing test cases, no actual execution
+
+• Missing actual step-by-step pairing demonstrations
+
+• Missing execution traces showing how advantages are calculated
+
+• Missing detailed walkthroughs of how specific lineups are evaluated
+
+• Missing manual tracing through algorithm steps for concrete examples
+
+• Chain only provides test case suggestions and expected outputs without derivation instead of comprehensive test case validation
+
+--------------------------------------------------
+
+📝 30. THOUGHT HEADING VIOLATIONS CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 31. SAMPLE TEST CASE DRY RUN VALIDATION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 32. COMPREHENSIVE REASONING THOUGHTS REVIEW
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• THOUGHT_01_05: "The latter approach is promising due to the small rating alphabet" - Contains information about efficiency of approaches, violating criterion 1.d which states Chain 1 should not contain information about approaches that are efficient or inefficient in solving the problem.
+
+--------------------------------------------------
+
+📝 33. MATHEMATICAL VARIABLES AND EXPRESSIONS FORMATTING
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "(3 choices after choosing for" - Should be: "($3$ choices after choosing for"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "go to A=1 and A=7 in 2 orders" - Should be: "go to $A=1$ and $A=7$ in $2$ orders"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "win at A=5 (must be 4)" - Should be: "win at $A=5$ (must be $4$)"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "go to A=1 and A=7 in 2 orders" (second occurrence) - Should be: "go to $A=1$ and $A=7$ in $2$ orders"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "over the two 10's and two 1's" - Should be: "over the two $10$'s and two $1$'s"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "If A=6 gets 2 (2 choices)" - Should be: "If $A=6$ gets $2$ ($2$ choices)"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "the two 5's must take" - Should be: "the two $5$'s must take"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "with at least one 2: 10 ways per choice → 20" - Should be: "with at least one $2$: $10$ ways per choice $\to$ $20$"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "If A=6 gets 5, the two 5's" - Should be: "If $A=6$ gets $5$, the two $5$'s"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "with at least one 2: 18 ways" - Should be: "with at least one $2$: $18$ ways"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "If A=6 gets 6, the two 5's" - Should be: "If $A=6$ gets $6$, the two $5$'s"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "in any order: 6 ways" - Should be: "in any order: $6$ ways"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "If A=6 gets 7, only (2,2) works: 2 ways" - Should be: "If $A=6$ gets $7$, only $(2,2)$ works: $2$ ways"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "If A=6 gets 9 (2 choices)" - Should be: "If $A=6$ gets $9$ ($2$ choices)"
+
+• Section: Lantern Parade Lineup (Problem Statement - Note) - Violation: "only (2,2) works: 2 ways per choice → 4" - Should be: "only $(2,2)$ works: $2$ ways per choice $\to$ $4$"
+
+--------------------------------------------------
+
+📝 34. GITHUB URL EXTRACTION
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 35. GITHUB URL PARSING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 36. REPOSITORY CLONING
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 37. OVERALL.MD FILE DETECTION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+No overall.md file found in repository https://github.com/NOI-gen/lantern_parade_lineup
+
+--------------------------------------------------
+
+📝 38. HUNYUAN CPP FILES CHECK
+--------------------------------------------------
+Status: ✅ PASS
+Review passed successfully
+
+--------------------------------------------------
+
+📝 39. OVERALL.MD FORMAT VALIDATION
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+Cannot validate overall.md format: file not found or multiple files detected
+
+--------------------------------------------------
+
+📝 40. SOLUTION.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+solution.md validation failed: solution.md content mismatch: Content diff violations found: Disallowed diff: 'Implementing brute force enumeration and recognizing its infeasibility'; Disallowed diff: 'Exploring brute force enumeration as a baseline approach'; Disallowed diff: 'Trying greedy pairing heuristics and identifying their inadequacy for counting'; Disallowed diff: 'Exploring greedy pairing heuristics for optimization'; Disallowed diff: 'Discarding independence-based counting due to resource coupling'
+
+Full diff output:
+--- 
++++ 
+@@ -0,0 +1,2 @@
++**[COT]**
++
+@@ -9 +10,0 @@
+-
+@@ -14 +14,0 @@
+-
+@@ -19 +18,0 @@
+-
+@@ -24 +22,0 @@
+-
+@@ -28,4 +25,0 @@
+-
+-
+-
+----
+@@ -44 +37,0 @@
+-
+@@ -49 +41,0 @@
+-
+@@ -54 +45,0 @@
+-
+@@ -59 +49,0 @@
+-
+@@ -64 +53,0 @@
+-
+@@ -69,4 +57,0 @@
+-
+-
+----
+-
+@@ -75 +60 @@
+-Implementing brute force enumeration and recognizing its infeasibility
++Exploring brute force enumeration as a baseline approach
+@@ -81 +65,0 @@
+-
+@@ -86 +69,0 @@
+-
+@@ -91 +73,0 @@
+-
+@@ -96 +77,0 @@
+-
+@@ -101,4 +81,0 @@
+-
+-
+----
+-
+@@ -107 +84 @@
+-Trying greedy pairing heuristics and identifying their inadequacy for counting
++Exploring greedy pairing heuristics for optimization
+@@ -113 +89,0 @@
+-
+@@ -118 +93,0 @@
+-
+@@ -123 +97,0 @@
+-
+@@ -128 +101,0 @@
+-
+@@ -133,4 +105,0 @@
+-
+-
+----
+-
+@@ -139 +108 @@
+-Discarding independence-based counting due to resource coupling
++Examining independence-based counting approaches
+@@ -145 +113,0 @@
+-
+@@ -150 +117,0 @@
+-
+@@ -155 +121,0 @@
+-
+@@ -160,4 +125,0 @@
+-
+-
+----
+-
+@@ -172 +133,0 @@
+-
+@@ -177 +137,0 @@
+-
+@@ -182 +141,0 @@
+-
+@@ -187 +145,0 @@
+-
+@@ -192 +149,0 @@
+-
+@@ -197,4 +153,0 @@
+-
+-
+----
+-
+@@ -209 +161,0 @@
+-
+@@ -214 +165,0 @@
+-
+@@ -219 +169,0 @@
+-
+@@ -224 +173,0 @@
+-
+@@ -229 +177,0 @@
+-
+@@ -234 +181,0 @@
+-
+@@ -239,4 +185,0 @@
+-
+-
+----
+-
+@@ -251 +193,0 @@
+-
+@@ -256 +197,0 @@
+-
+@@ -261 +201,0 @@
+-
+@@ -266 +205,0 @@
+-
+@@ -271,4 +209,0 @@
+-
+-
+----
+-
+@@ -283 +217,0 @@
+-
+@@ -288 +221,0 @@
+-
+@@ -293 +225,0 @@
+-
+@@ -298 +229,0 @@
+-
+@@ -303,4 +233,0 @@
+-
+-
+----
+-
+@@ -315 +241,0 @@
+-
+@@ -320 +245,0 @@
+-
+@@ -325 +249,0 @@
+-
+@@ -330 +253,0 @@
+-
+@@ -334,2 +256,0 @@
+-
+----
+
+--------------------------------------------------
+
+📝 41. PROBLEM STATEMENT.MD CONTENT CONSISTENCY
+--------------------------------------------------
+Status: ❌ FAIL
+
+Issues Found:
+problem_statement.md validation failed: problem_statement.md content mismatch: Content diff violations found: Disallowed diff: '# Lantern Parade Lineup'; Disallowed diff: '**Time Limit:** 2 seconds'; Disallowed diff: '**Memory Limit:** 256 MB'; Disallowed diff: 'At the annual Lantern Parade, two guilds—Northlight and Southwind—each bring a collection of $n$ lanterns. Every lantern has a glow rating between 1 and 10. The parade master must schedule a one-on-one showcase: each Northlight lantern is paired with exactly one Southwind lantern, and vice versa.'; Disallowed diff: 'When a pair takes the stage:'
+
+Full diff output:
+--- 
++++ 
+@@ -0,0 +1 @@
++# Lantern Parade Lineup
+@@ -1,0 +3,95 @@
++**Time Limit:** 2 seconds
++
++**Memory Limit:** 256 MB
++
++At the annual Lantern Parade, two guilds—Northlight and Southwind—each bring a collection of $n$ lanterns. Every lantern has a glow rating between 1 and 10. The parade master must schedule a one-on-one showcase: each Northlight lantern is paired with exactly one Southwind lantern, and vice versa.
++
++When a pair takes the stage:
++- If the Northlight lantern’s glow is strictly higher than the Southwind lantern’s glow, Northlight scores a point for that showcase.
++- If the glow ratings are equal, neither side scores for that showcase.
++- Otherwise, Southwind scores a point.
++
++A lineup is successful if Northlight wins strictly more showcases than Southwind. All lanterns are distinct because of their unique craftsmanship, even if they share the same glow rating.
++
++Your task: For each parade, count how many different perfect lineups (pairings) make Northlight win strictly more showcases. Report the answer modulo $1{,}000{,}000{,}007$.
++
++**Input Format:-**
++- The first line contains an integer $t$, the number of parades.
++- Each parade consists of:
++  - A line with an integer $n$ $(1 \le n \le 14)$.
++  - A line with $n$ integers in $[1..10]$, the glow ratings of Northlight’s lanterns.
++  - A line with $n$ integers in $[1..10]$, the glow ratings of Southwind’s lanterns.
++
++**Output Format:-**
++- For each parade, print one integer: the number of successful lineups modulo $1{,}000{,}000{,}007$.
++
++**Constraints:-**
++- $1 \le t \le 100$
++- $1 \le n \le 14$
++- Lantern ratings are integers $1$ through $10$
++- Modulus is $1{,}000{,}000{,}007$
++**Examples:-**
++ - **Input:**
++```
++1
++5
++1 2 3 5 7
++6 5 4 3 2
++```
++
++ - **Output:**
++```
++14
++```
++
++ - **Input:**
++```
++1
++7
++10 10 1 1 5 5 6
++9 9 2 2 5 6 7
++```
++
++ - **Output:**
++```
++1200
++```
++
++**Note:-**
++In the first example, fix Northlight’s order and permute Southwind’s lanterns.
++Lanterns $1$ and $7$ give a guaranteed loss and a guaranteed win, respectively, so only
++$A = \{2, 3, 5\}$ versus $B = \{2, 3, 4, 5, 6\}$ matter.
++
++Successful lineups occur in two patterns:
++
++- Both $3$ and $5$ must win: $3$ gets $2$; $5$ gets $3$ or $4$ (2 choices).
++  Then $2$ (at $A=2$) must take any of the remaining $\{3,4,5,6\}$
++  (3 choices after choosing for $5$).
++  The last two $B$ values go to $A=1$ and $A=7$ in 2 orders.
++  Total $2 \times 3 \times 2 = 12$.
++
++- Or ties at $A=2$ and $A=3$ $(2 \text{ with } 2,\; 3 \text{ with } 3)$
++  and a win at $A=5$ (must be 4).
++  The remaining $\{5,6\}$ go to $A=1$ and $A=7$ in 2 orders.
++  Total $2$.
++
++Summing gives $12 + 2 = 14$ successful lineups.
++
++In the second example, two $A=10$ always win and two $A=1$ always lose,
++so focus on $A = \{5,5,6\}$ against $B = \{2,2,5,6,7,9,9\}$.
++Count by the $B$ given to $A=6$, then multiply by the permutations
++of the remaining four $B$’s over the two 10’s and two 1’s ($4! = 24$):
++
++- If $A=6$ gets $2$ (2 choices), the two 5’s must take an ordered pair
++  from the remaining items with at least one $2$: 10 ways per choice $\to 20$.
++
++- If $A=6$ gets $5$, the two 5’s must take an ordered pair with at least one $2$: 18 ways.
++
++- If $A=6$ gets $6$, the two 5’s must be either $(2,2)$ or $(2,5)$ in any order: 6 ways.
++
++- If $A=6$ gets $7$, only $(2,2)$ works: 2 ways.
++
++- If $A=6$ gets $9$ (2 choices), only $(2,2)$ works: 2 ways per choice $\to 4$.
++
++Summing gives $20 + 18 + 6 + 2 + 4 = 50$ ways for $\{5,5,6\}$.
++Multiplying by $4! = 24$ yields $50 \times 24 = 1200$ successful lineups.
+
+--------------------------------------------------
