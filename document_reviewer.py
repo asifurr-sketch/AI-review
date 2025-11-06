@@ -84,39 +84,62 @@ class BaseReviewer:
         raise NotImplementedError("Subclasses must implement review method")
     
     def _clean_failure_response(self, failure_response: str) -> str:
-        """Make a second AI call using Sonnet 4 to clean up failure response, keeping only failure-related content"""
+        """Enhanced cleanup with specific instructions for precise location reporting"""
         cleanup_prompt = """
-You are an expert at extracting and cleaning failure information. 
+You are an expert at extracting and cleaning failure information with PRECISE location identification.
 
-TASK: Extract and present ONLY the failure-related information from the provided response. Remove all unnecessary text, explanations, and formatting while keeping every single instance of failure.
+TASK: Extract and present ONLY the failure-related information from the provided response. 
 
-CRITICAL REQUIREMENTS:
+CRITICAL REQUIREMENTS FOR LOCATION PRECISION:
+1. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"
+2. ALWAYS use EXACT identifiers like "CHAIN_01", "CHAIN_03", "THOUGHT_04_02", etc.
+3. If multiple violations occur in the same location, list them separately with the same specific identifier
+4. Keep ALL violation locations exactly as they appear in the original document
+5. Include specific line numbers, function names, variable names when provided
+6. Quote exact text that demonstrates violations
+7. Preserve all specific examples and suggested fixes
+
+LOCATION IDENTIFICATION RULES:
+- Use exact chain identifiers: "CHAIN_01", "CHAIN_02", etc. (NEVER "CHAIN_XX")  
+- Use exact thought identifiers: "THOUGHT_01_03", "THOUGHT_05_01", etc. (NEVER "THOUGHT_XX_YY")
+- Use exact section names: "Metadata", "Problem Statement", "Response", etc.
+- Include line numbers when available: "line 45", "lines 12-15"
+- Include code elements: "function calculateTotal()", "variable userName", "class DataProcessor"
+
+KEEP ALL FAILURE INSTANCES:
 1. Keep EVERY instance of failure, even if the same error appears multiple times
-2. Keep ALL violation locations (CHAIN_XX, THOUGHT_XX_YY, section names) exactly as specified
-3. Keep ALL specific quotes and examples that show violations
-4. Remove all introductory text, long explanations, and verbose descriptions
-5. Present failures in a clear, concise format with bullet points
-6. Keep specific examples of violations and suggested fixes
-7. Remove any "PASS" sections or successful parts
-8. Keep the essential failure details but make them concise
-9. If there are code examples, keep only the essential violation examples and fixes
-10. Remove repetitive explanations but keep all distinct failure instances
-11. DO NOT include "improved code examples", "alternative options", or multiple code variations
-12. DO NOT include "Option 1", "Option 2" or similar alternative implementations
-13. Focus only on what is wrong and the direct fix needed
-14. PRESERVE ALL LOCATION INFORMATION - do not summarize or omit any CHAIN_XX or THOUGHT_XX_YY references
-15. PRESERVE ALL SPECIFIC QUOTES that demonstrate violations
-
-FORMAT: Present as a clean, bulleted list of failures with specific examples, quotes, and exact locations.
-
-CRITICAL: Do NOT summarize multiple violations into general statements. Each violation must be listed separately with its exact location.
+2. Keep ALL specific quotes and examples that show violations
+3. Remove all introductory text, long explanations, and verbose descriptions
+4. Present failures in a clear, concise format with bullet points
+5. Keep specific examples of violations and suggested fixes
+6. Remove any "PASS" sections or successful parts
+7. Keep the essential failure details but make them concise
+8. If there are code examples, keep only the essential violation examples and fixes
+9. Remove repetitive explanations but keep all distinct failure instances
+10. DO NOT include "improved code examples", "alternative options", or multiple code variations
+11. DO NOT include "Option 1", "Option 2" or similar alternative implementations
+12. Focus only on what is wrong and the direct fix needed
+13. PRESERVE ALL SPECIFIC QUOTES that demonstrate violations
 
 FORMATTING REQUIREMENTS:
-- DO NOT use **bold** formatting or any markdown-style formatting
-- DO NOT use ChatGPT-style brackets like **[SECTION]** or **bold text**
-- Use plain text with simple bullet points (•) or dashes (-)
-- Keep formatting minimal and clean
-- Avoid any special formatting characters
+- Use clean bullet points with dashes (-)
+- No **bold** or special markdown formatting
+- Keep specific quotes that show violations
+- Remove verbose explanations but keep essential failure details
+- Group related violations by location when appropriate
+
+EXAMPLE OF GOOD OUTPUT:
+- CHAIN_03: Variable name "usr" violates naming conventions (line 45)  
+- CHAIN_03: Function "calc" uses vague abbreviation (line 52)
+- THOUGHT_02_01: Mathematical formula uses incorrect notation "O!" instead of "O()"
+- Metadata section: Missing required field "GitHub URL"
+
+EXAMPLE OF BAD OUTPUT:
+- CHAIN_XX: Variable naming issues found
+- Multiple violations in reasoning chains
+- Some formatting problems detected
+
+CRITICAL: Do NOT summarize multiple violations into general statements. Each violation must be listed separately with its exact location.
 
 IMPORTANT: Focus on actionable failure information that helps the user understand what needs to be fixed. Avoid providing multiple code alternatives or improved examples.
 
@@ -133,7 +156,7 @@ Original Response:
                         "content": f"{cleanup_prompt}\n\n{failure_response}"
                     }
                 ],
-                max_tokens=16000,  # Maximum output tokens for GPT-4o
+                max_tokens=16000,  # Maximum for GPT-4o (increased from 16000)
                 temperature=0.1
             )
             
@@ -166,7 +189,7 @@ Original Response:
         Uses reasoning effort 'low' for speed while maintaining thinking capabilities.
         GPT-5 will internally think through the problem before generating the response.
         """
-        max_output = 16000  # Maximum output tokens for GPT-5
+        max_output = 20000  # Increased maximum output tokens for comprehensive analysis
         
         try:
             # Handle different APIs for different models
@@ -180,7 +203,7 @@ Original Response:
                             "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
                         }
                     ],
-                    reasoning={"effort": "low"},  # Enable thinking mode with speed priority
+                    reasoning={"effort": "high"},  # Maximum thinking mode for highest quality analysis
                     max_output_tokens=max_output
                 )
                 # Extract text from Responses API format
@@ -197,7 +220,7 @@ Original Response:
                         }
                     ],
                     max_completion_tokens=max_output,
-                    temperature=0.7
+                    temperature=0.3  # Lower temperature for more consistent analysis
                 )
                 response_text = response.choices[0].message.content
                 return response_text if response_text else "No text content in response"
@@ -213,7 +236,7 @@ Original Response:
                         }
                     ],
                     max_tokens=max_output,
-                    temperature=0.7
+                    temperature=0.3  # Lower temperature for more consistent analysis
                 )
                 response_text = response.choices[0].message.content
                 return response_text if response_text else "No text content in response"
@@ -473,14 +496,47 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     # Mathematical Equations Correctness
     @staticmethod
     def get_math_equations_prompt():
-        """Check mathematical equations correctness"""
+        """Enhanced mathematical equations correctness check with specific location reporting"""
         return """
-You are an expert response evaluator. Check if the mathematical equations are correct if there are any.
+You are an expert mathematical reviewer specializing in precise error identification.
 
-Please answer pass or fail.
+TASK: Check if the mathematical equations throughout the document are mathematically correct.
+
+CRITICAL LOCATION REPORTING REQUIREMENTS:
+1. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"  
+2. ALWAYS identify EXACT locations using specific identifiers from the document
+3. Use format: "CHAIN_01", "CHAIN_05", "THOUGHT_03_02", "Metadata section", etc.
+4. If you find violations in CHAIN_03, write "CHAIN_03", NOT "CHAIN_XX"
+5. If you find violations in THOUGHT_04_02, write "THOUGHT_04_02", NOT "THOUGHT_XX_YY"
+
+WHAT TO EXAMINE:
+- Mathematical notation correctness (Big-O, equations, formulas)
+- Proper use of mathematical symbols and operators  
+- Accuracy of mathematical statements and proofs
+- Consistency in mathematical terminology
+- Correct application of mathematical principles
+
+VIOLATION REPORTING FORMAT:
+For each mathematical error found, specify:
+- EXACT location (specific chain, thought, or section identifier)
+- Quote the incorrect mathematical expression
+- Explain what is mathematically wrong
+- Provide the correct mathematical form
+
+EXAMPLE GOOD REPORTING:
+- CHAIN_03: Big-O notation incorrectly written as "O!(n log n)" instead of "O(n log n)" (lines 45-46)
+- THOUGHT_02_01: Mathematical formula "∑(i=1 to n) = n(n-1)/2" is incorrect; should be "∑(i=1 to n) i = n(n+1)/2"
+- Response section: Space complexity "O(n,m)" uses ambiguous comma notation; should be "O(n·m)" or "O(nm)"
+
+EXAMPLE BAD REPORTING (DO NOT DO THIS):
+- CHAIN_XX: Big-O notation problems found
+- Multiple mathematical errors in reasoning chains  
+- Some notation issues detected
+
+Examine the entire document systematically and report ALL mathematical correctness violations with exact locations.
 
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+Provide detailed analysis with specific locations, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
@@ -714,9 +770,18 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     # Time Complexity Authenticity Check
     @staticmethod
     def get_time_complexity_authenticity_prompt():
-        """Check if time complexity in metadata covers all approaches discussed"""
+        """Enhanced time complexity check with specific identification"""
         return """
-You are an expert response evaluator. Check if the time complexity mentioned in the metadata section meets ALL of the following requirements:
+You are an expert algorithm complexity analyst specializing in precise violation identification.
+
+TASK: Verify that time complexity in metadata covers ALL approaches and uses only variables from the problem statement.
+
+CRITICAL LOCATION REPORTING REQUIREMENTS:
+1. NEVER use "CHAIN_XX" - use exact identifiers like "CHAIN_01", "CHAIN_03", etc.
+2. NEVER use "THOUGHT_XX_YY" - use exact identifiers like "THOUGHT_02_01", "THOUGHT_04_03", etc.  
+3. Always reference specific sections: "Metadata section", "Number of Approaches field", etc.
+4. Quote exact text when showing violations
+5. Provide specific line references when available
 
 **REQUIREMENTS:**
 1. **All Approaches Covered**: The metadata must list time complexity for EVERY approach discussed in the document (brute force, optimized, final solution, etc.)
@@ -736,22 +801,19 @@ You are an expert response evaluator. Check if the time complexity mentioned in 
 - Mixed variables: "O(n*m + k) → O(n*m) → O(n+m)"
 - Logarithmic terms: "O(n²log(n)) → O(n log n) → O(n)"
 
-**ACCEPTABLE COMPLEXITY NOTATIONS:**
-- Superscripts: N², n², m³, etc.
-- Caret notation: N^2, n^2, m^3, etc.
-- Multiplication: n*m, q*n, k*log(n), etc.
-- Addition: n²+qn², n*m+k, etc.
-- Logarithms: log(n), log(m), logN, etc.
-- Mixed: n²+m*log(k), qn²+n*m, etc.
+VIOLATION REPORTING FORMAT:
+- [EXACT LOCATION]: [Specific violation with quoted text] 
+- [EXACT LOCATION]: [Missing approach or incorrect variable usage]
 
-**UNACCEPTABLE FORMATS:**
-- Missing approaches: "O(N)" when document discusses brute force O(N^2) and optimized O(N)
-- Extra text: "O(N^2) brute force -> O(N) optimized approach"
-- Space complexity: "Time: O(N^2) -> O(N), Space: O(1)"
-- Wrong variables: "O(n)" when problem uses N, or "O(size)" when problem uses variables n, q
-- Individual steps: "O(N) for loop + O(log N) for search = O(N log N)"
-- Inconsistent arrow types: mixing "->" and "→" in same sequence
-- Wrong case: "O(n)" when problem statement uses uppercase "N"
+EXAMPLE GOOD REPORTING:
+- Metadata section: Uses variable "m" in "O(n*m)" but problem statement only defines "N" and "K"
+- Number of Approaches field: Claims "3 approaches" but only lists 2 complexities: "O(N²) → O(N)"
+- CHAIN_04: Discusses O(N log N) approach but metadata missing this complexity in progression
+
+EXAMPLE BAD REPORTING (NEVER DO THIS):
+- CHAIN_XX: Variable problems found
+- Metadata has some issues
+- Multiple complexity errors detected
 
 **VALIDATION STEPS:**
 1. Count all approaches discussed in the document (brute force, intermediate, final, etc.)
@@ -764,10 +826,8 @@ You are an expert response evaluator. Check if the time complexity mentioned in 
 8. Validate complex mathematical expressions are properly formatted
 9. Ensure consistent arrow notation throughout the sequence
 
-Please answer pass or fail.
-
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+Examine ALL sections systematically, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
@@ -920,14 +980,48 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     # Typo Check
     @staticmethod
     def get_typo_check_prompt():
-        """Check for typos and spelling issues"""
+        """Enhanced typo and spelling check with precise location identification"""
         return """
-You are an expert response evaluator. Do the reasoning chains or the response contain typo issues like misspelling?
+You are an expert proofreader specializing in precise error location identification.
 
-Please answer pass or fail.
+TASK: Find ALL typos, spelling errors, and grammatical mistakes throughout the document.
+
+CRITICAL LOCATION REPORTING REQUIREMENTS:
+1. Use EXACT identifiers: "CHAIN_01", "CHAIN_05", "THOUGHT_03_02", etc.
+2. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"
+3. Include specific line numbers when possible
+4. Quote the exact erroneous text
+5. Provide the correct spelling/grammar
+
+WHAT TO CHECK:
+- Misspelled words (e.g., "recieve" → "receive")
+- Grammar errors (subject-verb disagreement, tense inconsistencies) 
+- Punctuation errors (missing commas, incorrect apostrophes)
+- Formatting inconsistencies
+- Mathematical notation typos (e.g., "O!" instead of "O()")
+- Technical term misspellings
+- Duplicated text or phrases
+- Errant punctuation marks
+
+VIOLATION REPORTING FORMAT:
+- [EXACT LOCATION]: "[Quoted erroneous text]" → Correction: "[corrected text]"
+
+EXAMPLE GOOD REPORTING:
+- CHAIN_03: "algoritm" → Correction: "algorithm" (line 23)
+- THOUGHT_02_01: "its a valid approach" → Correction: "it's a valid approach" 
+- Response section: Duplicated text "Space (analysis):" appears twice consecutively
+- CHAIN_05: Mathematical notation "O!\\Bigl(" contains erroneous exclamation mark → Correction: "O\\Bigl("
+- THOUGHT_04_05: Formula "M = max_{y ≠ s,; 1 ≤ i ≤ w}" contains errant semicolon → Correction: "M = max_{y ≠ s, 1 ≤ i ≤ w}"
+
+EXAMPLE BAD REPORTING (DO NOT DO THIS):
+- CHAIN_XX: Spelling errors found
+- Multiple typos in reasoning chains
+- Some grammatical issues detected
+
+Examine EVERY section systematically for any spelling, grammar, or typographical errors.
 
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+List all specific violations with exact locations, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
