@@ -1849,13 +1849,14 @@ class GitHubReviewValidator:
                         break
                 
                 if not is_allowed:
-                    violations.append(f"Disallowed diff: '{content}'")
+                    # Store the full diff line with prefix for proper formatting
+                    violations.append(diff_line)
         
         if violations:
-            # Create a detailed diff output showing the full context
-            full_diff = '\n'.join(diff_lines)
-            violation_summary = '; '.join(violations[:5])  # Limit to first 5 violations
-            return False, f"Content diff violations found: {violation_summary}\n\nFull diff output:\n{full_diff}"
+            # Show only the disallowed diffs in proper diff format
+            violation_summary = '; '.join([f"'{line[1:]}'" for line in violations[:5]])  # Extract content for summary
+            detailed_violations = '\n'.join([f"  {violation}" for violation in violations[:10]])  # Show up to 10 violations with +/- prefix
+            return False, f"Content diff violations found: Disallowed diff: {violation_summary}\n\nDisallowed differences:\n{detailed_violations}"
         
         return True, "All differences are in allowed categories"
     
