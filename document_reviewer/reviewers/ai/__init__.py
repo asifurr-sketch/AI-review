@@ -32,7 +32,6 @@ from .content_quality import (
 
 from .structure_quality import (
     SubtopicTaxonomyReviewer,
-    TypoCheckReviewer,
     SubtopicRelevanceReviewer,
     MissingSubtopicsReviewer,
     PredictiveHeadingsReviewer,
@@ -76,7 +75,6 @@ __all__ = [
     "MemoryLimitValidationReviewer",
     # Structure Quality
     "SubtopicTaxonomyReviewer",
-    "TypoCheckReviewer",
     "SubtopicRelevanceReviewer",
     "MissingSubtopicsReviewer",
     "PredictiveHeadingsReviewer",

@@ -53,53 +53,6 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
     
     @staticmethod
-    def get_typo_check_prompt():
-        """Enhanced typo and spelling check with precise location identification"""
-        return """
-You are an expert proofreader specializing in precise error location identification.
-
-TASK: Find ALL typos, spelling errors, and grammatical mistakes throughout the document.
-
-CRITICAL LOCATION REPORTING REQUIREMENTS:
-1. Use EXACT identifiers: "CHAIN_01", "CHAIN_05", "THOUGHT_03_02", etc.
-2. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"
-3. Include specific line numbers when possible
-4. Quote the exact erroneous text
-5. Provide the correct spelling/grammar
-
-WHAT TO CHECK:
-- Misspelled words (e.g., "recieve" → "receive")
-- Grammar errors (subject-verb disagreement, tense inconsistencies) 
-- Punctuation errors (missing commas, incorrect apostrophes)
-- Formatting inconsistencies
-- Mathematical notation typos (e.g., "O!" instead of "O()")
-- Technical term misspellings
-- Duplicated text or phrases
-- Errant punctuation marks
-
-VIOLATION REPORTING FORMAT:
-- [EXACT LOCATION]: "[Quoted erroneous text]" → Correction: "[corrected text]"
-
-EXAMPLE GOOD REPORTING:
-- CHAIN_03: "algoritm" → Correction: "algorithm" (line 23)
-- THOUGHT_02_01: "its a valid approach" → Correction: "it's a valid approach" 
-- Response section: Duplicated text "Space (analysis):" appears twice consecutively
-- CHAIN_05: Mathematical notation "O!\\Bigl(" contains erroneous exclamation mark → Correction: "O\\Bigl("
-- THOUGHT_04_05: Formula "M = max_{y ≠ s,; 1 ≤ i ≤ w}" contains errant semicolon → Correction: "M = max_{y ≠ s, 1 ≤ i ≤ w}"
-
-EXAMPLE BAD REPORTING (DO NOT DO THIS):
-- CHAIN_XX: Spelling errors found
-- Multiple typos in reasoning chains
-- Some grammatical issues detected
-
-Examine EVERY section systematically for any spelling, grammar, or typographical errors.
-
-RESPONSE FORMAT:
-List all specific violations with exact locations, then end with:
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
-    
-    @staticmethod
     def get_subtopic_taxonomy_prompt():
         """Check if subtopics are from taxonomy list and relevant to problem"""
         return """

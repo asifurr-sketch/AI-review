@@ -288,7 +288,7 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
         return """
 You are an expert algorithm complexity analyst specializing in precise violation identification.
 
-TASK: Verify that time complexity in metadata covers ALL approaches and uses only variables from the problem statement.
+TASK: Verify that time complexity in metadata covers ALL approaches and uses properly introduced variables from anywhere in the document.
 
 CRITICAL LOCATION REPORTING REQUIREMENTS:
 1. NEVER use "CHAIN_XX" - use exact identifiers like "CHAIN_01", "CHAIN_03", etc.
@@ -302,9 +302,20 @@ CRITICAL LOCATION REPORTING REQUIREMENTS:
 2. **Sequential Format**: Must follow the format showing progression from inefficient to efficient approaches using either "->" or "→" arrows
 3. **Count Consistency**: The number of complexity expressions must match the count specified in "Number of Approaches" field
 4. **No Extra Text**: Must NOT contain any descriptive text, approach explanations, or space complexity mentions
-5. **Variable-Based**: Time complexity must be expressed ONLY using variables mentioned in the problem statement (e.g., if problem mentions N, M, K, Q, then use those exact variables)
+5. **Variable-Based**: Time complexity should use variables that are properly introduced somewhere in the document (problem statement, reasoning chains, response section, etc.). Variables should not be completely unrelated, undefined, or incorrectly used without any context or introduction in the document.
 6. **Correctness**: Each stated time complexity must be mathematically correct for its corresponding approach
 7. **Complex Expressions**: Support complex mathematical expressions with multiple terms (e.g., "O(n²+qn²)", "O(n*m + k*log(n))")
+
+**ACCEPTABLE VARIABLE USAGE:**
+- Variables from problem statement (N, M, K, Q, etc.)
+- Variables introduced in reasoning chains or thoughts (T for time steps, S for sum, etc.)
+- Variables defined in the response or approach explanation sections
+- Standard algorithm notation variables (n for input size, m for edges, etc.)
+
+**UNACCEPTABLE VARIABLE USAGE:**
+- Completely undefined variables with no introduction anywhere in the document
+- Variables that contradict the problem or solution context
+- Random symbols used without any explanation or definition
 
 **ACCEPTABLE FORMATS:**
 - Single approach: "O(N)"
@@ -320,7 +331,7 @@ VIOLATION REPORTING FORMAT:
 - [EXACT LOCATION]: [Missing approach or incorrect variable usage]
 
 EXAMPLE GOOD REPORTING:
-- Metadata section: Uses variable "m" in "O(n*m)" but problem statement only defines "N" and "K"
+- Metadata section → Number of Approaches field: Uses variable "X" in "O(n*X)" but variable "X" is never introduced, defined, or explained anywhere in the entire document (problem statement, chains, thoughts, or response sections)
 - Number of Approaches field: Claims "3 approaches" but only lists 2 complexities: "O(N²) → O(N)"
 - CHAIN_04: Discusses O(N log N) approach but metadata missing this complexity in progression
 
@@ -334,7 +345,7 @@ EXAMPLE BAD REPORTING (NEVER DO THIS):
 2. Check the "Number of Approaches" field to get the expected count and complexity progression
 3. Verify metadata lists time complexity for each approach in progression order
 4. Confirm the count of complexity expressions matches the stated number of approaches
-5. Confirm all variables used exactly match those in the problem statement (including case)
+5. For each variable used in the complexity notation, verify it is introduced SOMEWHERE in the document (problem statement, chains, thoughts, response, or approach discussions) - only flag variables that are completely undefined and unintroduced throughout the entire document
 6. Check if each complexity is mathematically correct for its corresponding approach
 7. Ensure no extra descriptive text or space complexity mentions
 8. Validate complex mathematical expressions are properly formatted
@@ -457,53 +468,6 @@ Please answer pass or fail.
 
 RESPONSE FORMAT:
 Provide detailed analysis, then end with:
-FINAL VERDICT: PASS or FINAL VERDICT: FAIL
-"""
-
-    @staticmethod
-    def get_typo_check_prompt():
-        """Enhanced typo and spelling check with precise location identification"""
-        return """
-You are an expert proofreader specializing in precise error location identification.
-
-TASK: Find ALL typos, spelling errors, and grammatical mistakes throughout the document.
-
-CRITICAL LOCATION REPORTING REQUIREMENTS:
-1. Use EXACT identifiers: "CHAIN_01", "CHAIN_05", "THOUGHT_03_02", etc.
-2. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"
-3. Include specific line numbers when possible
-4. Quote the exact erroneous text
-5. Provide the correct spelling/grammar
-
-WHAT TO CHECK:
-- Misspelled words (e.g., "recieve" → "receive")
-- Grammar errors (subject-verb disagreement, tense inconsistencies) 
-- Punctuation errors (missing commas, incorrect apostrophes)
-- Formatting inconsistencies
-- Mathematical notation typos (e.g., "O!" instead of "O()")
-- Technical term misspellings
-- Duplicated text or phrases
-- Errant punctuation marks
-
-VIOLATION REPORTING FORMAT:
-- [EXACT LOCATION]: "[Quoted erroneous text]" → Correction: "[corrected text]"
-
-EXAMPLE GOOD REPORTING:
-- CHAIN_03: "algoritm" → Correction: "algorithm" (line 23)
-- THOUGHT_02_01: "its a valid approach" → Correction: "it's a valid approach" 
-- Response section: Duplicated text "Space (analysis):" appears twice consecutively
-- CHAIN_05: Mathematical notation "O!\\Bigl(" contains erroneous exclamation mark → Correction: "O\\Bigl("
-- THOUGHT_04_05: Formula "M = max_{y ≠ s,; 1 ≤ i ≤ w}" contains errant semicolon → Correction: "M = max_{y ≠ s, 1 ≤ i ≤ w}"
-
-EXAMPLE BAD REPORTING (DO NOT DO THIS):
-- CHAIN_XX: Spelling errors found
-- Multiple typos in reasoning chains
-- Some grammatical issues detected
-
-Examine EVERY section systematically for any spelling, grammar, or typographical errors.
-
-RESPONSE FORMAT:
-List all specific violations with exact locations, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 

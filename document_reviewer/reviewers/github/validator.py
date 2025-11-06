@@ -154,13 +154,13 @@ class GitHubReviewValidator:
     
     def _ensure_utilities_repo(self) -> Tuple[bool, str, str]:
         """
-        Check if the utilities repository exists in the root of AI Review repo.
+        Check if the utilities repository exists in document_reviewer folder.
         Returns: (success, utilities_path, message)
         """
-        # Get the root directory of the AI Review repository
+        # Get the document_reviewer directory (utilities is now inside document_reviewer)
         current_file = os.path.abspath(__file__)
-        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file))))
-        utilities_path = os.path.join(repo_root, 'utilities')
+        document_reviewer_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
+        utilities_path = os.path.join(document_reviewer_dir, 'utilities')
         
         # Check if utilities directory exists
         if os.path.exists(utilities_path) and os.path.isdir(utilities_path):

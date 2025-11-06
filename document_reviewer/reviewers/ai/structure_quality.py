@@ -25,15 +25,6 @@ class SubtopicTaxonomyReviewer(BaseReviewer):
         return self._parse_response(response)
 
 
-class TypoCheckReviewer(BaseReviewer):
-    """Reviews for typos and spelling issues"""
-    
-    def review(self, document: str) -> ReviewResponse:
-        prompt = StructurePrompts.get_typo_check_prompt()
-        response = self._make_api_call(prompt, document)
-        return self._parse_response(response)
-
-
 class SubtopicRelevanceReviewer(BaseReviewer):
     """Reviews if selected subtopics are relevant"""
     

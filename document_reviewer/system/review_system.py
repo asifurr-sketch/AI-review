@@ -64,7 +64,6 @@ class DocumentReviewSystem:
             # Time and Memory Limit Validation
             "Time Limit Validation",
             "Memory Limit Validation",
-            "Typo and Spelling Check",
             "Subtopic Relevance",
             "Missing Relevant Subtopics",
             "Natural Thinking Flow in Thoughts",
@@ -224,7 +223,6 @@ class DocumentReviewSystem:
             # Time and Memory Limit Validation
             "Time Limit Validation": TimeLimitValidationReviewer(self.client),
             "Memory Limit Validation": MemoryLimitValidationReviewer(self.client),
-            "Typo and Spelling Check": TypoCheckReviewer(self.client),
             "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
             "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
             "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client),
@@ -469,7 +467,7 @@ class DocumentReviewSystem:
         ai_reviews_to_run = ai_reviews[start_index-1:]  # Reviews to actually run
         
         if ai_reviews_to_run:
-            parallel_msg = f"🚀 Starting {len(ai_reviews_to_run)} AI reviews..."
+            parallel_msg = f"🚀 Starting {len(ai_reviews_to_run)} AI reviews in parallel..."
             self._progress_print(parallel_msg)
             
             # Show all starting messages immediately
@@ -478,8 +476,9 @@ class DocumentReviewSystem:
                 start_msg = f"🔄 {review_number}. {review_name} - Starting..."
                 self._progress_print(start_msg)
             
-            # Use ThreadPoolExecutor for parallel execution
-            max_workers = min(8, len(ai_reviews_to_run))  # Limit concurrent threads to avoid rate limiting
+            # Use ThreadPoolExecutor for parallel execution with higher concurrency
+            # Increased max_workers for better parallelism (all reviews run simultaneously)
+            max_workers = len(ai_reviews_to_run)  # Run all AI reviews in parallel
             
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all AI reviews to the thread pool
@@ -501,7 +500,7 @@ class DocumentReviewSystem:
                           if any(review_name == name for review_name, _ in ai_reviews_to_run) 
                           and result.result == ReviewResult.PASS)
             ai_failed = total_completed - ai_passed
-            parallel_complete_msg = f"✅ AI reviews completed: {ai_passed} passed, {ai_failed} failed"
+            parallel_complete_msg = f"✅ All {total_completed} AI reviews completed in parallel: {ai_passed} passed, {ai_failed} failed"
             self._progress_print(parallel_complete_msg)
             
         # Run GitHub validation at the end (unless skipped)
