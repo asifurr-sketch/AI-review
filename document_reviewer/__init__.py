@@ -6,7 +6,7 @@ problems, including code quality checks, content validation, and GitHub reposito
 """
 
 __version__ = "2.0.0"
-__author__ = "AI Assistant"
+__author__ = "Md Asifur Rahman"
 
 from .core.models import ReviewResult, ReviewResponse
 from .system.review_system import DocumentReviewSystem
