@@ -16,7 +16,7 @@ This system analyzes documents (particularly coding problem statements and solut
 
 ### Prerequisites
 - Python 3.7+
-- Anthropic API key
+- OpenAI API key
 
 ### Quick Install
 1. **Clone or download** the script:
