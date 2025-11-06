@@ -2181,25 +2181,68 @@ class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
     def __init__(self, quiet_mode=False):
-        # Initialize OpenAI client with API key from environment or .env file
-        api_key = self._load_openai_api_key()
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY not found. Please set it as an environment variable or add 'OPENAI_API_KEY=your_key_here' to a .env file")
-        
-        self.client = OpenAI(api_key=api_key)
         self.detailed_output = []  # Capture all detailed output for the report
         self.output_lock = threading.Lock()  # Thread-safe output
         self.quiet_mode = quiet_mode  # Control output verbosity
+        self.client = None  # Will be initialized when needed
+        self.reviewers = {}  # Will be initialized when needed
         
-        # Initialize GitHub validator (non-AI review)
+        # Initialize GitHub validator (non-AI review) - works without API key
         self.github_validator = GitHubReviewValidator(quiet_mode=quiet_mode)
+    
+    def get_available_reviews(self):
+        """Get list of available review names without initializing OpenAI client"""
+        return [
+            # Solution Uniqueness Validation
+            "Unique Solution Validation",
+            # Time Complexity Check
+            "Time Complexity Authenticity Check",
+            # Code Quality
+            "Style Guide Compliance",
+            "Naming Conventions", 
+            "Documentation Standards",
+            # Response Quality  
+            "Response Relevance to Problem",
+            "Mathematical Equations Correctness",
+            "Problem Constraints Consistency",
+            "Missing Approaches in Steps",
+            "Code Elements Existence",
+            "Example Walkthrough with Optimal Algorithm",
+            "Time and Space Complexity Correctness",
+            "Conclusion Quality",
+            # Problem Statement and Solution Quality
+            "Problem Statement Consistency",
+            "Solution Passability According to Limits", 
+            "Metadata Correctness",
+            "Test Case Validation",
+            "Sample Test Case Dry Run Validation",
+            "Note Section Explanation Approach",
+            # Reasoning Chain Quality
+            "Inefficient Approaches Limitations",
+            "Final Approach Discussion",
+            "No Code in Reasoning Chains",
+            # Subtopic, Taxonomy, and Reasoning Analysis
+            "Subtopic Taxonomy Validation",
+            # Time and Memory Limit Validation
+            "Time Limit Validation",
+            "Memory Limit Validation",
+            "Typo and Spelling Check",
+            "Subtopic Relevance",
+            "Missing Relevant Subtopics",
+            "Natural Thinking Flow in Thoughts",
+            "Mathematical Variables and Expressions Formatting"
+        ]
         
-        # Initialize all reviewers
-        self.__init_reviewers__()
+
+    def _ensure_openai_client(self):
+        """Ensure OpenAI client is initialized with proper error handling"""
+        if self.client is not None:
+            return  # Already initialized
+            
+        # Try multiple API key sources in order
+        keys_to_try = []
         
-    def _load_openai_api_key(self):
-        """Load OpenAI API key from .env file or environment variable"""
-        # First check .env file (more user-friendly for cross-platform)
+        # First check .env file
         env_path = '.env'
         if os.path.exists(env_path):
             with open(env_path, 'r') as f:
@@ -2215,17 +2258,89 @@ class DocumentReviewSystem:
                                 value = value[1:-1]
                             elif value.startswith("'") and value.endswith("'"):
                                 value = value[1:-1]
-                            return value
+                            # Only try non-placeholder keys
+                            if value and not value.startswith('your-key') and not value.startswith('sk-proj-placeholder'):
+                                keys_to_try.append(('.env file', value))
         
-        # Fallback to environment variable
-        api_key = os.getenv('OPENAI_API_KEY')
-        if api_key:
-            return api_key
+        # Add environment variable as fallback
+        env_key = os.getenv('OPENAI_API_KEY')
+        if env_key and not env_key.startswith('your-key') and not env_key.startswith('sk-proj-placeholder'):
+            keys_to_try.append(('environment variable', env_key))
         
-        return None
+        if not keys_to_try:
+            # No valid keys found
+            error_msg = """
+❌ OPENAI_API_KEY not found!
+
+📝 Setup Instructions:
+   Option 1 (Recommended): Create .env file
+   └─ echo "OPENAI_API_KEY=your-actual-key-here" > .env
+   
+   Option 2: Set environment variable  
+   └─ export OPENAI_API_KEY=your-actual-key-here
+   
+💡 Get your API key from: https://platform.openai.com/api-keys
+⚠️  Note: GPT-5 access is required for this tool
+
+🔍 Current search locations:
+   1. .env file in current directory (preferred)
+   2. OPENAI_API_KEY environment variable
+"""
+            raise ValueError(error_msg.strip())
+        
+        # Try each key until one works
+        last_error = None
+        for source, api_key in keys_to_try:
+            try:
+                print(f"🔑 Testing API key from {source}...")
+                
+                self.client = OpenAI(api_key=api_key)
+                
+                # Test the key with a simple call
+                response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",  # Use cheapest/fastest model for testing
+                    messages=[{"role": "user", "content": "Hello"}],
+                    max_tokens=5
+                )
+                
+                if response.choices and response.choices[0].message.content:
+                    print(f"✅ API key from {source} is valid and working!")
+                    # Initialize reviewers now that we have a working client
+                    self.__init_reviewers__()
+                    return
+                else:
+                    raise ValueError("API responded but with no content")
+                    
+            except Exception as e:
+                last_error = e
+                print(f"❌ API key from {source} failed: {str(e)}")
+                self.client = None  # Reset client for next attempt
+                continue
+        
+        # All keys failed
+        error_msg = f"""
+❌ All API keys failed validation!
+
+🔧 Last error: {str(last_error)}
+
+🔧 Common issues:
+   • Invalid API key format
+   • API key doesn't have GPT-5 access
+   • Network connectivity problems
+   • Rate limiting or quota exceeded
+
+💡 Get a valid API key from: https://platform.openai.com/api-keys
+⚠️  Ensure your key has access to GPT-5 models
+
+🔍 Tried sources: {', '.join([source for source, _ in keys_to_try])}
+"""
+        raise ValueError(error_msg.strip())
         
     def __init_reviewers__(self):
         """Initialize all Ultimate reviewers - each as individual API call"""
+        # At this point, self.client should be initialized by _ensure_openai_client()
+        assert self.client is not None, "OpenAI client must be initialized before creating reviewers"
+        
         self.reviewers = {
             # Solution Uniqueness Validation
             "Unique Solution Validation": UniqueSolutionReviewer(self.client),
@@ -2371,6 +2486,10 @@ class DocumentReviewSystem:
         separator = "=" * 70
         self._thread_safe_print(separator)
         
+        # Ensure OpenAI client is initialized if AI reviews are needed
+        if not github_only:
+            self._ensure_openai_client()
+        
         # Convert reviewers dict to list for indexing
         reviewer_items = list(self.reviewers.items())
         
@@ -2423,6 +2542,9 @@ class DocumentReviewSystem:
         
         # Handle single review mode
         if single_review:
+            # Ensure OpenAI client is initialized if we need it
+            self._ensure_openai_client()
+            
             reviewer = self.reviewers[single_review]
             if reviewer is None:
                 # This is a GitHub task, handle it specially
@@ -2761,18 +2883,17 @@ def main():
     
     # Validate single review name if specified
     if single_review:
-        available_reviews = list(review_system.reviewers.keys())
-        ai_reviews = [name for name, reviewer in review_system.reviewers.items() if reviewer is not None]
+        available_reviews = review_system.get_available_reviews()
         
         if single_review not in available_reviews:
             print(f"❌ Invalid review name: '{single_review}'")
-            print(f"📋 Available AI reviews:")
-            for name in ai_reviews:
+            print(f"📋 Available reviews:")
+            for name in available_reviews:
                 print(f"   - {name}")
             sys.exit(1)
     
     # Validate resume point (only applies to AI reviews)
-    ai_reviewers_count = len([r for name, r in review_system.reviewers.items() if r is not None])
+    ai_reviewers_count = len(review_system.get_available_reviews())  # Total AI reviews available
     if not single_review and (args.resume < 1 or args.resume > ai_reviewers_count):
         print(f"❌ Invalid resume point: {args.resume}. Must be between 1 and {ai_reviewers_count} for AI reviews.")
         sys.exit(1)
@@ -2780,6 +2901,11 @@ def main():
     try:
         # Initialize review system with quiet mode (unless verbose flag is set)
         review_system = DocumentReviewSystem(quiet_mode=not args.verbose)
+        
+        # Validate API key early if AI reviews will be needed
+        if not github_only:
+            # This will test the API key and fail fast if it's invalid
+            review_system._ensure_openai_client()
         
         # Load document
         print(f"📖 Loading document from {args.file}...")
