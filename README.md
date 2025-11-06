@@ -1,6 +1,6 @@
-# Document Review System - Comprehensive Analysis
+# Document Review System - Ultimate Point Analysis
 
-A comprehensive automated document review system using **Anthropic Claude Opus 4.1** with extended thinking capabilities to perform thorough quality analysis across 41 individual review points.
+A comprehensive automated document review system using **OpenAI GPT-5** with maximum thinking mode capabilities to perform thorough quality analysis across 38 individual review points (30 AI + 8 GitHub validation tasks).
 
 ## 🎯 What This Does
 
@@ -15,30 +15,25 @@ This system analyzes documents (particularly coding problem statements and solut
 ## �️ Installation
 
 ### Prerequisites
-- Python 3.7+
-- OpenAI API key
+- Python 3.8+
+- OpenAI API key (GPT-5 access required)
 
 ### Quick Install
-1. **Clone or download** the script:
+1. **Clone the repository**:
    ```bash
-   # Option 1: Clone the repository
    git clone https://github.com/asifurr-sketch/AI-review.git
    cd AI-review
-   
-   # Option 2: Download just the script
-   wget https://raw.githubusercontent.com/asifurr-sketch/AI-review/main/document_reviewer.py
    ```
 
 2. **Install dependencies**:
    ```bash
-   pip install anthropic
+   pip install openai
    ```
 
 3. **Set up API key**:
    ```bash
-   # Copy example file and edit with your API key
-   cp .env.example .env
-   # Edit .env file: ANTHROPIC_API_KEY=your-api-key-here
+   # Create .env file with your OpenAI API key
+   echo "OPENAI_API_KEY=your-api-key-here" > .env
    ```
 
 4. **Test installation**:
@@ -65,6 +60,14 @@ python3 document_reviewer.py my_document.txt --resume 16
 
 # Check specific issue
 python3 document_reviewer.py my_document.txt --single-review "Style Guide Compliance"
+
+# Verbose mode (show all execution details)
+python3 document_reviewer.py my_document.txt --verbose
+
+# Available single reviews (examples):
+python3 document_reviewer.py my_document.txt --single-review "Mathematical Equations Correctness"
+python3 document_reviewer.py my_document.txt --single-review "Typo and Spelling Check"
+python3 document_reviewer.py my_document.txt --single-review "Time Complexity Authenticity Check"
 ```
 
 ### Optional: GitHub Integration Setup
@@ -74,7 +77,7 @@ For GitHub repository validation:
 - **Note**: No GitHub API key needed - uses SSH/HTTPS for git operations
 
 ### Common Issues
-- **"ANTHROPIC_API_KEY not found"**: Add your API key to `.env` file
+- **"OPENAI_API_KEY not found"**: Add your API key to `.env` file
 - **"Git clone failed"**: Use `--ai-only` flag to skip GitHub validation
 - **"Permission denied"**: Run `chmod +x document_reviewer.py`
 
@@ -83,18 +86,19 @@ For GitHub repository validation:
 ```
 AI Review/
 ├── document_reviewer.py          # Main review script
-├── .env.example                  # Example environment variables file
-├── document1.txt        # Sample document
-├── document2.txt        # Sample document  
-├── reports/                      # Generated reports folder
+├── .env                         # OpenAI API key (create this file)
+├── .gitignore                   # Git ignore file
+├── document1.txt                # Sample document (ignored by git)
+├── document2.txt                # Sample document (ignored by git)
+├── reports/                     # Generated reports folder (ignored by git)
 │   ├── document1_report.txt
 │   └── document2_report.txt
-└── README.md                     # This file
+└── README.md                    # This file
 ```
 
 ## 📊 Review Points Summary
 
-**Total: 41 review points** (33 AI + 8 GitHub validation tasks)
+**Total: 38 review points** (30 AI + 8 GitHub validation tasks)
 
 ### **🔧 GitHub Integration (8 tasks)**
 - GitHub URL Extraction
@@ -138,18 +142,15 @@ AI Review/
 21. **Final Approach Discussion** - Reviews completeness of final approach discussion
 22. **No Code in Reasoning Chains** - Ensures reasoning chains don't contain code implementations
 
-### **🏷️ Language & Analysis (11 points)**
+### **🏷️ Language & Analysis (8 points)**
 23. **Subtopic Taxonomy Validation** - Validates subtopics are from approved taxonomy
 24. **Time Limit Validation** - Ensures time limit is specified in document
 25. **Memory Limit Validation** - Validates memory limit is at least 32 MB
 26. **Typo and Spelling Check** - Checks for spelling and grammar errors
 27. **Subtopic Relevance** - Ensures selected subtopics are relevant to content
 28. **Missing Relevant Subtopics** - Identifies important missing subtopics
-29. **No Predictive Headings in Thoughts** - Checks for prohibited predictive headings
-30. **Chain Test Case Analysis Validation** - Validates Chain 2 performs actual test case analysis
-31. **Thought Heading Violations Check** - Checks for prohibited headings in thoughts
-32. **Mathematical Variables and Expressions Formatting** - Validates math formatting
-33. **Comprehensive Reasoning Thoughts Review** - Complete review of reasoning thought chains
+29. **Natural Thinking Flow in Thoughts** - Checks for natural thinking flow in THOUGHT sections
+30. **Mathematical Variables and Expressions Formatting** - Validates LaTeX formatting for math expressions
 
 ## 📋 Understanding Reports
 
@@ -167,12 +168,28 @@ Each generated report contains:
 
 ### Sample Output
 ```
-📊 SUMMARY: 28/34 reviews passed
+📊 SUMMARY: AI: 25/30 passed | GitHub: 7/8 passed
 ⚠️  6 review(s) failed
 
-📝 4. STYLE GUIDE COMPLIANCE
+📝 7. MATHEMATICAL EQUATIONS CORRECTNESS
 Status: ❌ FAIL
 Issues Found:
-• Variable `p` should be `nodeIndex` for clarity
-• Fix: Change `int p` to `int nodeIndex`
+- CHAIN_03: Big-O notation incorrectly written as "O!(n log n)" instead of "O(n log n)" (lines 45-46)
+- THOUGHT_02_01: Mathematical formula "∑(i=1 to n) = n(n-1)/2" is incorrect; should be "∑(i=1 to n) i = n(n+1)/2"
+- Response section: Space complexity "O(n,m)" uses ambiguous comma notation; should be "O(n·m)" or "O(nm)"
 ```
+
+## 🚀 Latest Improvements (November 2025)
+
+### Enhanced AI Analysis
+- **Maximum Thinking Mode**: GPT-5 with `reasoning={"effort": "high"}` for deepest analysis
+- **Increased Token Limits**: 20,000 output tokens for comprehensive responses
+- **Precise Location Reporting**: No more generic "CHAIN_XX" - now shows exact "CHAIN_03", "THOUGHT_02_01"
+- **Lower Temperature**: 0.3 for more consistent analytical responses
+- **Enhanced Cleanup**: Better failure response processing with specific location preservation
+
+### Improved Error Reporting
+- **Before**: "CHAIN_XX: Big-O nota..." (generic, truncated)
+- **After**: "CHAIN_03: Big-O notation incorrectly written as 'O!(n log n)' instead of 'O(n log n)' (line 45)"
+- **Actionable Feedback**: Specific corrections provided for each violation
+- **Complete Analysis**: No more mid-sentence truncation
