@@ -781,17 +781,32 @@ class GitHubReviewValidator:
             # 2. "All problems processed successfully!" appears
             # 3. "Full delivery package created successfully!" appears
             # 4. Return code is 0
+            # 5. No warnings present (lines containing "⚠️  Warning:")
             
             has_validations_passed = "All validations passed!" in output
             has_problems_processed = "All problems processed successfully!" in output
             has_delivery_created = "Full delivery package created successfully!" in output
+            has_warnings = "⚠️  Warning:" in output
             
-            if result.returncode == 0 and has_validations_passed and has_problems_processed and has_delivery_created:
+            if result.returncode == 0 and has_validations_passed and has_problems_processed and has_delivery_created and not has_warnings:
                 # Return full output for successful runs too
                 return True, f"Utilities delivery validation passed: Full delivery package created successfully for language {language}\n\n=== COMPLETE OUTPUT ===\n{output}"
             else:
                 # Return complete output for failed runs - user wants to see everything
-                return False, f"Utilities validation failed (return code {result.returncode})\n\n=== COMPLETE OUTPUT ===\n{output}"
+                failure_reason = []
+                if result.returncode != 0:
+                    failure_reason.append(f"return code {result.returncode}")
+                if not has_validations_passed:
+                    failure_reason.append("validations did not pass")
+                if not has_problems_processed:
+                    failure_reason.append("problems not processed successfully")
+                if not has_delivery_created:
+                    failure_reason.append("delivery package not created")
+                if has_warnings:
+                    failure_reason.append("warnings detected")
+                
+                reason_str = ", ".join(failure_reason) if failure_reason else "unknown reason"
+                return False, f"Utilities validation failed ({reason_str})\n\n=== COMPLETE OUTPUT ===\n{output}"
         
         except subprocess.TimeoutExpired:
             return False, "Utilities validation timed out after 600 seconds"

@@ -657,7 +657,12 @@ class DocumentReviewSystem:
                 report.append("Issues Found:")
                 report.append(result.reasoning)
             elif result.result == ReviewResult.PASS:
-                report.append("Review passed successfully")
+                # For Utilities Delivery Validation, always show full output even on pass
+                if "Utilities Delivery Validation" in review_name:
+                    report.append("")
+                    report.append(result.reasoning)
+                else:
+                    report.append("Review passed successfully")
         
             report.append("")
             report.append("-" * 50)
