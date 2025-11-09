@@ -23,6 +23,19 @@ class GitHubReviewValidator:
     
     def _extract_github_url(self, document: str) -> Optional[str]:
         """Extract GitHub URL from document metadata - robust extraction for any *github.com* pattern"""
+        # First, try to handle URLs split across lines by looking for the GitHub URL pattern
+        # and joining text that might be broken across newlines
+        github_url_section_pattern = r'\*\*GitHub URL:\*\*\s*-?\s*(https?://github\.com/[^\s]+(?:\s*\n[^\s\*]+)?)'
+        match = re.search(github_url_section_pattern, document, re.IGNORECASE)
+        if match:
+            # Extract the URL part and remove any newlines/whitespace that broke it
+            url_candidate = match.group(1)
+            # Remove ALL whitespace (spaces, newlines, tabs) within the URL
+            url_candidate = re.sub(r'\s+', '', url_candidate)
+            # Validate it looks like a proper GitHub URL
+            if re.match(r'https?://github\.com/[\w\-]+/[\w\-]+', url_candidate):
+                return url_candidate
+        
         # Try the exact format first
         github_url_pattern = r'\*\*GitHub URL:\*\*\s+(https://github\.com/[^\s\n]+)'
         match = re.search(github_url_pattern, document)
@@ -249,10 +262,21 @@ class GitHubReviewValidator:
                         return False, "hunyuan-2.0-thinking-dev-20251012 model should show FAIL status (❌ FAIL), not PASS"
             
             # Check for standard model pass requirement (extension-agnostic)
+            # Support two formats:
+            # Format 1: ### Model: `standard` or `standard.cpp` as a separate section
+            # Format 2: `standard.cpp` as a table row under any model section (e.g., special_solutions)
+            
             standard_model_match = re.search(r"^### Model: `standard[^`]*`", content, flags=re.MULTILINE)
-            if not standard_model_match:
-                return False, "Missing required standard model section: expected a header like ### Model: `standard` or `standard.<ext>`"
-            else:
+            standard_in_table = re.search(r"\|\s*`?standard\.(?:cpp|py|java|c)`?\s*\|", content)
+            
+            if not standard_model_match and not standard_in_table:
+                return False, "Missing required standard model: expected either '### Model: `standard`' section or 'standard.<ext>' as a table row"
+            
+            # Check PASS status for standard model
+            standard_pass_found = False
+            
+            if standard_model_match:
+                # Format 1: standard as separate model section
                 standard_section_start = standard_model_match.start()
                 # Find the next section or end of content - look for ### or ## or \n---\n (real section separators, not table borders)
                 next_section_positions = []
@@ -290,41 +314,51 @@ class GitHubReviewValidator:
                 
                 standard_section = content[standard_section_start:next_section]
                 
-                if "✅ PASS" not in standard_section:
-                    return False, "standard model section should show PASS status (✅ PASS)"
+                if "✅ PASS" in standard_section:
+                    standard_pass_found = True
+            
+            if standard_in_table and not standard_pass_found:
+                # Format 2: standard as table row - find the line and check for PASS
+                # Look for the table row with standard.cpp and check if it has ✅ PASS
+                lines = content.split('\n')
+                for line in lines:
+                    if '|' in line and re.search(r"\bstandard\.(?:cpp|py|java|c)\b", line):
+                        if "✅ PASS" in line:
+                            standard_pass_found = True
+                            break
+            
+            if not standard_pass_found:
+                return False, "standard model should show PASS status (✅ PASS)"
             
             # Check for solution_bf constraints if present (extension-agnostic)
+            # Support two formats:
+            # Format 1: ### Model: `solution_bf` or `solution_bf.cpp` as a separate section
+            # Format 2: `solution_bf.cpp` as a table row under any model section (e.g., special_solutions)
+            
             bf_model_match = re.search(r"^### Model: `solution_bf[^`]*`", content, flags=re.MULTILINE)
-            if bf_model_match:
-                bf_section_start = bf_model_match.start()
-                if bf_section_start != -1:
-                    next_model = content.find("### Model:", bf_section_start + 1)
-                    if next_model == -1:
-                        bf_section = content[bf_section_start:]
-                    else:
-                        bf_section = content[bf_section_start:next_model]
-                    
-                    # Check for WA or CE errors (should not have these)
-                    if "|" in bf_section:  # Look for table rows
-                        table_lines = [line.strip() for line in bf_section.split('\n') if '|' in line and 'Run File' not in line and 'Model' not in line]
-                        for line in table_lines:
-                            if re.search(r"\bsolution_bf(?:\.[A-Za-z0-9_]+)?\b", line):
-                                # Split by | and filter out empty strings
-                                parts = [p.strip() for p in line.split('|') if p.strip()]
-                                # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
-                                if len(parts) >= 8:  # Ensure we have enough columns
-                                    errors_column = parts[7]  # Last column with errors (0-indexed, so 8th column)
-                                    
-                                    # Parse errors format: WA/TLE/RTE/CE
-                                    if '/' in errors_column:
-                                        error_counts = errors_column.split('/')
-                                        if len(error_counts) >= 4:
-                                            wa_count = error_counts[0].strip()
-                                            ce_count = error_counts[3].strip()
-                                            if wa_count != '0':
-                                                return False, f"solution_bf should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
-                                            if ce_count != '0':
-                                                return False, f"solution_bf should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
+            bf_in_table = re.search(r"\|\s*`?solution_bf\.(?:cpp|py|java|c)`?\s*\|", content)
+            
+            if bf_model_match or bf_in_table:
+                # Check for WA or CE errors in solution_bf (should not have these)
+                lines = content.split('\n')
+                for line in lines:
+                    if '|' in line and re.search(r"\bsolution_bf\.(?:cpp|py|java|c)\b", line):
+                        # Split by | and filter out empty strings
+                        parts = [p.strip() for p in line.split('|') if p.strip()]
+                        # Table structure: Run File | Status | Score | Avg Time (s) | Max Time (s) | Avg Mem (MB) | Max Mem (MB) | Errors (WA/TLE/RTE/CE)
+                        if len(parts) >= 8:  # Ensure we have enough columns
+                            errors_column = parts[7]  # Last column with errors (0-indexed, so 8th column)
+                            
+                            # Parse errors format: WA/TLE/RTE/CE
+                            if '/' in errors_column:
+                                error_counts = errors_column.split('/')
+                                if len(error_counts) >= 4:
+                                    wa_count = error_counts[0].strip()
+                                    ce_count = error_counts[3].strip()
+                                    if wa_count != '0':
+                                        return False, f"solution_bf should not have Wrong Answer (WA) errors. Found {wa_count} WA errors."
+                                    if ce_count != '0':
+                                        return False, f"solution_bf should not have Compilation Error (CE) errors. Found {ce_count} CE errors."
             
             return True, "overall.md format validation passed"
             

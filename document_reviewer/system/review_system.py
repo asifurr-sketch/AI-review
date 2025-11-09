@@ -13,6 +13,7 @@ from ..core.models import ReviewResponse, ReviewResult
 from ..core.config import Config
 from ..reviewers.ai import *
 from ..reviewers.github import GitHubReviewValidator
+from ..utils.repo_cache import RepositoryCache
 
 
 class DocumentReviewSystem:
@@ -24,6 +25,8 @@ class DocumentReviewSystem:
         self.quiet_mode = quiet_mode  # Control output verbosity
         self.client = None  # Will be initialized when needed
         self.reviewers = {}  # Will be initialized when needed
+        self.repo_cache = RepositoryCache(quiet_mode=quiet_mode)  # Repository cache manager
+        self.cached_repo_path = None  # Path to cached repository (if cloned)
         
         # Initialize GitHub validator (non-AI review) - works without API key
         self.github_validator = GitHubReviewValidator(quiet_mode=quiet_mode)
@@ -228,11 +231,11 @@ class DocumentReviewSystem:
             "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client),
             "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
             
-            # Limits Consistency Check
-            "Limits Consistency Check": LimitsConsistencyReviewer(self.client),
+            # Limits Consistency Check (with cached repo path)
+            "Limits Consistency Check": LimitsConsistencyReviewer(self.client, self.cached_repo_path),
             
-            # Example Validation
-            "Example Validation": ExampleValidationReviewer(self.client)
+            # Example Validation (with cached repo path)
+            "Example Validation": ExampleValidationReviewer(self.client, self.cached_repo_path)
         }
     
     def _thread_safe_print(self, message: str, force_quiet=False):
@@ -310,6 +313,62 @@ class DocumentReviewSystem:
         except Exception as e:
             raise Exception(f"Error reading document: {str(e)}")
     
+    def _extract_github_url(self, document: str) -> Optional[str]:
+        """Extract GitHub URL from document"""
+        import re
+        
+        # Try exact format first
+        github_url_pattern = r'\*\*GitHub URL:\*\*\s+(https://github\.com/[^\s\n]+)'
+        match = re.search(github_url_pattern, document)
+        if match:
+            return match.group(1)
+        
+        # Try alternative formats
+        alternative_patterns = [
+            r'\*\*GitHub URL\*\*\s*:\s+(https://github\.com/[^\s\n]+)',
+            r'\*\*GitHub URL:\*\*[^\n]*?(https://github\.com/[^\s\n]+)',
+            r'GitHub URL[^:]*:\s*(https://github\.com/[^\s\n]+)',
+        ]
+        
+        for pattern in alternative_patterns:
+            match = re.search(pattern, document, re.IGNORECASE)
+            if match:
+                return match.group(1)
+        
+        # Robust fallback: Find any URL containing github.com
+        robust_pattern = r'https?://[^\s\n]*github\.com[^\s\n]*'
+        matches = re.finditer(robust_pattern, document, re.IGNORECASE)
+        
+        github_urls = [match.group(0) for match in matches]
+        if github_urls:
+            return max(github_urls, key=len)
+        
+        return None
+    
+    def _prepare_repository(self, document: str) -> Optional[str]:
+        """
+        Extract GitHub URL and clone repository if needed.
+        Returns the path to the cloned repository, or None if not applicable.
+        """
+        github_url = self._extract_github_url(document)
+        
+        if not github_url:
+            if not self.quiet_mode:
+                print("ℹ️  No GitHub URL found in document - skipping repository preparation")
+            return None
+        
+        # Clone or get cached repository
+        repo_path = self.repo_cache.get_or_clone_repository(github_url)
+        
+        if repo_path:
+            if not self.quiet_mode:
+                print(f"✅ Repository ready at: {repo_path}")
+        else:
+            if not self.quiet_mode:
+                print(f"❌ Failed to clone repository: {github_url}")
+        
+        return repo_path
+    
     def run_reviews(self, document: str, resume_from: int = 0, github_only: bool = False, skip_github: bool = False, single_review = None) -> Dict[str, ReviewResponse]:
         """Run reviews on the document with various options"""
         results = {}
@@ -331,6 +390,11 @@ class DocumentReviewSystem:
         
         separator = "=" * 70
         self._thread_safe_print(separator)
+        
+        # Prepare repository early (clone once and cache for all reviewers)
+        if not self.quiet_mode:
+            print("🔄 Preparing repository...")
+        self.cached_repo_path = self._prepare_repository(document)
         
         # Ensure OpenAI client is initialized if AI reviews are needed
         if not github_only:

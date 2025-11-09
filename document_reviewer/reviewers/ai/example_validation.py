@@ -17,6 +17,11 @@ from ...prompts import ContentPrompts
 class ExampleValidationReviewer(BaseReviewer):
     """Validates that examples in metadata.json match exactly with problem statement examples"""
     
+    def __init__(self, client, cached_repo_path: Optional[str] = None):
+        """Initialize with optional cached repository path"""
+        super().__init__(client)
+        self.cached_repo_path = cached_repo_path
+    
     def review(self, document: str) -> ReviewResponse:
         """
         Main review method that validates example consistency
@@ -32,16 +37,25 @@ class ExampleValidationReviewer(BaseReviewer):
         
         # Step 2: Clone repository and get metadata.json
         temp_dir = None
+        should_cleanup = False  # Track if we need to clean up
+        
         try:
-            temp_dir = tempfile.mkdtemp(prefix="example_validation_")
-            
-            # Clone repository
-            clone_success = self._clone_repository(github_url, temp_dir)
-            if not clone_success:
-                return ReviewResponse(
-                    result=ReviewResult.FAIL,
-                    reasoning=f"Cannot validate examples: Failed to clone repository {github_url}"
-                )
+            # Use cached repository if available, otherwise clone
+            if self.cached_repo_path and os.path.exists(self.cached_repo_path):
+                temp_dir = self.cached_repo_path
+                should_cleanup = False  # Don't clean up cached repo
+            else:
+                # Fallback: clone to temp directory (old behavior)
+                temp_dir = tempfile.mkdtemp(prefix="example_validation_")
+                should_cleanup = True
+                
+                # Clone repository
+                clone_success = self._clone_repository(github_url, temp_dir)
+                if not clone_success:
+                    return ReviewResponse(
+                        result=ReviewResult.FAIL,
+                        reasoning=f"Cannot validate examples: Failed to clone repository {github_url}"
+                    )
             
             # Read metadata.json
             metadata_path = os.path.join(temp_dir, 'metadata.json')
@@ -85,8 +99,8 @@ class ExampleValidationReviewer(BaseReviewer):
                 reasoning=f"Error during example validation: {str(e)}"
             )
         finally:
-            # Clean up temporary directory
-            if temp_dir and os.path.exists(temp_dir):
+            # Clean up temporary directory only if we created it (not cached)
+            if should_cleanup and temp_dir and os.path.exists(temp_dir):
                 try:
                     shutil.rmtree(temp_dir)
                 except Exception:

@@ -8,11 +8,13 @@ class Prompts:
     
     @staticmethod
     def get_math_equations_prompt():
-        """Enhanced mathematical equations correctness check with specific location reporting"""
-        return """
-You are an expert mathematical reviewer specializing in precise error identification.
+        """Check if LaTeX equations are syntactically correct and acceptable"""
+        return r"""
+You are an expert LaTeX and mathematical notation reviewer.
 
-TASK: Check if the mathematical equations throughout the document are mathematically correct.
+TASK: Check if the LaTeX equations and mathematical notation throughout the document are syntactically correct and properly formatted.
+
+IMPORTANT: This review should ONLY check LaTeX syntax and notation formatting, NOT the mathematical correctness or logical validity of the content.
 
 CRITICAL LOCATION REPORTING REQUIREMENTS:
 1. NEVER use generic placeholders like "CHAIN_XX" or "THOUGHT_XX_YY"  
@@ -21,31 +23,50 @@ CRITICAL LOCATION REPORTING REQUIREMENTS:
 4. If you find violations in CHAIN_03, write "CHAIN_03", NOT "CHAIN_XX"
 5. If you find violations in THOUGHT_04_02, write "THOUGHT_04_02", NOT "THOUGHT_XX_YY"
 
-WHAT TO EXAMINE:
-- Mathematical notation correctness (Big-O, equations, formulas)
-- Proper use of mathematical symbols and operators  
-- Accuracy of mathematical statements and proofs
-- Consistency in mathematical terminology
-- Correct application of mathematical principles
+WHAT TO EXAMINE (LaTeX/Notation Syntax ONLY):
+- LaTeX syntax correctness (proper delimiters, command syntax)
+- Mathematical notation formatting (symbols, operators)
+- Consistency in notation style throughout the document
+- Proper use of LaTeX commands and environments
+- Readability and clarity of mathematical expressions
+
+DO NOT CHECK:
+- Mathematical logic or correctness of the content
+- Validity of mathematical proofs or derivations
+- Accuracy of complexity analysis or mathematical statements
+- Whether mathematical claims are true or false
+- Correctness of numerical calculations
+
+ACCEPTABLE LaTeX/Notation:
+- ✅ Well-formed LaTeX: $O(n^2)$, $\sum_{i=1}^{n}$, $O(m \cdot d^2 + m^2 \cdot d)$
+- ✅ Consistent notation: Using either $O(n·m)$ or $O(nm)$ consistently
+- ✅ Proper LaTeX commands: $\log$, $\sqrt{n}$, $\frac{a}{b}$
+- ✅ Clear formatting: $k = m - \text{rank}$, $k \leq \min(m, d)$
+
+UNACCEPTABLE LaTeX/Notation (Syntax errors only):
+- ❌ Malformed LaTeX: $O(n^2$ (missing closing delimiter)
+- ❌ Invalid commands: $\unknown{n}$ (undefined command)
+- ❌ Inconsistent mixing: Using both $O(n \cdot m)$ and O(nm) without $ delimiters
+- ❌ Broken syntax: $\sum_i=1^n$ (incorrect subscript/superscript)
 
 VIOLATION REPORTING FORMAT:
-For each mathematical error found, specify:
+For each LaTeX/notation syntax error found, specify:
 - EXACT location (specific chain, thought, or section identifier)
-- Quote the incorrect mathematical expression
-- Explain what is mathematically wrong
-- Provide the correct mathematical form
+- Quote the problematic LaTeX/notation
+- Explain what syntax/formatting issue exists
+- Provide the correct syntax if applicable
 
-EXAMPLE GOOD REPORTING:
-- CHAIN_03: Big-O notation incorrectly written as "O!(n log n)" instead of "O(n log n)" (lines 45-46)
-- THOUGHT_02_01: Mathematical formula "∑(i=1 to n) = n(n-1)/2" is incorrect; should be "∑(i=1 to n) i = n(n+1)/2"
-- Response section: Space complexity "O(n,m)" uses ambiguous comma notation; should be "O(n·m)" or "O(nm)"
+EXAMPLE GOOD REPORTING (Syntax issues):
+- CHAIN_03: LaTeX delimiter mismatch "$O(n log n" missing closing $
+- THOUGHT_02_01: Inconsistent notation - uses both $O(n \cdot m)$ and O(nm) without delimiters
+- Response section: Invalid LaTeX command "\unknown" not recognized
 
-EXAMPLE BAD REPORTING (DO NOT DO THIS):
-- CHAIN_XX: Big-O notation problems found
-- Multiple mathematical errors in reasoning chains  
-- Some notation issues detected
+EXAMPLE OF WHAT NOT TO REPORT (These are content issues, not syntax issues):
+- ❌ DO NOT report: "k ≤ d bound is incorrect because k can be larger than d" (This is mathematical logic, not syntax)
+- ❌ DO NOT report: "Time complexity should be O(m^3) not O(m^2)" (This is correctness, not syntax)
+- ❌ DO NOT report: "The proof is wrong because..." (This is logical validity, not syntax)
 
-Examine the entire document systematically and report ALL mathematical correctness violations with exact locations.
+Examine the entire document systematically and report ONLY LaTeX/notation syntax violations with exact locations.
 
 RESPONSE FORMAT:
 Provide detailed analysis with specific locations, then end with:

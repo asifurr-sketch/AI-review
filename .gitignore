@@ -1,5 +1,5 @@
 .env
 *.txt
 reports/
-document_reviewer/__pycache__/
-document_reviewer/utilities/
+clones/
+__pycache__/

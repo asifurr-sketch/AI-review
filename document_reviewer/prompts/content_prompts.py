@@ -180,9 +180,9 @@ The document MUST contain a metadata section at the beginning that contains all 
 
 # Metadata
 
-REQUIRED FIELDS (order not strictly enforced, but all must be present):
+REQUIRED FIELDS (all must be present, order does NOT matter):
 - **Category:** - [value]
-- **GitHub URL:** - [GitHub URL]
+- **GitHub URL:** - [GitHub URL]  OR  **GitHub:** - [GitHub URL]
 - **Topic:** - [value]  
 - **Subtopic:** - [JSON array of subtopics]
 - **Difficulty:** - [difficulty level]
@@ -193,9 +193,10 @@ REQUIRED FIELDS (order not strictly enforced, but all must be present):
 REQUIRED FORMAT SPECIFICATIONS:
 2. Each field must use the pattern: **FieldName:** - value
 3. There must be a space after the colon, then a dash, then a space before the value
-4. All fields must be present (order is flexible)
+4. All fields must be present (order does NOT matter - any order is acceptable)
 5. The subtopic must be a valid JSON array format with proper quotes
-6. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
+6. GitHub field can be either "**GitHub URL:**" or "**GitHub:**" - both are acceptable
+7. The GitHub URL must be a valid GitHub repository URL starting with https://github.com/
 
 CRITICAL VALIDATION FOR "Number of Approaches":
 - Must contain both the count and the time complexity progression
@@ -207,24 +208,27 @@ CRITICAL VALIDATION FOR "Number of Approaches":
 - Can use either "->" or "→" arrows consistently
 - Can use LaTeX formatting with $ symbols or plain text
 - Must show progression from inefficient to efficient approaches
-- Variables must match those used in the problem statement
+- Variables used in the complexity progression must be consistent with those used throughout the FULL DOCUMENT (including problem statement, reasoning chains, and solution), not restricted to only the problem statement variables
 
 CRITICAL VALIDATION FOR "Number of Chains":
 - Count all reasoning chains in the document with format **[CHAIN_01]**, **[CHAIN_02]**, etc.
 - The stated number must exactly match the actual count of CHAIN_XX sections in the document
 - Do NOT count THOUGHT_XX_YY items - only count CHAIN_XX items
-- Format must be exactly: **Number of Chains:** - [number]
-- Example: If document has CHAIN_01 through CHAIN_10, metadata must show "**Number of Chains:** - 10"
+- Format must be: **Number of Chains:** - [number] (number can optionally be wrapped in LaTeX delimiters like $7$)
+- Acceptable formats: "**Number of Chains:** - 10" or "**Number of Chains:** - $10$"
+- Example: If document has CHAIN_01 through CHAIN_10, metadata must show "**Number of Chains:** - 10" or "**Number of Chains:** - $10$"
 
 WHAT TO CHECK:
 1. Metadata section exists with "# Metadata" header
-2. All required fields are present in correct order: Category, GitHub URL, Topic, Subtopic, Difficulty, Languages, Number of Approaches, Number of Chains
+2. All required fields are present (order does NOT matter - any order is acceptable)
 3. Each field follows the exact format: **FieldName:** - value
-4. GitHub URL is a valid GitHub repository URL starting with https://github.com/
-5. Number of Approaches contains both count and valid time complexity progression
-6. Number of Chains matches actual CHAIN_XX sections count
-7. Subtopic is a properly formatted JSON array
-8. Values are appropriate for the content
+4. GitHub field is present as either "**GitHub URL:**" or "**GitHub:**" (both acceptable)
+5. GitHub URL is a valid GitHub repository URL starting with https://github.com/
+6. Number of Approaches contains both count and valid time complexity progression
+7. Number of Chains matches actual CHAIN_XX sections count
+8. Subtopic is a properly formatted JSON array
+9. Values are appropriate for the content
+10. Variables in "Number of Approaches" complexity are consistent with the full document (not restricted to problem statement only)
 
 Please answer pass or fail.
 

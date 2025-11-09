@@ -12,6 +12,11 @@ from ...core.models import ReviewResponse, ReviewResult
 class LimitsConsistencyReviewer(BaseReviewer):
     """Reviews if time and space limits are consistent across report, problem_statement.md, requirements.json, and metadata.json"""
     
+    def __init__(self, client, cached_repo_path: Optional[str] = None):
+        """Initialize with optional cached repository path"""
+        super().__init__(client)
+        self.cached_repo_path = cached_repo_path
+    
     def review(self, document: str) -> ReviewResponse:
         """
         Main review method that orchestrates the entire limits consistency check
@@ -59,16 +64,25 @@ class LimitsConsistencyReviewer(BaseReviewer):
         import os
         
         temp_dir = None
+        should_cleanup = False  # Track if we need to clean up
+        
         try:
-            temp_dir = tempfile.mkdtemp(prefix="limits_check_")
-            
-            # Clone repository
-            clone_success = self._clone_repository(github_url, temp_dir)
-            if not clone_success:
-                return ReviewResponse(
-                    result=ReviewResult.FAIL,
-                    reasoning=f"Failed to clone repository: {github_url}"
-                )
+            # Use cached repository if available, otherwise clone
+            if self.cached_repo_path and os.path.exists(self.cached_repo_path):
+                temp_dir = self.cached_repo_path
+                should_cleanup = False  # Don't clean up cached repo
+            else:
+                # Fallback: clone to temp directory (old behavior)
+                temp_dir = tempfile.mkdtemp(prefix="limits_check_")
+                should_cleanup = True
+                
+                # Clone repository
+                clone_success = self._clone_repository(github_url, temp_dir)
+                if not clone_success:
+                    return ReviewResponse(
+                        result=ReviewResult.FAIL,
+                        reasoning=f"Failed to clone repository: {github_url}"
+                    )
             
             # Read requirements.json
             requirements_path = os.path.join(temp_dir, 'requirements.json')
@@ -161,8 +175,8 @@ class LimitsConsistencyReviewer(BaseReviewer):
                 reasoning=f"Error during limits consistency check: {str(e)}"
             )
         finally:
-            # Clean up temporary directory
-            if temp_dir and os.path.exists(temp_dir):
+            # Clean up temporary directory only if we created it (not cached)
+            if should_cleanup and temp_dir and os.path.exists(temp_dir):
                 try:
                     shutil.rmtree(temp_dir)
                 except Exception:
