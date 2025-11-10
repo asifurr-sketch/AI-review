@@ -160,12 +160,95 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_solution_passability_prompt():
         """Check if solution is passable according to limits"""
         return """
-You are an expert response evaluator. According to given limits, is this solution passable?
+You are an expert algorithm complexity analyst. Evaluate if the provided solution can pass within the given time and memory limits.
 
-Please answer pass or fail.
+IMPORTANT: Be realistic and practical. Most competitive programming solutions are designed to pass, so only flag CLEAR violations, not marginal cases.
+
+WHAT TO ANALYZE:
+
+1. **Time Complexity Analysis:**
+   - Extract the time complexity from the solution/metadata
+   - Find the maximum input constraints from the problem statement
+   - Calculate worst-case number of operations
+   - Compare against the time limit (1 second ≈ 10^8 operations, 2 seconds ≈ 2×10^8 operations)
+   - Allow reasonable constant factors (2-5x is acceptable)
+
+2. **Memory Complexity Analysis:**
+   - Extract the space complexity from the solution/metadata
+   - Calculate worst-case memory usage based on constraints
+   - Compare against the memory limit
+   - Consider language-specific overheads realistically:
+     * Python: 3-5x overhead for complex objects, but simple data types are much less
+     * C++/C: Minimal overhead (1-1.5x)
+     * Java: 2-3x overhead
+   - **CRITICAL: Only flag if memory usage clearly exceeds 75% of limit with overhead**
+
+3. **Key Factors to Check:**
+   - Does the time complexity allow completion within time limit?
+   - Does the space complexity fit within memory limit?
+   - Are there catastrophic constant factors (100x+)?
+   - Are there hidden exponential complexities?
+
+MEMORY ESTIMATION GUIDELINES (Python):
+
+**Small Data Structures (ALMOST ALWAYS ACCEPTABLE):**
+- Output buffer storing t results where t ≤ 10^6: ~10-50 MB with overhead → PASS for 32MB+ if < 20MB estimated
+- Single array of 10^5 integers: ~3-5 MB → PASS for any reasonable limit
+- Hash map with 10^5 entries: ~10-15 MB → PASS for 32MB+ limits
+- String buffer < 10^6 characters: ~5-10 MB → PASS for 32MB+ limits
+
+**Realistic Calculations:**
+- List of t=2×10^5 small strings (10-20 chars each):
+  * Raw: 200K × 15 = 3 MB
+  * Python overhead (strings + list): ~2-3x = 6-9 MB
+  * Verdict for 32 MB limit: **PASS** (uses < 30% of limit)
+
+- Array of n=10^5 integers:
+  * Python list: ~28 bytes per int object
+  * Total: 10^5 × 28 = 2.8 MB
+  * Verdict for 32 MB limit: **PASS** (uses < 10% of limit)
+
+**ONLY FLAG AS FAIL:**
+- 2D array 10^4 × 10^4 for 32MB limit (100M elements × 28 bytes = 2.8 GB) → FAIL
+- Storing all test case inputs when t=10^6 and each input is 10^5 elements → FAIL
+- Exponential space like 2^n where n > 20 → FAIL
+- Building string of length > 10^7 for 32MB limit → LIKELY FAIL
+
+**DO NOT FLAG (THESE ARE ACCEPTABLE):**
+- Output buffers with t ≤ 10^6 results
+- Single work arrays of size ≤ 10^6
+- Hash maps/sets with ≤ 10^6 entries for limits ≥ 64MB
+- Small administrative overhead (counters, temp variables)
+- Streaming/online solutions with O(1) or O(log n) space
+
+VALIDATION STEPS:
+
+1. Identify time complexity and maximum constraints
+2. Calculate operations: ops = f(max_constraints)
+3. **Time verdict**: FAIL only if ops > 5×10^8 for 1 second limit (be generous)
+4. Identify space complexity and calculate memory
+5. Apply conservative overhead multiplier (2-3x for Python, not 5x)
+6. **Memory verdict**: FAIL only if estimated_memory > 0.75 × memory_limit
+7. **Overall**: PASS if both time and memory are reasonable
+
+EXAMPLE ANALYSIS:
+
+Problem: t ≤ 2×10^5, each test case produces one integer result, Memory: 32 MB
+Code: Stores all t results in list before printing
+
+Memory Calculation:
+- Results: 2×10^5 strings (avg 15 bytes each)
+- Raw data: 3 MB
+- Python overhead (string objects + list): 2.5x → 7.5 MB
+- Total: ~7.5 MB
+- Limit: 32 MB
+- Usage: 7.5/32 = 23% → **PASS** ✅
+
+PASS if: Solution uses < 75% of memory limit and < 5× time budget (be practical!)
+FAIL if: Solution clearly exceeds limits (e.g., uses > 80% of memory, or 10× time budget)
 
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+Provide detailed analysis showing realistic calculations, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 
@@ -466,12 +549,32 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_no_code_in_reasoning_prompt():
         """Check if reasoning chains contain code"""
         return """
-You are an expert response evaluator. There should not be any code in reasoning chains.
+You are an expert document reviewer. Check if reasoning chains (sections marked as CHAIN_XX and THOUGHT_XX_YY) contain actual code snippets or code blocks.
 
-Please answer pass or fail.
+WHAT TO CHECK:
+- Look for code blocks marked with ``` or code formatting
+- Look for multi-line code snippets with programming syntax
+- Look for function definitions, loops, conditionals written as actual code
+- Check CHAIN_XX and THOUGHT_XX_YY sections specifically
+
+WHAT IS ALLOWED (NOT considered code):
+- Pseudocode or algorithm descriptions in plain English
+- Mathematical formulas and expressions
+- Single-line code references in explanatory text (e.g., "we use a variable 'count'")
+- Algorithm steps described in natural language
+- Variable names or function names mentioned in discussion
+
+WHAT IS NOT ALLOWED (considered code):
+- Multi-line code blocks with actual syntax (e.g., Python, C++, Java code)
+- Complete function implementations
+- Code snippets showing actual programming constructs (if/else, for/while loops written in code)
+- Code blocks formatted with ``` markers
+
+PASS if: No actual code blocks or code snippets found in reasoning chains
+FAIL if: Any code blocks or code snippets found in CHAIN_XX or THOUGHT_XX_YY sections
 
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+Provide detailed analysis with specific examples if violations are found, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 

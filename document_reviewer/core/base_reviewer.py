@@ -23,6 +23,14 @@ class BaseReviewer:
     
     def _clean_failure_response(self, failure_response: str) -> str:
         """Enhanced cleanup with specific instructions for precise location reporting"""
+        
+        # Handle empty or "No text content" responses
+        if not failure_response or failure_response.strip() == "":
+            return "No failure details available - empty response from API"
+        
+        if "No text content" in failure_response:
+            return "No failure details available - API returned no content"
+        
         cleanup_prompt = """
 You are an expert at extracting and cleaning failure information with PRECISE location identification.
 
@@ -131,7 +139,10 @@ Original Response:
                     reasoning={"effort": "high"},
                     max_output_tokens=Config.MAX_OUTPUT_TOKENS
                 )
-                return response.output_text if response.output_text else "No text content in response"
+                output_text = response.output_text if hasattr(response, 'output_text') and response.output_text else None
+                if not output_text or output_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return output_text
                 
             elif self.primary_model.startswith("o"):
                 # O-series models
@@ -146,8 +157,10 @@ Original Response:
                     max_completion_tokens=Config.MAX_OUTPUT_TOKENS,
                     temperature=0.3
                 )
-                response_text = response.choices[0].message.content
-                return response_text if response_text else "No text content in response"
+                response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
+                if not response_text or response_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return response_text
                 
             else:
                 # GPT-4 models
@@ -162,8 +175,10 @@ Original Response:
                     max_tokens=Config.MAX_OUTPUT_TOKENS,
                     temperature=0.3
                 )
-                response_text = response.choices[0].message.content
-                return response_text if response_text else "No text content in response"
+                response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
+                if not response_text or response_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return response_text
             
         except Exception as e:
             return f"Error in AI call: {str(e)}"
@@ -171,6 +186,13 @@ Original Response:
     def _parse_response(self, response: str) -> ReviewResponse:
         """Parse the LLM response to extract pass/fail and reasoning"""
         response_lower = response.lower()
+        
+        # Check for API errors first
+        if response.startswith("Error:") or response.startswith("Error in AI call:"):
+            return ReviewResponse(
+                result=ReviewResult.FAIL,
+                reasoning=response
+            )
         
         # Look for clear pass/fail indicators
         if "final verdict: pass" in response_lower or "conclusion: pass" in response_lower:
