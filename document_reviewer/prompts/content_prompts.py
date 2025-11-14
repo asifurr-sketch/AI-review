@@ -491,28 +491,140 @@ FINAL VERDICT: PASS or FINAL VERDICT: FAIL
     def get_note_section_prompt():
         """Check note section explanation approach - only applies to problem statement/prompt section"""
         return """
-You are an expert response evaluator. 
+You are an expert competitive programming problem validator specializing in detecting solution leakage.
 
-IMPORTANT SCOPE CLARIFICATION:
-This check ONLY applies to the **[Prompt]** section or problem statement section of the document. Other sections like **[Assistant]**, reasoning chains (CHAIN_XX), thoughts (THOUGHT_XX_YY), or solution sections are allowed to expose solutions and implementation details without restriction.
+CRITICAL SCOPE: This check ONLY applies to the **[Prompt]** section (problem statement). Other sections like **[Assistant]**, CHAIN_XX, THOUGHT_XX_YY, or solution sections can freely discuss algorithms and are NOT evaluated here.
 
-WHAT TO CHECK:
-- Focus ONLY on the **[Prompt]** section or main problem statement
-- The problem statement itself should not reveal the solution approach
-- Any "Note" or "Explanation" subsections within the problem statement should explain the output in relation to the problem requirements, not by analyzing the solution methodology
-- The problem statement should present the challenge without giving away algorithmic insights or implementation strategies
+═══════════════════════════════════════════════════════════════════
+MISSION: Detect if the problem statement reveals the optimal algorithm
+═══════════════════════════════════════════════════════════════════
 
-WHAT NOT TO CHECK:
-- Do not evaluate **[Assistant]** sections
-- Do not evaluate CHAIN_XX reasoning sections  
-- Do not evaluate THOUGHT_XX_YY sections
-- Do not evaluate solution code or explanations outside the problem statement
-- Other sections are free to contain complete solutions, algorithms, and implementation details
+A problem statement should be SOLVABLE by a contestant WITHOUT reading the solution. Test case explanations must be based PURELY on problem requirements, not algorithmic insights.
 
-Please answer pass or fail based only on whether the **[Prompt]** section appropriately presents the problem without solution exposure.
+🚫 UNACCEPTABLE - SOLUTION LEAKAGE (Flag these as FAIL):
+
+**1. Naming specific data structures or algorithms:**
+   ❌ "Use a segment tree to find the k-th smallest"
+   ❌ "Binary search can solve this efficiently"
+   ❌ "A BFS/DFS traversal shows..."
+   ❌ "Hash map allows O(1) lookup"
+   ❌ "Dynamic programming state..."
+   ❌ "Apply union-find to merge..."
+   ❌ "Prefix sum array helps..."
+   ❌ "Using a priority queue/heap..."
+   ❌ "Trie data structure for..."
+   ❌ "Persistent segment tree maintains..."
+
+**2. Revealing algorithmic approaches:**
+   ❌ "Sort the array first, then..."
+   ❌ "Precompute all values using..."
+   ❌ "Iterate from left to right while maintaining..."
+   ❌ "Use two pointers technique..."
+   ❌ "Greedy approach: always choose..."
+   ❌ "Memoize intermediate results..."
+   ❌ "Build a graph and find shortest path..."
+
+**3. Explaining HOW to solve (process/methodology):**
+   ❌ "First sort by value, then by index"
+   ❌ "Maintain a running sum as you iterate"
+   ❌ "Keep track of the maximum seen so far"
+   ❌ "Process queries offline by sorting them"
+   ❌ "Build the structure incrementally"
+   ❌ "Use preprocessing to speed up queries"
+
+**4. Mentioning time/space complexity or optimization:**
+   ❌ "This can be done in O(n log n) time"
+   ❌ "An O(1) lookup is needed per query"
+   ❌ "Efficient implementation requires..."
+   ❌ "To optimize, we can..."
+
+**5. Describing solution flow in test case explanations:**
+   ❌ "After sorting the sigils, we find..." (reveals sorting step)
+   ❌ "Using binary search on the path..." (reveals binary search)
+   ❌ "By maintaining a frequency map..." (reveals data structure)
+   ❌ "The LCA of nodes x and y is..." (reveals LCA usage when not in problem)
+   ❌ "After preprocessing the tree..." (reveals preprocessing)
+
+✅ ACCEPTABLE - PROBLEM-BASED EXPLANATIONS (These are OK):
+
+**1. Stating problem facts and requirements:**
+   ✅ "The path from waypoint 2 to 3 is: 2 → filament 1 → 1 → filament 3 → 3"
+   ✅ "The sigils on this path are: {1, 5, 4, 6, 2}"
+   ✅ "We need to find the 3rd smallest sigil"
+   ✅ "The 3rd smallest value in {1, 5, 4, 6, 2} is 4"
+   ✅ "Therefore, the answer is 4"
+
+**2. Mathematical/logical deductions from problem rules:**
+   ✅ "According to the problem rules, each waypoint gets a sigil"
+   ✅ "Since k=3, we need the 3rd smallest"
+   ✅ "The constraints guarantee k ≤ path length"
+   ✅ "Values are assigned uniquely as specified"
+
+**3. Tracing through problem-defined operations:**
+   ✅ "Following the path definition in the problem..."
+   ✅ "Applying the sigil assignment rule..."
+   ✅ "Based on the connectivity given in input..."
+   ✅ "According to the waypoint ordering..."
+
+**4. Showing intermediate states WITHOUT revealing HOW they were computed:**
+   ✅ "The sigils collected are {1, 5, 4, 6, 2}" (just states the fact)
+   ✅ "Among these values, sorted order is: 1, 2, 4, 5, 6" (sorting IS the problem requirement for k-th smallest)
+   ✅ "The path consists of 5 nodes" (counting is obvious)
+
+═══════════════════════════════════════════════════════════════════
+KEY PRINCIPLE: "Could a contestant understand this explanation 
+                WITHOUT knowing the optimal algorithm?"
+═══════════════════════════════════════════════════════════════════
+
+**THE GOLDEN RULE FOR TEST CASE EXPLANATIONS:**
+- Explain WHAT happens (trace the problem rules)
+- DON'T explain HOW to compute it efficiently (algorithm/data structure)
+
+**Examples of the difference:**
+
+BAD (reveals solution):
+❌ "We use LCA to find the path, then query our persistent segment tree for the k-th smallest sigil."
+→ Problem: Reveals specific data structures (LCA, persistent segment tree)
+
+GOOD (problem-based):
+✅ "The path from x to y passes through these nodes: [...]. The sigils on these nodes are: {...}. The 3rd smallest is 4."
+→ Good: Just traces problem rules, doesn't reveal algorithm
+
+BAD (reveals solution):
+❌ "By preprocessing with DFS and storing depths, we can efficiently find..."
+→ Problem: Reveals algorithmic technique
+
+GOOD (problem-based):
+✅ "Following the tree structure in the input, node x and y are connected through: [path]. This gives us the sigils: {...}"
+→ Good: References input/problem structure, not algorithm
+
+═══════════════════════════════════════════════════════════════════
+VALIDATION CHECKLIST:
+═══════════════════════════════════════════════════════════════════
+
+For EACH explanation/note in the **[Prompt]** section, verify:
+
+□ Does it mention ANY specific data structure? (segment tree, hash map, heap, etc.)
+□ Does it mention ANY algorithmic technique? (binary search, DP, greedy, two pointers, etc.)
+□ Does it describe HOW to compute something efficiently?
+□ Does it mention time/space complexity?
+□ Does it reveal preprocessing or optimization strategies?
+□ Could someone solve the problem just from reading this explanation?
+
+If you answer YES to any of these → FLAG AS FAIL
+
+═══════════════════════════════════════════════════════════════════
+IMPORTANT REMINDERS:
+═══════════════════════════════════════════════════════════════════
+
+1. **Sorting is OK ONLY when it's the explicit problem requirement** (like "find k-th smallest")
+2. **Counting/listing is OK** (these are basic operations anyone would do)
+3. **Following paths/connections is OK** (this is reading the input)
+4. **Only check [Prompt] section** - ignore all solution/chain/thought sections
+5. **Be specific in your report**: Quote the exact problematic phrases and explain WHY they leak the solution
 
 RESPONSE FORMAT:
-Provide detailed analysis, then end with:
+Provide detailed analysis with specific quotes, then end with:
 FINAL VERDICT: PASS or FINAL VERDICT: FAIL
 """
 

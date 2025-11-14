@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from openai import OpenAI
 
 from ...core.models import ReviewResponse, ReviewResult
+from ...utils.repo_cache import RepositoryCache
 
 
 class GitHubReviewValidator:
@@ -20,6 +21,7 @@ class GitHubReviewValidator:
     
     def __init__(self, quiet_mode=False):
         self.quiet_mode = quiet_mode
+        self.repo_cache = RepositoryCache(quiet_mode=quiet_mode)
     
     def _extract_github_url(self, document: str) -> Optional[str]:
         """Extract GitHub URL from document metadata - robust extraction for any *github.com* pattern"""
@@ -84,86 +86,7 @@ class GitHubReviewValidator:
             pass
         return None, None
     
-    def _convert_to_ssh_url(self, https_url: str) -> str:
-        """Convert HTTPS GitHub URL to SSH format"""
-        # https://github.com/owner/repo -> git@github.com:owner/repo.git
-        if https_url.startswith('https://github.com/'):
-            # Remove https://github.com/ prefix
-            repo_path = https_url.replace('https://github.com/', '')
-            # Remove .git suffix if present
-            if repo_path.endswith('.git'):
-                repo_path = repo_path[:-4]
-            # Convert to SSH format
-            ssh_url = f"git@github.com:{repo_path}.git"
-            return ssh_url
-        else:
-            # If it's already in SSH format or different format, return as-is
-            return https_url
-    
-    def _clone_repository(self, url: str, temp_dir: str) -> bool:
-        """Clone GitHub repository to temporary directory using SSH with HTTPS fallback"""
-        try:
-            # Convert HTTPS URL to SSH format
-            ssh_url = self._convert_to_ssh_url(url)
-            
-            # Ensure temp_dir doesn't exist (git clone creates it)
-            if os.path.exists(temp_dir):
-                import shutil
-                shutil.rmtree(temp_dir)
-            
-            # First try SSH
-            if not self.quiet_mode:
-                print(f"🔑 Attempting to clone using SSH: {ssh_url}")
-            result = subprocess.run([
-                'git', 'clone', '--depth=1', ssh_url, temp_dir
-            ], capture_output=True, text=True, timeout=120)
-            
-            if result.returncode == 0:
-                if not self.quiet_mode:
-                    print(f"✅ Successfully cloned via SSH")
-                return True
-            else:
-                if not self.quiet_mode:
-                    print(f"⚠️  SSH clone failed, trying HTTPS fallback...")
-                    print(f"   SSH Error: {result.stderr}")
-                
-                # Clean up failed attempt
-                if os.path.exists(temp_dir):
-                    import shutil
-                    shutil.rmtree(temp_dir)
-                
-                # Fallback to HTTPS if SSH fails
-                if not self.quiet_mode:
-                    print(f"🌐 Attempting to clone using HTTPS: {url}")
-                https_result = subprocess.run([
-                    'git', 'clone', '--depth=1', url, temp_dir
-                ], capture_output=True, text=True, timeout=120)
-                
-                if https_result.returncode == 0:
-                    if not self.quiet_mode:
-                        print(f"✅ Successfully cloned via HTTPS fallback")
-                    return True
-                else:
-                    if not self.quiet_mode:
-                        print(f"❌ Both SSH and HTTPS clone failed")
-                        print(f"   SSH Error: {result.stderr}")
-                        print(f"   HTTPS Error: {https_result.stderr}")
-                        print(f"   ")
-                        print(f"   💡 SSH Setup Help:")
-                        print(f"   1. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'")
-                        print(f"   2. Add to SSH agent: ssh-add ~/.ssh/id_ed25519")
-                        print(f"   3. Add public key to GitHub: cat ~/.ssh/id_ed25519.pub")
-                        print(f"   4. Test SSH access: ssh -T git@github.com")
-                    return False
-                
-        except subprocess.TimeoutExpired:
-            if not self.quiet_mode:
-                print("❌ Git clone timed out after 120 seconds")
-            return False
-        except Exception as e:
-            if not self.quiet_mode:
-                print(f"Git clone exception: {e}")
-            return False
+
     
     def _ensure_utilities_repo(self) -> Tuple[bool, str, str]:
         """
@@ -649,18 +572,17 @@ class GitHubReviewValidator:
             )
         
         # Step 3: Clone repository
-        temp_dir = None
         try:
-            temp_dir = tempfile.mkdtemp(prefix="github_review_")
+            repo_dir = self.repo_cache.get_or_clone_repository(github_url)
             
-            if not self._clone_repository(github_url, temp_dir):
+            if not repo_dir:
                 return ReviewResponse(
                     result=ReviewResult.FAIL,
                     reasoning=f"Failed to clone repository: {github_url}. Repository may not exist or be inaccessible."
                 )
             
             # Step 4: Find overall.md files
-            overall_files = self._find_overall_md_files(temp_dir)
+            overall_files = self._find_overall_md_files(repo_dir)
             
             if len(overall_files) == 0:
                 return ReviewResponse(
@@ -671,13 +593,13 @@ class GitHubReviewValidator:
                 # Select the overall.md file with the largest alphabetical path
                 overall_files.sort()
                 selected_file = overall_files[-1]
-                relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
-                selected_relative = os.path.relpath(selected_file, temp_dir)
+                relative_paths = [os.path.relpath(f, repo_dir) for f in overall_files]
+                selected_relative = os.path.relpath(selected_file, repo_dir)
                 # Update overall_files to contain only the selected file
                 overall_files = [selected_file]
             
             # Step 5: Check for hunyuan cpp files
-            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(temp_dir)
+            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(repo_dir)
             if not hunyuan_exists:
                 return ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -694,7 +616,7 @@ class GitHubReviewValidator:
                 )
             
             # Step 7: Validate solution.md content consistency
-            solution_valid, solution_msg = self._validate_solution_md_consistency(temp_dir, document)
+            solution_valid, solution_msg = self._validate_solution_md_consistency(repo_dir, document)
             if not solution_valid:
                 return ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -702,7 +624,7 @@ class GitHubReviewValidator:
                 )
             
             # Step 8: Validate problem_statement.md content consistency
-            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(temp_dir, document)
+            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(repo_dir, document)
             if not problem_valid:
                 return ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -710,7 +632,7 @@ class GitHubReviewValidator:
                 )
             
             # Step 9: Validate solution.md has no horizontal lines
-            horizontal_valid, horizontal_msg = self._validate_solution_md_no_horizontal_lines(temp_dir)
+            horizontal_valid, horizontal_msg = self._validate_solution_md_no_horizontal_lines(repo_dir)
             if not horizontal_valid:
                 return ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -726,7 +648,7 @@ class GitHubReviewValidator:
                 )
             
             # All validations passed
-            relative_path = os.path.relpath(overall_md_path, temp_dir)
+            relative_path = os.path.relpath(overall_md_path, repo_dir)
             return ReviewResponse(
                 result=ReviewResult.PASS,
                 reasoning=f"✅ PASS - All GitHub requirements validated:\n" +
@@ -745,14 +667,7 @@ class GitHubReviewValidator:
                 result=ReviewResult.FAIL,
                 reasoning=f"Error during GitHub validation: {str(e)}"
             )
-        
-        finally:
-            # Clean up temporary directory
-            if temp_dir and os.path.exists(temp_dir):
-                try:
-                    shutil.rmtree(temp_dir)
-                except Exception:
-                    pass  # Ignore cleanup errors
+        # Note: No cleanup needed - repo_cache manages the clones directory
     
     def _validate_utilities_delivery(self, repo_dir: str, document: str) -> Tuple[bool, str]:
         """
@@ -850,7 +765,6 @@ class GitHubReviewValidator:
     def validate_github_requirements_detailed(self, document: str) -> list:
         """Detailed validation method that returns separate results for each GitHub task"""
         results = []
-        temp_dir = None
         
         try:
             # Task 1: GitHub Repository Setup (combined: URL extraction, parsing, cloning, overall.md detection)
@@ -877,9 +791,8 @@ class GitHubReviewValidator:
             setup_steps.append(f"• URL parsed: owner={owner}, repo={repo}")
             
             # Step 1c: Repository Cloning
-            temp_dir = tempfile.mkdtemp(prefix="github_review_")
-            clone_success = self._clone_repository(github_url, temp_dir)
-            if not clone_success:
+            repo_dir = self.repo_cache.get_or_clone_repository(github_url)
+            if not repo_dir:
                 results.append(("GitHub Repository Setup", ReviewResponse(
                     result=ReviewResult.FAIL,
                     reasoning=f"Failed to clone repository: {github_url}. Repository may not exist or be inaccessible."
@@ -888,7 +801,7 @@ class GitHubReviewValidator:
             setup_steps.append(f"• Repository cloned successfully")
             
             # Step 1d: Overall.md File Detection
-            overall_files = self._find_overall_md_files(temp_dir)
+            overall_files = self._find_overall_md_files(repo_dir)
             if len(overall_files) == 0:
                 results.append(("GitHub Repository Setup", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -899,12 +812,12 @@ class GitHubReviewValidator:
                 # Select the overall.md file with the largest alphabetical path
                 overall_files.sort()
                 selected_file = overall_files[-1]
-                relative_paths = [os.path.relpath(f, temp_dir) for f in overall_files]
-                selected_relative = os.path.relpath(selected_file, temp_dir)
+                relative_paths = [os.path.relpath(f, repo_dir) for f in overall_files]
+                selected_relative = os.path.relpath(selected_file, repo_dir)
                 setup_steps.append(f"• Found multiple overall.md files, selected: {selected_relative}")
                 overall_md_path = selected_file
             else:
-                relative_path = os.path.relpath(overall_files[0], temp_dir)
+                relative_path = os.path.relpath(overall_files[0], repo_dir)
                 setup_steps.append(f"• Found overall.md at: {relative_path}")
                 overall_md_path = overall_files[0]
             
@@ -915,7 +828,7 @@ class GitHubReviewValidator:
             )))
             
             # Task 2: Hunyuan CPP Files Check
-            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(temp_dir)
+            hunyuan_exists, hunyuan_msg = self._check_hunyuan_cpp_files(repo_dir)
             if not hunyuan_exists:
                 results.append(("Hunyuan CPP Files Check", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -947,7 +860,7 @@ class GitHubReviewValidator:
                 )))
             
             # Task 4: Solution.md Content Consistency
-            solution_valid, solution_msg = self._validate_solution_md_consistency(temp_dir, document)
+            solution_valid, solution_msg = self._validate_solution_md_consistency(repo_dir, document)
             if not solution_valid:
                 results.append(("Solution.md Content Consistency", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -960,7 +873,7 @@ class GitHubReviewValidator:
                 )))
             
             # Task 5: Problem Statement.md Content Consistency
-            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(temp_dir, document)
+            problem_valid, problem_msg = self._validate_problem_statement_md_consistency(repo_dir, document)
             if not problem_valid:
                 results.append(("Problem Statement.md Content Consistency", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -973,7 +886,7 @@ class GitHubReviewValidator:
                 )))
             
             # Task 6: Solution.md Horizontal Lines Check
-            horizontal_valid, horizontal_msg = self._validate_solution_md_no_horizontal_lines(temp_dir)
+            horizontal_valid, horizontal_msg = self._validate_solution_md_no_horizontal_lines(repo_dir)
             if not horizontal_valid:
                 results.append(("Solution.md Horizontal Lines Check", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -1005,7 +918,7 @@ class GitHubReviewValidator:
                 )))
             
             # Task 8: Utilities Delivery Validation
-            utilities_valid, utilities_msg = self._validate_utilities_delivery(temp_dir, document)
+            utilities_valid, utilities_msg = self._validate_utilities_delivery(repo_dir, document)
             if not utilities_valid:
                 results.append(("Utilities Delivery Validation", ReviewResponse(
                     result=ReviewResult.FAIL,
@@ -1026,12 +939,5 @@ class GitHubReviewValidator:
                     reasoning=f"Error during GitHub validation: {str(e)}"
                 )))
             return results
-        
-        finally:
-            # Clean up temporary directory
-            if temp_dir and os.path.exists(temp_dir):
-                try:
-                    shutil.rmtree(temp_dir)
-                except Exception:
-                    pass  # Ignore cleanup errors
+        # Note: No cleanup needed - repo_cache manages the clones directory
 

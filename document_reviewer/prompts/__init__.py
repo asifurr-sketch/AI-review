@@ -3,5 +3,6 @@
 from .code_quality_prompts import Prompts as CodeQualityPrompts
 from .content_prompts import Prompts as ContentPrompts
 from .structure_prompts import Prompts as StructurePrompts
+from .cot_prompts import CoTPrompts
 
-__all__ = ["CodeQualityPrompts", "ContentPrompts", "StructurePrompts"]
+__all__ = ["CodeQualityPrompts", "ContentPrompts", "StructurePrompts", "CoTPrompts"]

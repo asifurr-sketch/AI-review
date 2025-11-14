@@ -74,7 +74,19 @@ class DocumentReviewSystem:
             # Limits Consistency Check
             "Limits Consistency Check",
             # Example Validation
-            "Example Validation"
+            "Example Validation",
+            # Chain of Thought (CoT) Quality Reviews
+            "CoT Structure Validation",
+            "CoT Thought Quality",
+            "CoT Approach Progression",
+            "CoT Variable Consistency",
+            "CoT Line References",
+            "CoT Logical Continuity",
+            "CoT Markdown Formatting",
+            "CoT Metadata Alignment",
+            "CoT Language Consistency",
+            "CoT Constraint Validation",
+            "Response Structure"
         ]
         
 
@@ -235,7 +247,20 @@ class DocumentReviewSystem:
             "Limits Consistency Check": LimitsConsistencyReviewer(self.client, self.cached_repo_path),
             
             # Example Validation (with cached repo path)
-            "Example Validation": ExampleValidationReviewer(self.client, self.cached_repo_path)
+            "Example Validation": ExampleValidationReviewer(self.client, self.cached_repo_path),
+            
+            # Chain of Thought (CoT) Quality Reviews
+            "CoT Structure Validation": CoTStructureReviewer(self.client),
+            "CoT Thought Quality": CoTThoughtQualityReviewer(self.client),
+            "CoT Approach Progression": CoTApproachProgressionReviewer(self.client),
+            "CoT Variable Consistency": CoTVariableConsistencyReviewer(self.client),
+            "CoT Line References": CoTLineReferenceReviewer(self.client),
+            "CoT Logical Continuity": CoTLogicalContinuityReviewer(self.client),
+            "CoT Markdown Formatting": CoTMarkdownFormattingReviewer(self.client),
+            "CoT Metadata Alignment": CoTMetadataAlignmentReviewer(self.client),
+            "CoT Language Consistency": CoTLanguageConsistencyReviewer(self.client),
+            "CoT Constraint Validation": CoTConstraintValidationReviewer(self.client),
+            "Response Structure": ResponseStructureReviewer(self.client)
         }
     
     def _thread_safe_print(self, message: str, force_quiet=False):

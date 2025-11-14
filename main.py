@@ -8,19 +8,6 @@ A scalable AI-powered document review system for competitive programming problem
 import sys
 import argparse
 
-# Check Python version before importing anything else
-if sys.version_info < (3, 13):
-    print("❌ Error: Python 3.13 or higher is required")
-    print(f"   Current version: Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
-    print("\n📦 Installation instructions:")
-    print("   Ubuntu/Debian:")
-    print("     sudo add-apt-repository ppa:deadsnakes/ppa")
-    print("     sudo apt update")
-    print("     sudo apt install python3.13 python3.13-venv python3.13-dev")
-    print("\n   Then run this script with:")
-    print("     python3.13 main.py <arguments>")
-    sys.exit(1)
-
 from document_reviewer import DocumentReviewSystem, ReviewResult
 
 

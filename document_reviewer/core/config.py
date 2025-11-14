@@ -19,6 +19,11 @@ class Config:
     # API Configuration
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
+    # Retry Configuration
+    API_RETRY_ATTEMPTS = 3  # Number of retry attempts for API calls
+    API_RETRY_DELAY = 2  # Initial delay in seconds, will use exponential backoff
+    API_TIMEOUT = 300  # Timeout in seconds for API calls (5 minutes)
+    
     # Rate Limiting
     API_CALL_DELAY = 0.5  # seconds
     
