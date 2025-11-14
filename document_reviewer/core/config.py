@@ -9,27 +9,30 @@ class Config:
     """Configuration class for the document review system"""
     
     # Model Configuration
-    PRIMARY_MODEL = "gpt-5"  # GPT-5 for main review calls
+    PRIMARY_MODEL = "gpt-5"  # GPT-5 for main review calls (highest quality)
     SECONDARY_MODEL = "gpt-4o"  # GPT-4o for cleanup operations
+    GEMINI_MODEL = "gemini-2.0-flash-thinking-exp-1219"  # Gemini 2.5 Pro with thinking mode
     
     # Cleanup Configuration
-    ENABLE_FAILURE_CLEANUP = False  # Toggle for second summarization call on failures
+    ENABLE_FAILURE_CLEANUP = True  # Toggle for second summarization call on failures
     
     # Token Limits
-    MAX_OUTPUT_TOKENS = 20000
-    CLEANUP_MAX_TOKENS = 16000
+    MAX_OUTPUT_TOKENS = 5000  # Reduced for GPT-5 (reasoning does heavy lifting, output is concise)
+    CLEANUP_MAX_TOKENS = 8000
+    GEMINI_MAX_OUTPUT_TOKENS = 8000  # Gemini supports higher token limits
     
     # API Configuration
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')  # Google AI Studio API key
     
     # Retry Configuration
     API_RETRY_ATTEMPTS = 5  # Number of retry attempts for API calls (increased for reliability)
     API_RETRY_DELAY = 3  # Initial delay in seconds, will use exponential backoff
-    API_TIMEOUT = 600  # Timeout in seconds for API calls (10 minutes for GPT-5 reasoning)
+    API_TIMEOUT = 120  # Timeout in seconds for API calls (2 minutes for GPT-4o)
     
     # Rate Limiting
-    API_CALL_DELAY = 0.5  # seconds
-    MAX_PARALLEL_REVIEWS = 1  # Sequential execution (1 = no parallelism, prevents throttling)
+    API_CALL_DELAY = 0  # No delay needed with proper parallelism control
+    MAX_PARALLEL_REVIEWS = 8  # Conservative parallelism for GPT-5 (prevents throttling, maintains quality)
     
     # GitHub Configuration
     CLONE_TIMEOUT = 60  # seconds

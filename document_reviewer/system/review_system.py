@@ -19,10 +19,12 @@ from ..utils.repo_cache import RepositoryCache
 class DocumentReviewSystem:
     """Main system orchestrating all reviews"""
     
-    def __init__(self, quiet_mode=False):
+    def __init__(self, quiet_mode=False, use_gemini=False, override_effort=None):
         self.detailed_output = []  # Capture all detailed output for the report
         self.output_lock = threading.Lock()  # Thread-safe output
         self.quiet_mode = quiet_mode  # Control output verbosity
+        self.use_gemini = use_gemini  # Whether to use Gemini instead of GPT-5
+        self.override_effort = override_effort  # Override reasoning effort for all reviews (low/medium/high)
         self.client = None  # Will be initialized when needed
         self.reviewers = {}  # Will be initialized when needed
         self.repo_cache = RepositoryCache(quiet_mode=quiet_mode)  # Repository cache manager
@@ -191,76 +193,188 @@ class DocumentReviewSystem:
 🔍 Tried sources: {', '.join([source for source, _ in keys_to_try])}
 """
         raise ValueError(error_msg.strip())
+    
+    def _ensure_gemini_client(self):
+        """Ensure Gemini client is initialized with proper error handling"""
+        if self.client is not None:
+            return  # Already initialized
+        
+        try:
+            import google.generativeai as genai
+        except ImportError:
+            error_msg = """
+❌ Google Generative AI library not installed!
+
+📝 Setup Instructions:
+   Install the library:
+   └─ pip install google-generativeai
+"""
+            raise ValueError(error_msg.strip())
+        
+        # Try multiple API key sources in order
+        keys_to_try = []
+        
+        # First check .env file
+        env_path = '.env'
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        if key == 'GOOGLE_API_KEY':
+                            # Remove quotes if present
+                            if value.startswith('"') and value.endswith('"'):
+                                value = value[1:-1]
+                            elif value.startswith("'") and value.endswith("'"):
+                                value = value[1:-1]
+                            # Only try non-placeholder keys
+                            if value and not value.startswith('your-key'):
+                                keys_to_try.append(('.env file', value))
+        
+        # Add environment variable as fallback
+        env_key = os.getenv('GOOGLE_API_KEY')
+        if env_key and not env_key.startswith('your-key'):
+            keys_to_try.append(('environment variable', env_key))
+        
+        if not keys_to_try:
+            # No valid keys found
+            error_msg = """
+❌ GOOGLE_API_KEY not found!
+
+📝 Setup Instructions:
+   Option 1 (Recommended): Create .env file
+   └─ echo "GOOGLE_API_KEY=your-actual-key-here" > .env
+   
+   Option 2: Set environment variable  
+   └─ export GOOGLE_API_KEY=your-actual-key-here
+   
+💡 Get your API key from: https://aistudio.google.com/apikey
+
+🔍 Current search locations:
+   1. .env file in current directory (preferred)
+   2. GOOGLE_API_KEY environment variable
+"""
+            raise ValueError(error_msg.strip())
+        
+        # Try each key until one works
+        last_error = None
+        for source, api_key in keys_to_try:
+            try:
+                print(f"🔑 Testing Gemini API key from {source}...")
+                
+                genai.configure(api_key=api_key)
+                self.client = genai.GenerativeModel(Config.GEMINI_MODEL)
+                
+                # Test the key with a simple call
+                response = self.client.generate_content("Hello")
+                
+                if response and response.text:
+                    print(f"✅ Gemini API key from {source} is valid and working!")
+                    # Initialize reviewers now that we have a working client
+                    self.__init_reviewers__()
+                    return
+                else:
+                    raise ValueError("API responded but with no content")
+                    
+            except Exception as e:
+                last_error = e
+                print(f"❌ Gemini API key from {source} failed: {str(e)}")
+                self.client = None  # Reset client for next attempt
+                continue
+        
+        # All keys failed
+        error_msg = f"""
+❌ All Gemini API keys failed validation!
+
+🔧 Last error: {str(last_error)}
+
+🔧 Common issues:
+   • Invalid API key format
+   • Network connectivity problems
+   • Rate limiting or quota exceeded
+
+💡 Get a valid API key from: https://aistudio.google.com/apikey
+
+🔍 Tried sources: {', '.join([source for source, _ in keys_to_try])}
+"""
+        raise ValueError(error_msg.strip())
         
     def __init_reviewers__(self):
         """Initialize all Ultimate reviewers - each as individual API call"""
-        # At this point, self.client should be initialized by _ensure_openai_client()
+        # At this point, self.client should be initialized by _ensure_openai_client() or _ensure_gemini_client()
         assert self.client is not None, "OpenAI client must be initialized before creating reviewers"
         
+        # Helper function to get effort (use override if provided, otherwise use default)
+        def get_effort(default_effort):
+            return self.override_effort if self.override_effort else default_effort
+        
         self.reviewers = {
-            # Solution Uniqueness Validation
-            "Unique Solution Validation": UniqueSolutionReviewer(self.client),
+            # Solution Uniqueness Validation - HIGH (complex logic validation)
+            "Unique Solution Validation": UniqueSolutionReviewer(self.client, reasoning_effort=get_effort("high")),
             
-            # Time Complexity Check
-            "Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client),
+            # Time Complexity Check - HIGH (requires deep algorithmic analysis)
+            "Time Complexity Authenticity Check": TimeComplexityAuthenticityReviewer(self.client, reasoning_effort=get_effort("high")),
             
-            # Code Quality
-            "Style Guide Compliance": StyleGuideReviewer(self.client),
-            "Naming Conventions": NamingConventionsReviewer(self.client),
-            "Documentation Standards": DocumentationReviewer(self.client),
+            # Code Quality - LOW (pattern matching and style checks)
+            "Style Guide Compliance": StyleGuideReviewer(self.client, reasoning_effort=get_effort("low")),
+            "Naming Conventions": NamingConventionsReviewer(self.client, reasoning_effort=get_effort("low")),
+            "Documentation Standards": DocumentationReviewer(self.client, reasoning_effort=get_effort("low")),
             
-            # Response Quality  
-            "Response Relevance to Problem": ResponseRelevanceReviewer(self.client),
-            "Mathematical Equations Correctness": MathEquationsReviewer(self.client),
-            "Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client),
-            "Missing Approaches in Steps": MissingApproachesReviewer(self.client),
-            "Code Elements Existence": CodeElementsExistenceReviewer(self.client),
-            "Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client),
-            "Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client),
-            "Conclusion Quality": ConclusionQualityReviewer(self.client),
+            # Response Quality - MEDIUM/HIGH (content validation)
+            "Response Relevance to Problem": ResponseRelevanceReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Mathematical Equations Correctness": MathEquationsReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Problem Constraints Consistency": ConstraintsConsistencyReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Missing Approaches in Steps": MissingApproachesReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Code Elements Existence": CodeElementsExistenceReviewer(self.client, reasoning_effort=get_effort("low")),
+            "Example Walkthrough with Optimal Algorithm": ExampleWalkthroughReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Time and Space Complexity Correctness": ComplexityCorrectnessReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Conclusion Quality": ConclusionQualityReviewer(self.client, reasoning_effort=get_effort("medium")),
             
-            # Problem Statement and Solution Quality
-            "Problem Statement Consistency": ProblemConsistencyReviewer(self.client),
-            "Solution Passability According to Limits": SolutionPassabilityReviewer(self.client),
-            "Metadata Correctness": MetadataCorrectnessReviewer(self.client),
-            "Test Case Validation": TestCaseValidationReviewer(self.client),
-            "Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client),
-            "Note Section Explanation Approach": NoteSectionReviewer(self.client),
+            # Problem Statement and Solution Quality - MEDIUM
+            "Problem Statement Consistency": ProblemConsistencyReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Solution Passability According to Limits": SolutionPassabilityReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Metadata Correctness": MetadataCorrectnessReviewer(self.client, reasoning_effort=get_effort("low")),
+            "Test Case Validation": TestCaseValidationReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Sample Test Case Dry Run Validation": SampleDryRunValidationReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Note Section Explanation Approach": NoteSectionReviewer(self.client, reasoning_effort=get_effort("medium")),
             
-            # Reasoning Chain Quality
-            "Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client),
-            "Final Approach Discussion": FinalApproachDiscussionReviewer(self.client),
-            "No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client),
+            # Reasoning Chain Quality - HIGH (deep logical analysis)
+            "Inefficient Approaches Limitations": InefficientLimitationsReviewer(self.client, reasoning_effort=get_effort("high")),
+            "Final Approach Discussion": FinalApproachDiscussionReviewer(self.client, reasoning_effort=get_effort("high")),
+            "No Code in Reasoning Chains": NoCodeInReasoningReviewer(self.client, reasoning_effort=get_effort("low")),
             
-            # Subtopic, Taxonomy, and Reasoning Analysis
-            "Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client),
+            # Subtopic, Taxonomy, and Reasoning Analysis - MEDIUM
+            "Subtopic Taxonomy Validation": SubtopicTaxonomyReviewer(self.client, reasoning_effort=get_effort("medium")),
             
-            # Time and Memory Limit Validation
-            "Time Limit Validation": TimeLimitValidationReviewer(self.client),
-            "Memory Limit Validation": MemoryLimitValidationReviewer(self.client),
-            "Subtopic Relevance": SubtopicRelevanceReviewer(self.client),
-            "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client),
-            "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client),
-            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client),
+            # Time and Memory Limit Validation - MEDIUM
+            "Time Limit Validation": TimeLimitValidationReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Memory Limit Validation": MemoryLimitValidationReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Subtopic Relevance": SubtopicRelevanceReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Missing Relevant Subtopics": MissingSubtopicsReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Natural Thinking Flow in Thoughts": PredictiveHeadingsReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Mathematical Variables and Expressions Formatting": MathFormattingReviewer(self.client, reasoning_effort=get_effort("low")),
             
-            # Limits Consistency Check (with cached repo path)
-            "Limits Consistency Check": LimitsConsistencyReviewer(self.client, self.cached_repo_path),
+            # Limits Consistency Check (with cached repo path) - MEDIUM
+            "Limits Consistency Check": LimitsConsistencyReviewer(self.client, self.cached_repo_path, reasoning_effort=get_effort("medium")),
             
-            # Example Validation (with cached repo path)
-            "Example Validation": ExampleValidationReviewer(self.client, self.cached_repo_path),
+            # Example Validation (with cached repo path) - HIGH (requires execution validation)
+            "Example Validation": ExampleValidationReviewer(self.client, self.cached_repo_path, reasoning_effort=get_effort("high")),
             
-            # Chain of Thought (CoT) Quality Reviews
-            "CoT Structure Validation": CoTStructureReviewer(self.client),
-            "CoT Thought Quality": CoTThoughtQualityReviewer(self.client),
-            "CoT Approach Progression": CoTApproachProgressionReviewer(self.client),
-            "CoT Variable Consistency": CoTVariableConsistencyReviewer(self.client),
-            "CoT Line References": CoTLineReferenceReviewer(self.client),
-            "CoT Logical Continuity": CoTLogicalContinuityReviewer(self.client),
-            "CoT Markdown Formatting": CoTMarkdownFormattingReviewer(self.client),
-            "CoT Metadata Alignment": CoTMetadataAlignmentReviewer(self.client),
-            "CoT Language Consistency": CoTLanguageConsistencyReviewer(self.client),
-            "CoT Constraint Validation": CoTConstraintValidationReviewer(self.client),
-            "Response Structure": ResponseStructureReviewer(self.client)
+            # Chain of Thought (CoT) Quality Reviews - MEDIUM/HIGH
+            "CoT Structure Validation": CoTStructureReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "CoT Thought Quality": CoTThoughtQualityReviewer(self.client, reasoning_effort=get_effort("high")),
+            "CoT Approach Progression": CoTApproachProgressionReviewer(self.client, reasoning_effort=get_effort("high")),
+            "CoT Variable Consistency": CoTVariableConsistencyReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "CoT Line References": CoTLineReferenceReviewer(self.client, reasoning_effort=get_effort("low")),
+            "CoT Logical Continuity": CoTLogicalContinuityReviewer(self.client, reasoning_effort=get_effort("high")),
+            "CoT Markdown Formatting": CoTMarkdownFormattingReviewer(self.client, reasoning_effort=get_effort("low")),
+            "CoT Metadata Alignment": CoTMetadataAlignmentReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "CoT Language Consistency": CoTLanguageConsistencyReviewer(self.client, reasoning_effort=get_effort("low")),
+            "CoT Constraint Validation": CoTConstraintValidationReviewer(self.client, reasoning_effort=get_effort("medium")),
+            "Response Structure": ResponseStructureReviewer(self.client, reasoning_effort=get_effort("low"))
         }
     
     def _thread_safe_print(self, message: str, force_quiet=False):

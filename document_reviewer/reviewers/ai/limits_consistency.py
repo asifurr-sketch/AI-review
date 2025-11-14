@@ -12,9 +12,9 @@ from ...core.models import ReviewResponse, ReviewResult
 class LimitsConsistencyReviewer(BaseReviewer):
     """Reviews if time and space limits are consistent across report, problem_statement.md, requirements.json, and metadata.json"""
     
-    def __init__(self, client, cached_repo_path: Optional[str] = None):
+    def __init__(self, client, cached_repo_path: Optional[str] = None, reasoning_effort: str = "medium"):
         """Initialize with optional cached repository path"""
-        super().__init__(client)
+        super().__init__(client, reasoning_effort=reasoning_effort)
         self.cached_repo_path = cached_repo_path
     
     def review(self, document: str) -> ReviewResponse:

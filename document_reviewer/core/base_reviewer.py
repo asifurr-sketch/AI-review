@@ -12,10 +12,11 @@ from ..core.config import Config
 class BaseReviewer:
     """Base class for all document reviewers"""
     
-    def __init__(self, client: OpenAI):
+    def __init__(self, client: OpenAI, reasoning_effort: str = "medium"):
         self.client = client
         self.primary_model = Config.PRIMARY_MODEL
         self.secondary_model = Config.SECONDARY_MODEL
+        self.reasoning_effort = reasoning_effort  # "low", "medium", or "high"
     
     def review(self, document: str) -> ReviewResponse:
         """Perform the review and return structured results"""
@@ -128,9 +129,25 @@ Original Response:
             return f"[Cleanup failed: {str(e)}]\n\n{failure_response}"
 
     def _make_api_call(self, prompt: str, document: str) -> str:
-        """Make API call to GPT-5 with thinking mode enabled (no retries)"""
+        """Make API call to GPT-5 or Gemini with thinking mode enabled (no retries)"""
         try:
-            if self.primary_model.startswith("gpt-5"):
+            # Check if using Gemini
+            if hasattr(self.client, 'generate_content'):
+                # Gemini API
+                full_prompt = f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                response = self.client.generate_content(
+                    full_prompt,
+                    generation_config={
+                        "max_output_tokens": Config.GEMINI_MAX_OUTPUT_TOKENS,
+                        "temperature": 0.3,
+                    }
+                )
+                response_text = response.text if response and response.text else None
+                if not response_text or response_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return response_text
+            
+            elif self.primary_model.startswith("gpt-5"):
                 # GPT-5 uses Responses API with thinking mode
                 response = self.client.responses.create(
                     model=self.primary_model,
@@ -140,7 +157,7 @@ Original Response:
                             "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
                         }
                     ],
-                    reasoning={"effort": "high"},
+                    reasoning={"effort": self.reasoning_effort},
                     max_output_tokens=Config.MAX_OUTPUT_TOKENS,
                     timeout=Config.API_TIMEOUT
                 )

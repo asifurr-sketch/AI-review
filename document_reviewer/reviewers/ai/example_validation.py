@@ -17,9 +17,9 @@ from ...prompts import ContentPrompts
 class ExampleValidationReviewer(BaseReviewer):
     """Validates that examples in metadata.json match exactly with problem statement examples"""
     
-    def __init__(self, client, cached_repo_path: Optional[str] = None):
+    def __init__(self, client, cached_repo_path: Optional[str] = None, reasoning_effort: str = "high"):
         """Initialize with optional cached repository path"""
-        super().__init__(client)
+        super().__init__(client, reasoning_effort=reasoning_effort)
         self.cached_repo_path = cached_repo_path
     
     def review(self, document: str) -> ReviewResponse:

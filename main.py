@@ -33,6 +33,10 @@ def main():
                        help='Run only AI reviews, skip GitHub validation')
     parser.add_argument('--single-review', type=str, metavar='NAME',
                        help='Run only a single AI review by name (e.g., "Solution Uniqueness Validation")')
+    parser.add_argument('--gemini', action='store_true',
+                       help='Use Gemini 2.5 Pro with thinking mode instead of GPT-5 (faster)')
+    parser.add_argument('--effort', type=str, choices=['low', 'medium', 'high'], default=None,
+                       help='Override reasoning effort for all reviews (low/medium/high). Default: per-review optimized effort')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose output (show all execution details in terminal)')
     
@@ -52,8 +56,8 @@ def main():
     github_only = args.github_only
     single_review = args.single_review
     
-    # Initialize review system first for dynamic validation
-    review_system = DocumentReviewSystem(quiet_mode=False)
+    # Initialize review system first for dynamic validation (pass use_gemini and override_effort flags)
+    review_system = DocumentReviewSystem(quiet_mode=False, use_gemini=args.gemini, override_effort=args.effort)
     
     # Validate single review name if specified
     if single_review:
@@ -74,11 +78,14 @@ def main():
     
     try:
         # Initialize review system with quiet mode (unless verbose flag is set)
-        review_system = DocumentReviewSystem(quiet_mode=not args.verbose)
+        review_system = DocumentReviewSystem(quiet_mode=not args.verbose, use_gemini=args.gemini, override_effort=args.effort)
         
         # Validate API key early if AI reviews will be needed
         if not github_only:
-            review_system._ensure_openai_client()
+            if args.gemini:
+                review_system._ensure_gemini_client()
+            else:
+                review_system._ensure_openai_client()
         
         # Load document
         print(f"📖 Loading document from {args.file}...")
@@ -87,8 +94,13 @@ def main():
         
         # Model information
         print("\n🤖 Model Configuration:")
-        print("   Primary: GPT-5 (gpt-5) with thinking mode enabled (reasoning effort: low)")
-        print("   Secondary: GPT-4o (gpt-4o) for cleanup operations")
+        if args.gemini:
+            print("   Primary: Gemini 2.5 Pro (gemini-2.0-flash-thinking-exp-1219) with thinking mode")
+            print("   Secondary: Gemini 2.5 Pro for cleanup operations")
+        else:
+            effort_mode = args.effort if args.effort else "dynamic (per-review optimized)"
+            print(f"   Primary: GPT-5 (gpt-5) with thinking mode enabled (reasoning effort: {effort_mode})")
+            print("   Secondary: GPT-4o (gpt-4o) for cleanup operations")
         print("   Max tokens: 16,000 (GPT-5 + reasoning) / 16,000 (GPT-4o cleanup)")
         print()
         
