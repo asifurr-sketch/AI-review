@@ -12,6 +12,9 @@ class Config:
     PRIMARY_MODEL = "gpt-5"  # GPT-5 for main review calls
     SECONDARY_MODEL = "gpt-4o"  # GPT-4o for cleanup operations
     
+    # Cleanup Configuration
+    ENABLE_FAILURE_CLEANUP = False  # Toggle for second summarization call on failures
+    
     # Token Limits
     MAX_OUTPUT_TOKENS = 20000
     CLEANUP_MAX_TOKENS = 16000

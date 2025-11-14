@@ -24,6 +24,10 @@ class BaseReviewer:
     def _clean_failure_response(self, failure_response: str) -> str:
         """Enhanced cleanup with specific instructions for precise location reporting"""
         
+        # Check if cleanup is enabled
+        if not Config.ENABLE_FAILURE_CLEANUP:
+            return failure_response.strip()
+        
         # Handle empty or "No text content" responses
         if not failure_response or failure_response.strip() == "":
             return "No failure details available - empty response from API"
