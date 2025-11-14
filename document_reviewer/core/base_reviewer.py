@@ -128,100 +128,67 @@ Original Response:
             return f"[Cleanup failed: {str(e)}]\n\n{failure_response}"
 
     def _make_api_call(self, prompt: str, document: str) -> str:
-        """Make API call to GPT-5 with thinking mode enabled, with retry logic"""
-        last_error = None
-        
-        for attempt in range(Config.API_RETRY_ATTEMPTS):
-            try:
-                if self.primary_model.startswith("gpt-5"):
-                    # GPT-5 uses Responses API with thinking mode
-                    response = self.client.responses.create(
-                        model=self.primary_model,
-                        input=[
-                            {
-                                "role": "user", 
-                                "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                            }
-                        ],
-                        reasoning={"effort": "high"},
-                        max_output_tokens=Config.MAX_OUTPUT_TOKENS,
-                        timeout=Config.API_TIMEOUT
-                    )
-                    output_text = response.output_text if hasattr(response, 'output_text') and response.output_text else None
-                    if not output_text or output_text.strip() == "":
-                        last_error = "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
-                        if attempt < Config.API_RETRY_ATTEMPTS - 1:
-                            delay = Config.API_RETRY_DELAY * (2 ** attempt)
-                            print(f"⚠️  API returned empty response (attempt {attempt + 1}/{Config.API_RETRY_ATTEMPTS}), retrying in {delay}s...")
-                            time.sleep(delay)
-                            continue
-                        return last_error
-                    return output_text
-                    
-                elif self.primary_model.startswith("o"):
-                    # O-series models
-                    response = self.client.chat.completions.create(
-                        model=self.primary_model,
-                        messages=[
-                            {
-                                "role": "user", 
-                                "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                            }
-                        ],
-                        max_completion_tokens=Config.MAX_OUTPUT_TOKENS,
-                        temperature=0.3,
-                        timeout=Config.API_TIMEOUT
-                    )
-                    response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
-                    if not response_text or response_text.strip() == "":
-                        last_error = "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
-                        if attempt < Config.API_RETRY_ATTEMPTS - 1:
-                            delay = Config.API_RETRY_DELAY * (2 ** attempt)
-                            print(f"⚠️  API returned empty response (attempt {attempt + 1}/{Config.API_RETRY_ATTEMPTS}), retrying in {delay}s...")
-                            time.sleep(delay)
-                            continue
-                        return last_error
-                    return response_text
-                    
-                else:
-                    # GPT-4 models
-                    response = self.client.chat.completions.create(
-                        model=self.primary_model,
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
-                            }
-                        ],
-                        max_tokens=Config.MAX_OUTPUT_TOKENS,
-                        temperature=0.3,
-                        timeout=Config.API_TIMEOUT
-                    )
-                    response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
-                    if not response_text or response_text.strip() == "":
-                        last_error = "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
-                        if attempt < Config.API_RETRY_ATTEMPTS - 1:
-                            delay = Config.API_RETRY_DELAY * (2 ** attempt)
-                            print(f"⚠️  API returned empty response (attempt {attempt + 1}/{Config.API_RETRY_ATTEMPTS}), retrying in {delay}s...")
-                            time.sleep(delay)
-                            continue
-                        return last_error
-                    return response_text
+        """Make API call to GPT-5 with thinking mode enabled (no retries)"""
+        try:
+            if self.primary_model.startswith("gpt-5"):
+                # GPT-5 uses Responses API with thinking mode
+                response = self.client.responses.create(
+                    model=self.primary_model,
+                    input=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    reasoning={"effort": "high"},
+                    max_output_tokens=Config.MAX_OUTPUT_TOKENS,
+                    timeout=Config.API_TIMEOUT
+                )
+                output_text = response.output_text if hasattr(response, 'output_text') and response.output_text else None
+                if not output_text or output_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return output_text
                 
-            except Exception as e:
-                last_error = f"Error in AI call: {str(e)}"
-                error_str = str(e).lower()
-                # Retry on timeout or connection errors
-                if (attempt < Config.API_RETRY_ATTEMPTS - 1 and 
-                    ('timeout' in error_str or 'timed out' in error_str or 
-                     'connection' in error_str or 'empty response' in error_str)):
-                    delay = Config.API_RETRY_DELAY * (2 ** attempt)
-                    print(f"⚠️  API error: {str(e)} (attempt {attempt + 1}/{Config.API_RETRY_ATTEMPTS}), retrying in {delay}s...")
-                    time.sleep(delay)
-                    continue
-                return last_error
-        
-        return last_error if last_error else "Error: All retry attempts exhausted"
+            elif self.primary_model.startswith("o"):
+                # O-series models
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user", 
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_completion_tokens=Config.MAX_OUTPUT_TOKENS,
+                    temperature=0.3,
+                    timeout=Config.API_TIMEOUT
+                )
+                response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
+                if not response_text or response_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return response_text
+                
+            else:
+                # GPT-4 models
+                response = self.client.chat.completions.create(
+                    model=self.primary_model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"{prompt}\n\n=== DOCUMENT TO REVIEW ===\n{document}"
+                        }
+                    ],
+                    max_tokens=Config.MAX_OUTPUT_TOKENS,
+                    temperature=0.3,
+                    timeout=Config.API_TIMEOUT
+                )
+                response_text = response.choices[0].message.content if response.choices and response.choices[0].message.content else None
+                if not response_text or response_text.strip() == "":
+                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                return response_text
+            
+        except Exception as e:
+            return f"Error in AI call: {str(e)}"
     
     def _parse_response(self, response: str) -> ReviewResponse:
         """Parse the LLM response to extract pass/fail and reasoning"""

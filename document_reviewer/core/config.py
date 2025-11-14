@@ -23,12 +23,13 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
     # Retry Configuration
-    API_RETRY_ATTEMPTS = 3  # Number of retry attempts for API calls
-    API_RETRY_DELAY = 2  # Initial delay in seconds, will use exponential backoff
-    API_TIMEOUT = 300  # Timeout in seconds for API calls (5 minutes)
+    API_RETRY_ATTEMPTS = 5  # Number of retry attempts for API calls (increased for reliability)
+    API_RETRY_DELAY = 3  # Initial delay in seconds, will use exponential backoff
+    API_TIMEOUT = 600  # Timeout in seconds for API calls (10 minutes for GPT-5 reasoning)
     
     # Rate Limiting
     API_CALL_DELAY = 0.5  # seconds
+    MAX_PARALLEL_REVIEWS = 1  # Sequential execution (1 = no parallelism, prevents throttling)
     
     # GitHub Configuration
     CLONE_TIMEOUT = 60  # seconds

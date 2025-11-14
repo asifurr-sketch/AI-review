@@ -566,8 +566,8 @@ class DocumentReviewSystem:
                 self._progress_print(start_msg)
             
             # Use ThreadPoolExecutor for parallel execution with higher concurrency
-            # Increased max_workers for better parallelism (all reviews run simultaneously)
-            max_workers = len(ai_reviews_to_run)  # Run all AI reviews in parallel
+            # Limit max_workers to prevent rate limiting and timeouts
+            max_workers = min(Config.MAX_PARALLEL_REVIEWS, len(ai_reviews_to_run))
             
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all AI reviews to the thread pool
