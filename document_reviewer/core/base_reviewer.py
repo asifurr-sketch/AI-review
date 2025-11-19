@@ -161,9 +161,41 @@ Original Response:
                     max_output_tokens=Config.MAX_OUTPUT_TOKENS,
                     timeout=Config.API_TIMEOUT
                 )
-                output_text = response.output_text if hasattr(response, 'output_text') and response.output_text else None
-                if not output_text or output_text.strip() == "":
-                    return "Error: API returned empty response. This may indicate the prompt needs refinement or the model timed out."
+                
+                # GPT-5 Responses API: response.text is a ResponseTextConfig object with .content attribute
+                output_text = None
+                if hasattr(response, 'text') and response.text:
+                    # response.text is ResponseTextConfig, need to get .content from it
+                    if hasattr(response.text, 'content'):
+                        output_text = response.text.content
+                    else:
+                        output_text = str(response.text)
+                elif hasattr(response, 'output_text') and response.output_text:
+                    output_text = response.output_text
+                elif hasattr(response, 'output') and response.output:
+                    if isinstance(response.output, list) and response.output:
+                        # Extract text from output array
+                        for item in response.output:
+                            if hasattr(item, 'content'):
+                                output_text = item.content
+                                break
+                            elif hasattr(item, 'text'):
+                                output_text = str(item.text)
+                                break
+                            elif isinstance(item, dict) and 'text' in item:
+                                output_text = item['text']
+                                break
+                
+                if not output_text or (isinstance(output_text, str) and output_text.strip() == ""):
+                    # Debug: provide detailed error information
+                    error_details = f"API returned empty response."
+                    if hasattr(response, 'status'):
+                        error_details += f" Status: {response.status}"
+                    if hasattr(response, 'error') and response.error:
+                        error_details += f" Error: {response.error}"
+                    if hasattr(response, 'incomplete_details') and response.incomplete_details:
+                        error_details += f" Incomplete: {response.incomplete_details}"
+                    return f"Error: {error_details}"
                 return output_text
                 
             elif self.primary_model.startswith("o"):

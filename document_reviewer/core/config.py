@@ -17,8 +17,8 @@ class Config:
     ENABLE_FAILURE_CLEANUP = True  # Toggle for second summarization call on failures
     
     # Token Limits
-    MAX_OUTPUT_TOKENS = 5000  # Reduced for GPT-5 (reasoning does heavy lifting, output is concise)
-    CLEANUP_MAX_TOKENS = 8000
+    MAX_OUTPUT_TOKENS = 16000  # Maximum for GPT-5 (no token shortage)
+    CLEANUP_MAX_TOKENS = 16000
     GEMINI_MAX_OUTPUT_TOKENS = 8000  # Gemini supports higher token limits
     
     # API Configuration
@@ -28,7 +28,7 @@ class Config:
     # Retry Configuration
     API_RETRY_ATTEMPTS = 5  # Number of retry attempts for API calls (increased for reliability)
     API_RETRY_DELAY = 3  # Initial delay in seconds, will use exponential backoff
-    API_TIMEOUT = 120  # Timeout in seconds for API calls (2 minutes for GPT-4o)
+    API_TIMEOUT = None  # No timeout - let it run as long as needed
     
     # Rate Limiting
     API_CALL_DELAY = 0  # No delay needed with proper parallelism control
